@@ -1,0 +1,9 @@
+{
+  "name": "tributary-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static pages for Tributary. No build step.",
+  "scripts": {
+    "test": "node --test \"test/*.test.cjs\""
+  }
+}

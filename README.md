@@ -1,70 +1,42 @@
 # Tributary
 
-International aid budgets are falling while AI budgets keep growing. Tributary routes a
-small share of AI spend to development projects aligned with UN SDG 17 (Partnerships for
-the Goals). Organizations meter their API usage through a proxy or pledge a share of
-their AI budget. Individuals add a small top-up to their subscriptions.
+Aid budgets are shrinking. AI budgets aren't. Tributary is a round-up button inside AI
+credit checkouts. A Canadian buying US$25 of credits pays C$38.64 after conversion and
+tax; one checkbox rounds it to C$39.00 and sends the 36 cents to a development project
+chosen each month (UN SDG 17, targets 17.3 and 17.17).
 
-StormHacks 2026 prototype. All figures, organizations and contributors on the pages are
-demo data.
+StormHacks 2026 prototype.
 
-## Run the pages
+## Run
 
-No build step. Serve the `web` folder:
+No build step and no backend. Serve the `web` folder:
 
 ```bash
 python -m http.server 5173 --directory web
 ```
 
-Then open http://localhost:5173. Pages:
+- http://localhost:5173/console/billing.html the provider's billing page. Click Buy
+  credits, tick the round-up, pay.
+- http://localhost:5173/ the Tributary page. Your round-up appears in the latest
+  round-ups feed and in October's total.
 
-- `index.html` landing page with running totals, project of the month and contributor register
-- `organizations.html` organization pledge flow
-- `individuals.html` individual pledge flow
+Round-ups are passed between the pages through browser `localStorage`. To reset the demo,
+run `localStorage.removeItem("tributary.roundups")` in the browser console.
 
-## Run the proxy
+## Demo script
 
-Requires Node 20 or later. No dependencies.
-
-```bash
-npm --prefix proxy start
-```
-
-Point a client at it by changing the base URL:
-
-- OpenAI-compatible: `http://localhost:8787/openai/v1`
-- Anthropic: `http://localhost:8787/anthropic`
-
-Send `x-tributary-key: <contributor id>` to attribute usage. The proxy strips that header
-before forwarding. It forwards everything else unchanged, reads token usage from JSON and
-streamed responses, prices the call with `proxy/prices.json`, and appends a ledger line to
-`proxy/data/ledger.jsonl`. Prompts and outputs are not stored.
-
-`GET /tributary/summary` returns totals. The landing page reads it when the proxy is
-running and adds a "Your local proxy" row to the register.
-
-Configuration (environment variables):
-
-| Variable | Default |
-|---|---|
-| `PORT` | `8787` |
-| `PLEDGE_RATE` | `0.005` (0.5% of metered cost) |
-| `OPENAI_UPSTREAM` | `https://api.openai.com` |
-| `ANTHROPIC_UPSTREAM` | `https://api.anthropic.com` |
-| `PRICES_PATH` | `proxy/prices.json` |
-| `LEDGER_PATH` | `proxy/data/ledger.jsonl` |
-
-The prices in `prices.json` are placeholders. Add real per-model prices before relying on
-the cost figures.
+1. Billing page: low balance, click Buy credits, pick $25, BC.
+2. Tick "Round up for global development". The total goes from C$38.64 to C$39.00.
+3. Pay. The confirmation shows the 36 cents going to this month's project.
+4. Open the Tributary page: totals, the new round-up at the top of the feed, giving history.
 
 ## Tests
 
 ```bash
-npm --prefix proxy test
+npm --prefix web test
 ```
 
-## Not built yet
+## Proxy
 
-- Payments. Both pledge flows end in a demo confirmation.
-- A shared ledger. The proxy ledger is a local file.
-- Proxy authentication, rate limiting and deployment.
+`proxy/` holds a metering proxy from an earlier direction. It is not used by the current
+demo. See its tests with `npm --prefix proxy test`.

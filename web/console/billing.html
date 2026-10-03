@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+<style>
+  /* Layout concept: an AI lab's developer console, billing section. Neutral
+     ivory surfaces, a quiet sidebar, and a modal checkout. */
+  :root {
+    --bg: #faf9f5;
+    --panel: #ffffff;
+    --sunk: #f3f1ea;
+    --border: #e6e3d8;
+    --text: #1a1a18;
+    --muted: #6f6d66;
+    --primary: #1a1a18;
+    --primary-ink: #faf9f5;
+    --accent: #c4633f;
+    --good: #3f7a4e;
+    --good-soft: #e9f2ea;
+    --scrim: rgba(26, 26, 24, 0.38);
+    --f-head: "Source Serif 4", Georgia, serif;
+    --f-body: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1d1b; --panel: #262523; --sunk: #2d2c29; --border: #3a3935;
+      --text: #f2f0e8; --muted: #a6a39a; --primary: #f2f0e8; --primary-ink: #1e1d1b;
+      --accent: #e08a68; --good: #86c493; --good-soft: #263a2b; --scrim: rgba(0, 0, 0, 0.55);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1d1b; --panel: #262523; --sunk: #2d2c29; --border: #3a3935;
+    --text: #f2f0e8; --muted: #a6a39a; --primary: #f2f0e8; --primary-ink: #1e1d1b;
+    --accent: #e08a68; --good: #86c493; --good-soft: #263a2b; --scrim: rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--f-body); }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .app { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100%; }
+  .side { border-right: 1px solid var(--border); padding: 16px 12px; display: flex; flex-direction: column; gap: 18px; }
+  .org { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); }
+  .org .av { width: 26px; height: 26px; border-radius: 6px; background: var(--sunk); border: 1px solid var(--border); display: grid; place-items: center; font-weight: 600; font-size: 0.8rem; }
+  .org b { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav { display: grid; gap: 2px; }
+  .nav .group { font-size: 0.75rem; color: var(--muted); padding: 10px 10px 4px; }
+  .nav a { display: block; padding: 7px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 0.92rem; }
+  .nav a:hover { background: var(--sunk); color: var(--text); }
+  .nav a[aria-current="page"] { background: var(--sunk); color: var(--text); font-weight: 500; }
+  .side .foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 8px 10px; font-size: 0.88rem; color: var(--muted); }
+  .side .foot .av { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--primary-ink); display: grid; place-items: center; font-weight: 600; font-size: 0.75rem; }
+
+  .main { padding: 36px 40px 64px; min-width: 0; }
+  .main-inner { max-width: 920px; display: grid; gap: 24px; }
+  .main-inner > *, .grid2 > * { min-width: 0; }
+  h1 { font: 500 2rem/1.15 var(--f-head); margin: 0; letter-spacing: -0.01em; }
+  h2 { font: 500 1.15rem/1.3 var(--f-head); margin: 0; }
+  .sub { color: var(--muted); margin: 6px 0 0; }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; }
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .balance { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .balance .amt { font: 500 2.4rem/1 var(--f-head); margin-top: 8px; }
+  .label { font-size: 0.85rem; color: var(--muted); }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; font-weight: 500; font-size: 0.92rem; }
+  .btn:hover { background: var(--sunk); }
+  .btn.primary { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+  .btn.primary:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .link { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border); }
+
+  .card-visa { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .chip { width: 38px; height: 26px; border-radius: 5px; border: 1px solid var(--border); background: var(--sunk); display: grid; place-items: center; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th { text-align: left; font-weight: 500; font-size: 0.82rem; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+  tr:last-child td { border-bottom: 0; }
+  td.r, th.r { text-align: right; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); font-size: 0.78rem; font-weight: 500; }
+  .note { display: block; font-size: 0.8rem; color: var(--muted); }
+  tr.fresh td { animation: fresh 2.4s ease-out; }
+  @keyframes fresh { from { background: var(--good-soft); } to { background: transparent; } }
+
+  .switch { width: 36px; height: 20px; border-radius: 999px; background: var(--border); position: relative; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--panel); }
+
+  /* Modal */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); display: grid; place-items: center; padding: 16px; z-index: 20; }
+  .modal { width: 100%; max-width: 480px; max-height: calc(100% - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.18); animation: rise 0.18s ease-out; }
+  @keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal-head { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .modal-body { padding: 18px 24px; display: grid; gap: 18px; }
+  .modal-foot { padding: 16px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+  .x { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 1.3rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .x:hover { background: var(--sunk); }
+
+  .field { display: grid; gap: 6px; }
+  .field > label { font-size: 0.88rem; font-weight: 500; }
+  .input { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); padding: 0 12px; }
+  .input:focus-within { border-color: var(--text); }
+  .input span { color: var(--muted); }
+  .input input, .input select { border: 0; outline: 0; background: transparent; padding: 10px 6px; width: 100%; min-width: 0; }
+  select.plain { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--panel); width: 100%; }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+  .presets button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; font-size: 0.88rem; }
+  .presets button[aria-pressed="true"] { border-color: var(--text); background: var(--sunk); }
+  .hint { font-size: 0.82rem; color: var(--muted); }
+
+  .summary { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .summary .line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; font-size: 0.9rem; }
+  .summary .line .k { color: var(--muted); }
+  .summary .total { border-top: 1px solid var(--border); font-weight: 600; font-size: 1rem; padding-block: 12px; align-items: baseline; }
+  .summary .total .k { color: var(--text); }
+  .old { color: var(--muted); text-decoration: line-through; font-weight: 400; margin-right: 8px; font-size: 0.9rem; }
+
+  /* The round-up step, styled as part of the native summary. */
+  .roundup { border-top: 1px solid var(--border); background: var(--sunk); padding: 12px 14px; display: grid; gap: 10px; }
+  .roundup .top { display: flex; gap: 10px; align-items: flex-start; }
+  .roundup input[type="checkbox"] { width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--primary); flex: none; }
+  .roundup .t { font-weight: 500; font-size: 0.92rem; }
+  .roundup .d { font-size: 0.84rem; color: var(--muted); }
+  .roundup .amt { margin-left: auto; font-weight: 600; white-space: nowrap; }
+  .steps { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-left: 27px; width: fit-content; }
+  .steps button { border: 0; background: var(--panel); padding: 4px 12px; font-size: 0.82rem; cursor: pointer; }
+  .steps button + button { border-left: 1px solid var(--border); }
+  .steps button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); }
+  .powered { margin-left: 27px; font-size: 0.76rem; color: var(--muted); }
+  .powered a { color: var(--muted); }
+
+  .pay-method { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .pay-method .grow { flex: 1; }
+
+  .spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .done { text-align: center; padding: 30px 24px 8px; display: grid; gap: 10px; justify-items: center; }
+  .tick { width: 46px; height: 46px; border-radius: 50%; background: var(--good-soft); color: var(--good); display: grid; place-items: center; font-size: 1.4rem; }
+  .gift { margin: 4px 24px 0; padding: 14px 16px; border-radius: 10px; background: var(--sunk); border: 1px solid var(--border); display: grid; gap: 4px; text-align: left; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    .side { border-right: 0; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .nav { display: flex; flex-wrap: wrap; }
+    .nav .group, .side .foot { display: none; }
+    .main { padding: 24px 16px 48px; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="org"><span class="av">P</span><b>Priya's Individual Org</b></div>
+    <nav class="nav" aria-label="Console">
+      <span class="group">Build</span>
+      <a href="#">Dashboard</a>
+      <a href="#">Workbench</a>
+      <a href="#">API keys</a>
+      <span class="group">Manage</span>
+      <a href="#">Usage</a>
+      <a href="#">Cost</a>
+      <a href="#">Limits</a>
+      <a href="#" aria-current="page">Billing</a>
+      <a href="#">Settings</a>
+    </nav>
+    <div class="foot"><span class="av">PS</span>Priya Sandhu</div>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner">
+      <div>
+        <h1>Billing</h1>
+        <p class="sub">Manage credits, payment methods and invoices for this organization.</p>
+      </div>
+
+      <section class="card">
+        <div class="balance">
+          <div>
+            <span class="label">Credit balance</span>
+            <div class="amt num" id="balance">US$4.12</div>
+          </div>
+          <button class="btn primary" id="open-buy" type="button">Buy credits</button>
+        </div>
+        <p class="hint" style="margin:12px 0 0;">Your balance is low. API requests will stop when it reaches zero.</p>
+      </section>
+
+      <div class="grid2">
+        <section class="card">
+          <div class="row"><h2>Auto reload</h2><span class="switch" aria-hidden="true"></span></div>
+          <p class="hint" style="margin:8px 0 0;">Automatically buy credits when your balance falls below a threshold.</p>
+        </section>
+        <section class="card">
+          <div class="row"><h2>Payment method</h2><button class="btn" type="button">Edit</button></div>
+          <div class="card-visa"><span class="chip">VISA</span><span class="num">&bull;&bull;&bull;&bull; 4242</span><span class="hint">Expires 08/28</span></div>
+        </section>
+      </div>
+
+      <section class="card" style="padding:22px 12px 8px;">
+        <h2 style="padding:0 12px 10px;">Invoice history</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Description</th><th class="r">Credits</th><th class="r">Charged</th><th>Status</th></tr></thead>
+            <tbody id="invoices">
+              <tr><td>Sep 12, 2026</td><td>Credit purchase</td><td class="r num">US$25.00</td><td class="r num">C$38.64</td><td><span class="pill">Paid</span></td></tr>
+              <tr><td>Aug 3, 2026</td><td>Credit purchase</td><td class="r num">US$10.00</td><td class="r num">C$15.46</td><td><span class="pill">Paid</span></td></tr>
+              <tr><td>Jul 19, 2026</td><td>Credit purchase</td><td class="r num">US$5.00</td><td class="r num">C$7.73</td><td><span class="pill">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- Buy credits -->
+<div class="scrim" id="buy" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="buy-title">
+    <div id="buy-form-view">
+      <div class="modal-head">
+        <div><h2 id="buy-title">Buy credits</h2><p class="hint" style="margin:4px 0 0;">Credits are added to your balance right away.</p></div>
+        <button class="x" type="button" data-close aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="amount">Amount</label>
+          <div class="input"><span>US$</span><input id="amount" type="number" min="5" max="2500" step="1" value="25" inputmode="decimal"></div>
+          <div class="presets" id="presets">
+            <button type="button" data-v="10">$10</button>
+            <button type="button" data-v="25">$25</button>
+            <button type="button" data-v="50">$50</button>
+            <button type="button" data-v="100">$100</button>
+          </div>
+          <span class="hint">Minimum US$5. Maximum US$2,500 per purchase.</span>
+        </div>
+
+        <div class="field">
+          <label for="province">Billing province</label>
+          <select class="plain" id="province">
+            <option value="BC" selected>British Columbia</option>
+            <option value="AB">Alberta</option>
+            <option value="ON">Ontario</option>
+            <option value="QC">Quebec</option>
+          </select>
+        </div>
+
+        <div class="summary" aria-live="polite">
+          <div class="line"><span class="k">Credits</span><span class="num" id="l-usd">US$25.00</span></div>
+          <div class="line"><span class="k" id="l-fx-k">Charged in CAD at 1.3800</span><span class="num" id="l-sub">C$34.50</span></div>
+          <div class="line"><span class="k" id="l-tax-k">Tax (GST 5% + PST 7%)</span><span class="num" id="l-tax">C$4.14</span></div>
+          <div class="roundup">
+            <div class="top">
+              <input type="checkbox" id="ru-on">
+              <label for="ru-on" style="display:grid;gap:2px;cursor:pointer;">
+                <span class="t">Round up for global development</span>
+                <span class="d" id="ru-desc">Your change goes to this month's project: Rift Valley Statistics Fellowship.</span>
+              </label>
+              <span class="amt num" id="ru-amt">+C$0.36</span>
+            </div>
+            <div class="steps" role="group" aria-label="Round up to">
+              <button type="button" data-step="1" aria-pressed="true">Next $1</button>
+              <button type="button" data-step="5" aria-pressed="false">Next $5</button>
+            </div>
+            <span class="powered">Powered by Tributary &middot; <a href="../index.html" target="_blank" rel="noopener">See where it goes</a></span>
+          </div>
+          <div class="line total"><span class="k">Total</span><span class="num"><span class="old" id="l-old" hidden>C$38.64</span><span id="l-total">C$38.64</span></span></div>
+        </div>
+
+        <div class="field">
+          <span style="font-size:0.88rem;font-weight:500;">Payment method</span>
+          <div class="pay-method"><span class="chip">VISA</span><span class="grow num">&bull;&bull;&bull;&bull; 4242</span><span class="hint">Default</span></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" type="button" data-close>Cancel</button>
+        <button class="btn primary" type="button" id="pay">Pay C$38.64</button>
+      </div>
+    </div>
+
+    <div id="buy-done-view" hidden>
+      <div class="done">
+        <span class="tick" aria-hidden="true">&#10003;</span>
+        <h2>Credits added</h2>
+        <p class="hint" style="margin:0;" id="done-line">US$25.00 has been added to your balance.</p>
+      </div>
+      <div class="gift" id="done-gift" hidden>
+        <span style="font-weight:600;" id="gift-line">C$0.36 is on its way to Rift Valley Statistics Fellowship</span>
+        <span class="hint">Added to October's pool. Thank you for rounding up. <a class="link" href="../index.html" target="_blank" rel="noopener">See where it goes</a></span>
+      </div>
+      <div class="modal-foot" style="border-top:0;">
+        <button class="btn primary" type="button" data-close>Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/roundup.js"></script>
+<script>
+  const R = window.RoundUp;
+  const $ = (id) => document.getElementById(id);
+  const state = { usd: 25, province: "BC", step: 1, on: false, balance: 412 };
+
+  function usd(cents) {
+    return "US$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function currentQuote() {
+    return R.quote(state.usd, state.province, state.step);
+  }
+
+  function render() {
+    const q = currentQuote();
+    const charge = state.on ? q.rounded : q.total;
+    $("l-usd").textContent = usd(q.usd);
+    $("l-fx-k").textContent = "Charged in CAD at " + R.USD_TO_CAD.toFixed(4);
+    $("l-sub").textContent = R.cad(q.subtotal);
+    $("l-tax-k").textContent = "Tax (" + q.province.label + ")";
+    $("l-tax").textContent = R.cad(q.tax);
+    $("ru-amt").textContent = q.roundUp > 0 ? "+" + R.cad(q.roundUp) : "C$0.00";
+    $("ru-on").disabled = q.roundUp === 0;
+    if (q.roundUp === 0) $("ru-desc").textContent = "Your total is already a round number.";
+    else $("ru-desc").textContent = "Your change goes to this month's project: Rift Valley Statistics Fellowship.";
+    $("l-old").hidden = !(state.on && q.roundUp > 0);
+    $("l-old").textContent = R.cad(q.total);
+    $("l-total").textContent = R.cad(charge);
+    $("pay").textContent = "Pay " + R.cad(charge);
+    $("pay").disabled = !(state.usd >= 5 && state.usd <= 2500);
+    document.querySelectorAll("#presets button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.v) === state.usd)));
+    document.querySelectorAll(".steps button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.step) === state.step)));
+  }
+
+  function openBuy() {
+    $("buy-form-view").hidden = false;
+    $("buy-done-view").hidden = true;
+    $("buy").hidden = false;
+    $("amount").focus();
+    render();
+  }
+
+  function closeBuy() {
+    $("buy").hidden = true;
+    $("open-buy").focus();
+  }
+
+  // Shares the round-up with the Tributary page open in the same browser.
+  function saveRoundUp(cents) {
+    try {
+      const key = "tributary.roundups";
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      list.unshift({ ts: Date.now(), cents, name: "Priya S.", province: state.province });
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 50)));
+    } catch (err) {
+      // Storage can be blocked; the purchase itself still completes.
+    }
+  }
+
+  function addInvoice(q, charge) {
+    const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const note = state.on && q.roundUp > 0 ? `<span class="note">Includes ${R.cad(q.roundUp)} round-up for global development</span>` : "";
+    const row = document.createElement("tr");
+    row.className = "fresh";
+    row.innerHTML = `<td>${date}</td><td>Credit purchase${note}</td><td class="r num">${usd(q.usd)}</td>` +
+      `<td class="r num">${R.cad(charge)}</td><td><span class="pill">Paid</span></td>`;
+    $("invoices").prepend(row);
+  }
+
+  function pay() {
+    const q = currentQuote();
+    const charge = state.on ? q.rounded : q.total;
+    const btn = $("pay");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Processing';
+    setTimeout(() => {
+      state.balance += q.usd;
+      $("balance").textContent = usd(state.balance);
+      addInvoice(q, charge);
+      const gave = state.on && q.roundUp > 0;
+      if (gave) saveRoundUp(q.roundUp);
+      $("done-line").textContent = usd(q.usd) + " has been added to your balance. You were charged " + R.cad(charge) + ".";
+      $("gift-line").textContent = R.cad(q.roundUp) + " is on its way to Rift Valley Statistics Fellowship";
+      $("done-gift").hidden = !gave;
+      $("buy-form-view").hidden = true;
+      $("buy-done-view").hidden = false;
+    }, 1100);
+  }
+
+  $("open-buy").addEventListener("click", openBuy);
+  document.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closeBuy));
+  $("buy").addEventListener("click", (e) => { if (e.target === $("buy")) closeBuy(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("buy").hidden) closeBuy(); });
+  $("amount").addEventListener("input", (e) => { state.usd = Number(e.target.value) || 0; render(); });
+  $("presets").addEventListener("click", (e) => {
+    const v = e.target.dataset.v;
+    if (!v) return;
+    state.usd = Number(v);
+    $("amount").value = v;
+    render();
+  });
+  $("province").addEventListener("change", (e) => { state.province = e.target.value; render(); });
+  $("ru-on").addEventListener("change", (e) => { state.on = e.target.checked; render(); });
+  document.querySelector(".steps").addEventListener("click", (e) => {
+    const s = e.target.dataset.step;
+    if (!s) return;
+    state.step = Number(s);
+    render();
+  });
+  $("pay").addEventListener("click", pay);
+</script>
+</body>
+</html>

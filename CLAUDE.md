@@ -1,23 +1,25 @@
 # Tributary (StormHacks)
 
-Hackathon project for UN SDG 17 (Partnerships for the Goals). Tributary routes a small
-percentage of AI spend (API usage, subscriptions, corporate AI budgets) to development
-projects, as international aid budgets decline.
+Hackathon project for UN SDG 17 (Partnerships for the Goals). Tributary is a round-up
+button inside AI providers' credit checkouts: the buyer rounds their CAD total up to the
+next $1 or $5, and the change goes to a development project chosen each month.
 
 ## Layout
 
-- `web/` static pages, no build step. Open the HTML files directly or serve the folder.
-  - `index.html` landing page: running total, project of the month, contributors.
-  - `organizations.html` pledge flow for companies.
-  - `individuals.html` pledge flow for people.
-  - `assets/` shared stylesheet and script.
-- `proxy/` Node (no dependencies) metering proxy in front of OpenAI- or Anthropic-compatible
-  APIs. Records usage and the pledge owed in a JSONL ledger.
+- `web/` static pages, no build step. Serve the folder (see README).
+  - `index.html` Tributary landing page: message, running totals, project of the month,
+    latest round-ups, giving history, provider pitch.
+  - `console/billing.html` unbranded AI provider billing page with the round-up built into
+    the Buy credits checkout.
+  - `assets/roundup.js` checkout math (USD to CAD, provincial tax, round-up), in cents.
+  - `assets/styles.css`, `assets/site.js` shared Tributary styles and helpers.
+- `proxy/` Node metering proxy from an earlier direction. Not part of the current demo.
 
 ## Conventions
 
-- All figures, organizations and contributors on the pages are demo data. Never present
-  them as real.
-- Model prices in `proxy/prices.json` are placeholders. Verify against provider pricing
-  before relying on them.
-- Run proxy tests with `npm test` inside `proxy/`.
+- The pages present sample figures as real for a local demo. They are not labeled as
+  samples on purpose. Do not publish or deploy them as-is.
+- The billing page must stay free of any real provider's name, logo or branding.
+- The checkout writes completed round-ups to `localStorage` key `tributary.roundups`;
+  the landing page reads it to update totals and the feed.
+- Run tests with `npm --prefix web test` and `npm --prefix proxy test`.

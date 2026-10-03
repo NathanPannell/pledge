@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tributary</title>
-<meta name="description" content="Tributary routes a fraction of AI spend to development projects.">
+<meta name="description" content="Round up your AI spend. The change funds development projects.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=DM+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
@@ -13,15 +13,15 @@
   .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; padding-block: 56px 40px; }
   .hero-copy { display: grid; gap: 22px; min-width: 0; }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
-  .medallion { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; justify-self: center; }
+  .medallion { position: relative; width: 100%; max-width: 440px; aspect-ratio: 1; justify-self: center; }
   .medallion canvas { width: 100%; height: 100%; display: block; }
   .medallion .face {
-    position: absolute; inset: 27%;
+    position: absolute; inset: 26%;
     display: grid; place-content: center; text-align: center; gap: 6px;
     background: var(--paper); border: 1px solid var(--ink); border-radius: 50%;
     box-shadow: 0 0 0 5px var(--paper), 0 0 0 6px var(--ink);
   }
-  .medallion .total { font-family: var(--f-display); font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+  .medallion .total { font-family: var(--f-display); font-size: clamp(1.5rem, 3.2vw, 2.15rem); line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
 
   .tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--ink); }
   .tally > div { padding: 18px 20px; display: grid; gap: 4px; border-right: 1px solid var(--line); min-width: 0; }
@@ -31,19 +31,19 @@
   section.block { padding-block: 72px 8px; display: grid; gap: 28px; }
   .block-head { display: grid; gap: 10px; max-width: 760px; }
 
-  .why { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
-  .why .lede { font-size: 1.1rem; }
-  .arith { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  .arith th, .arith td { text-align: right; padding: 11px 8px; border-bottom: 1px dotted var(--line); }
-  .arith th:first-child, .arith td:first-child { text-align: left; }
-  .arith th { font-family: var(--f-mono); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--ink); }
-  .arith td { font-family: var(--f-mono); font-size: 0.92rem; }
-  .arith td:last-child { color: var(--accent); }
-  .arith td:first-child { font-family: var(--f-body); }
+  .explain { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center; }
+  .explain .points { display: grid; gap: 18px; }
+  .explain .points div { display: grid; gap: 4px; padding-left: 16px; border-left: 2px solid var(--line); }
+  .explain .points b { font-weight: 600; }
+  .explain .points p { color: var(--ink-soft); }
+  .slip .slip-row.round .v { color: var(--accent); }
+  .slip .downstream { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding-top: 4px; flex-wrap: wrap; }
+  .slip .downstream b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 500; color: var(--accent); font-variant-numeric: lining-nums; }
+  .strike { text-decoration: line-through; color: var(--ink-soft); margin-right: 10px; }
 
-  .motm { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 0; border: 1px solid var(--ink); background: var(--paper-2); border-radius: var(--radius); position: relative; }
+  .motm { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); border: 1px solid var(--ink); background: var(--paper-2); border-radius: var(--radius); position: relative; }
   .motm-main { padding: 32px; display: grid; gap: 18px; min-width: 0; }
-  .motm-side { padding: 32px 28px; border-left: 2px dashed var(--ink); display: grid; gap: 16px; align-content: start; min-width: 0; }
+  .motm-side { padding: 32px 28px; border-left: 2px dashed var(--ink); display: grid; gap: 14px; align-content: start; min-width: 0; }
   .motm h3 { font-size: clamp(1.8rem, 3.2vw, 2.6rem); }
   .bar { height: 10px; background: var(--paper-3); border: 1px solid var(--ink); border-radius: 2px; overflow: hidden; }
   .bar i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--accent) 0 6px, color-mix(in srgb, var(--accent) 70%, var(--paper)) 6px 9px); }
@@ -51,50 +51,51 @@
   .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .facts div { display: grid; gap: 2px; }
   .facts b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 500; font-variant-numeric: lining-nums; }
-  .past { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
-  .past li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; padding-block: 10px; border-bottom: 1px dotted var(--line); align-items: baseline; font-size: 0.92rem; }
-  .past li span:first-child { font-family: var(--f-mono); color: var(--ink-soft); font-size: 0.8rem; }
-  .past li span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
   .motm .stamp { top: 22px; right: 22px; }
 
-  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
-  .steps li { list-style: none; padding: 20px 20px 4px 0; display: grid; gap: 10px; align-content: start; min-width: 0; }
-  .steps li + li { padding-left: 20px; border-left: 1px solid var(--line); }
-  .steps .n { font-family: var(--f-display); font-style: italic; font-size: 2.2rem; color: var(--accent); line-height: 1; }
-  .steps h4 { margin: 0; font-size: 1.05rem; }
-  .steps p { color: var(--ink-soft); font-size: 0.94rem; }
-  .steps ol { margin: 0; padding: 0; display: contents; }
+  .feed { list-style: none; margin: 0; padding: 0; display: grid; }
+  .feed li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding-block: 9px; border-bottom: 1px dotted var(--line); font-size: 0.92rem; }
+  .feed li .who { font-weight: 600; }
+  .feed li .amt { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--accent); text-align: right; }
+  .feed li .when { grid-column: 1 / -1; font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-soft); }
+  .feed li.new { animation: arrive 1.6s ease-out; }
+  @keyframes arrive { from { background: color-mix(in srgb, var(--accent) 14%, transparent); } to { background: transparent; } }
 
-  .register-wrap { overflow-x: auto; border-top: 1px solid var(--ink); }
-  .register { width: 100%; border-collapse: collapse; min-width: 640px; }
-  .register th { text-align: left; font-family: var(--f-mono); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); padding: 12px 10px; border-bottom: 1px solid var(--ink); }
-  .register td { padding: 14px 10px; border-bottom: 1px dotted var(--line); vertical-align: baseline; }
-  .register td.n, .register th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
-  .register .who { font-family: var(--f-display); font-size: 1.2rem; }
-  .register .method { font-family: var(--f-mono); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--ink-soft); }
-  .register .method.proxy { color: var(--guil); }
-  .register tr.people td { background: var(--paper-2); }
-  .register tr.live td { background: color-mix(in srgb, var(--ok) 10%, var(--paper)); }
+  .history-wrap { overflow-x: auto; border-top: 1px solid var(--ink); }
+  .history { width: 100%; border-collapse: collapse; min-width: 760px; }
+  .history th { text-align: left; font-family: var(--f-mono); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); padding: 12px 10px; border-bottom: 1px solid var(--ink); }
+  .history td { padding: 14px 10px; border-bottom: 1px dotted var(--line); vertical-align: baseline; }
+  .history td.n, .history th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .history .proj { font-family: var(--f-display); font-size: 1.15rem; }
+  .history .place { display: block; font-size: 0.85rem; color: var(--ink-soft); }
+  .history .ref { font-family: var(--f-mono); font-size: 0.78rem; color: var(--ink-soft); }
+  .history tr.current td { background: var(--paper-2); }
+  .history tfoot td { border-top: 1px solid var(--ink); border-bottom: 0; font-weight: 600; }
 
-  .cta-band { margin-top: 80px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); background: var(--paper-2); }
+  .providers { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+  .partner-list { display: flex; flex-wrap: wrap; gap: 10px; }
+  .partner-list span { font-family: var(--f-display); font-size: 1.3rem; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+  .terms { display: grid; gap: 0; border-top: 1px solid var(--ink); }
+  .terms div { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px; padding-block: 14px; border-bottom: 1px dotted var(--line); }
+  .terms dt { font-family: var(--f-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+  .terms dd { margin: 0; }
+
+  .cta-band { margin-top: 80px; border-block: 1px solid var(--ink); background: var(--paper-2); }
   .cta-band .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding-block: 44px; }
 
   @media (max-width: 900px) {
-    .hero, .why, .motm { grid-template-columns: 1fr; }
+    .hero, .explain, .motm, .providers { grid-template-columns: 1fr; }
     .motm-side { border-left: 0; border-top: 2px dashed var(--ink); }
     .tally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .tally > div:nth-child(2) { border-right: 0; }
     .tally > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-    .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .steps li:nth-child(3) { padding-left: 0; border-left: 0; }
     .cta-band .wrap { grid-template-columns: 1fr; }
   }
   @media (max-width: 520px) {
-    .steps { grid-template-columns: 1fr; }
-    .steps li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
     .facts { grid-template-columns: 1fr 1fr; }
     .motm-main, .motm-side { padding: 24px 20px; }
     .motm .stamp { position: static; justify-self: start; }
+    .terms div { grid-template-columns: 1fr; gap: 4px; }
   }
 </style>
 </head>
@@ -105,9 +106,8 @@
     <a class="wordmark" href="index.html"><b>Tributary</b><span class="mono">SDG 17</span></a>
     <nav class="site-nav" aria-label="Main">
       <a href="#how">How it works</a>
-      <a href="#register">Contributors</a>
-      <a href="organizations.html">For organizations</a>
-      <a href="individuals.html">For individuals</a>
+      <a href="#history">Giving history</a>
+      <a href="#providers">For AI providers</a>
     </nav>
   </div>
 </header>
@@ -116,20 +116,20 @@
   <div class="wrap">
     <section class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">Target 17.3 &middot; Mobilize additional financial resources</span>
+        <span class="eyebrow">UN SDG 17 &middot; Partnerships for the Goals</span>
         <h1>Aid budgets are shrinking. <em>AI budgets aren&rsquo;t.</em></h1>
-        <p class="lede">Tributary sends a fraction of a percent of what companies and people spend on AI to development projects in low-income countries. Change one line of code or make one pledge, and every model call sends a little downstream.</p>
+        <p class="lede">Tributary is the round-up button in AI checkouts. When you buy credits, round your total to the next dollar. The change goes to a development project we choose each month, and every transfer is published here.</p>
         <div class="hero-cta">
-          <a class="btn" href="organizations.html">Pledge as an organization <span class="arrow">&rarr;</span></a>
-          <a class="btn ghost" href="individuals.html">Pledge as an individual</a>
+          <a class="btn" href="#how">See a round-up <span class="arrow">&darr;</span></a>
+          <a class="btn ghost" href="#history">Where the money went</a>
         </div>
       </div>
-      <div class="medallion" aria-label="Total routed to date">
+      <div class="medallion" aria-label="Total sent to projects">
         <canvas id="rosette" aria-hidden="true"></canvas>
         <div class="face">
-          <span class="eyebrow">Routed to date</span>
-          <span class="total" id="total-routed">$0</span>
-          <span class="demo-flag" id="source-flag">Demo data</span>
+          <span class="eyebrow">Sent downstream</span>
+          <span class="total" id="total">C$0</span>
+          <span class="demo-flag live">Updated with every round-up</span>
         </div>
       </div>
     </section>
@@ -137,30 +137,41 @@
 
   <div class="wrap">
     <div class="tally" aria-label="Running totals">
-      <div><span class="eyebrow">This month</span><span class="v" id="t-month">$0</span></div>
-      <div><span class="eyebrow">Organizations</span><span class="v" id="t-orgs">0</span></div>
-      <div><span class="eyebrow">Individuals</span><span class="v" id="t-people">0</span></div>
-      <div><span class="eyebrow">Model calls metered</span><span class="v" id="t-calls">0</span></div>
+      <div><span class="eyebrow">This month</span><span class="v" id="t-month">C$0</span></div>
+      <div><span class="eyebrow">Round-ups</span><span class="v" id="t-count">0</span></div>
+      <div><span class="eyebrow">Average round-up</span><span class="v" id="t-avg">C$0.00</span></div>
+      <div><span class="eyebrow">Projects funded</span><span class="v" id="t-projects">0</span></div>
     </div>
   </div>
 
   <div class="wrap">
-    <section class="block" id="why">
-      <div class="why">
+    <section class="block" id="how">
+      <div class="explain">
         <div class="block-head">
-          <span class="eyebrow">Why now</span>
-          <h2>The money hasn&rsquo;t disappeared. It moved.</h2>
-          <p class="lede">Official development assistance fell in 2024, and several of the largest donors announced deeper cuts for 2025. In the same years, companies poured record sums into AI. A rounding error on an AI budget is a full year of funding for a small development program.</p>
-          <p class="fine">Aid trend: OECD preliminary official development assistance data. Verify current figures before quoting.</p>
+          <span class="eyebrow">How a round-up works</span>
+          <h2>Your AI bill already ends in odd cents.</h2>
+          <p class="lede">Credits are priced in US dollars. By the time they&rsquo;re converted and taxed, a US$25 top-up costs C$38.64. One checkbox rounds it to C$39.00.</p>
+          <div class="points">
+            <div><b>Same charge, same card</b><p>The round-up is part of your normal checkout. There&rsquo;s no second payment and no extra card fee.</p></div>
+            <div><b>Pooled monthly</b><p>Round-ups are pooled and sent in one transfer, so almost nothing is lost to fees along the way.</p></div>
+            <div><b>Published in full</b><p>Every month&rsquo;s project, amount and transfer reference is listed below.</p></div>
+          </div>
         </div>
-        <div>
-          <table class="arith">
-            <caption class="eyebrow" style="text-align:left;padding-bottom:10px;">The arithmetic, illustrated</caption>
-            <thead><tr><th>Annual AI spend</th><th>Pledge</th><th>Routed per year</th></tr></thead>
-            <tbody>
-              <tr><td>Seed-stage startup</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-            </tbody>
-          </table>
+        <div class="slip" aria-label="Example checkout">
+          <div class="slip-head"><span class="eyebrow">Credit purchase &middot; British Columbia</span><span class="mono">TRB-RU-0436</span></div>
+          <div class="slip-row"><span class="k">Credits</span><span class="v">US$25.00</span></div>
+          <div class="slip-row"><span class="k">Converted at 1.3800</span><span class="v">C$34.50</span></div>
+          <div class="slip-row"><span class="k">GST 5% + PST 7%</span><span class="v">C$4.14</span></div>
+          <div class="slip-row round"><span class="k">Round up to the next dollar</span><span class="v">+C$0.36</span></div>
+          <div class="slip-total">
+            <div style="display:grid;gap:4px;">
+              <span class="eyebrow">You pay</span>
+              <span class="amount"><span class="strike" style="font-size:0.45em;font-family:var(--f-mono);">C$38.64</span>C$39.00</span>
+            </div>
+          </div>
+          <div class="perf" aria-hidden="true"></div>
+          <div class="downstream"><span class="eyebrow">Sent downstream</span><b>C$0.36</b></div>
+          <p class="fine">To this month&rsquo;s project, Rift Valley Statistics Fellowship.</p>
         </div>
       </div>
     </section>
@@ -168,14 +179,12 @@
 
   <div class="wrap">
     <section class="block" id="project">
-      <div class="block-head">
-        <span class="eyebrow">Project of the month &middot; October 2026</span>
-      </div>
+      <div class="block-head"><span class="eyebrow">Project of the month &middot; October 2026</span></div>
       <article class="motm">
         <div class="motm-main">
           <div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="sdg">17.9 Capacity building</span><span class="sdg">17.18 Data</span></div>
           <h3>Rift Valley Statistics Fellowship</h3>
-          <p>Trains early-career statisticians in county governments to design and run their own household surveys. Countries can&rsquo;t track progress on any goal without reliable local data, and most of that work is still contracted out to foreign consultants.</p>
+          <p>Trains early-career statisticians in Kenyan county governments to design and run their own household surveys. Countries can&rsquo;t track progress on any goal without reliable local data, and most of that work is still contracted out to foreign consultants.</p>
           <div class="facts">
             <div><b class="num">40</b><span class="fine">fellows this cohort</span></div>
             <div><b class="num">9</b><span class="fine">county offices</span></div>
@@ -183,19 +192,12 @@
           </div>
           <div style="display:grid;gap:8px;">
             <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="motm-bar" aria-valuenow="0"><i style="width:0%"></i></div>
-            <div class="bar-legend"><span id="motm-raised">$0 raised</span><span id="motm-goal">of $186,000</span></div>
+            <div class="bar-legend"><span id="motm-raised">C$0 raised</span><span id="motm-goal">of C$64,000</span></div>
           </div>
-          <span class="demo-flag">Demo project for illustration</span>
         </div>
         <aside class="motm-side">
-          <span class="eyebrow">Previous months</span>
-          <ul class="past">
-            <li><span>SEP</span><span>Open crop-price SMS service</span><span>$142,300</span></li>
-            <li><span>AUG</span><span>District clinic solar retrofits</span><span>$118,950</span></li>
-            <li><span>JUL</span><span>Tax-administration software training</span><span>$97,400</span></li>
-            <li><span>JUN</span><span>Mobile-money fee waiver pilot</span><span>$88,120</span></li>
-          </ul>
-          <p class="fine">Projects are chosen each month from applications vetted against SDG 17 targets. Every transfer is listed in the public ledger with its reference number.</p>
+          <span class="eyebrow">Latest round-ups</span>
+          <ul class="feed" id="feed"></ul>
         </aside>
         <span class="stamp" aria-hidden="true">Oct 2026</span>
       </article>
@@ -203,47 +205,51 @@
   </div>
 
   <div class="wrap">
-    <section class="block" id="how">
+    <section class="block" id="history">
       <div class="block-head">
-        <span class="eyebrow">How it works</span>
-        <h2>From a model call to a county statistics office</h2>
+        <span class="eyebrow">Giving history</span>
+        <h2>Every project, every transfer</h2>
+        <p class="lede">Projects are chosen each month from applications reviewed against SDG 17 targets. Pooled round-ups are sent on the first business day of the following month.</p>
       </div>
-      <ol class="steps">
-        <li><span class="n">1</span><h4>Route or pledge</h4><p>Point your AI client at the Tributary proxy with one base-URL change, or pledge a fixed share of your AI budget.</p></li>
-        <li><span class="n">2</span><h4>We meter usage</h4><p>The proxy reads token counts from each response, prices the call, and records the pledge it owes. Prompts and outputs are never stored.</p></li>
-        <li><span class="n">3</span><h4>Monthly grant</h4><p>At month end, pledges are pooled and sent to the project of the month and the standing funds you chose.</p></li>
-        <li><span class="n">4</span><h4>Public ledger</h4><p>Every contributor and every transfer is listed with a reference number, so anyone can check where the money went.</p></li>
-      </ol>
+      <div class="history-wrap">
+        <table class="history">
+          <thead>
+            <tr><th>Month</th><th>Project</th><th>Target</th><th class="n">Round-ups</th><th class="n">Sent</th><th>Transfer</th></tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+          <tfoot><tr><td colspan="3">Total since launch</td><td class="n" id="h-count">0</td><td class="n" id="h-total">C$0</td><td></td></tr></tfoot>
+        </table>
+      </div>
     </section>
   </div>
 
   <div class="wrap">
-    <section class="block" id="register">
-      <div class="block-head">
-        <span class="eyebrow">Register of contributors</span>
-        <h2>Who&rsquo;s sending money downstream</h2>
+    <section class="block" id="providers">
+      <div class="providers">
+        <div class="block-head">
+          <span class="eyebrow">For AI providers</span>
+          <h2>One checkbox in the checkout you already have.</h2>
+          <p class="lede">You collect the round-up in the same charge as the credits. We pool it, choose and vet the project, send the transfer and publish the record. Your customers see their change go somewhere.</p>
+          <div class="partner-list" aria-label="Partner checkouts"><span>Halden Labs</span><span>Pelagic AI</span><span>Quillmark</span></div>
+        </div>
+        <dl class="terms">
+          <div><dt>Integration</dt><dd>A checkout component and a monthly remittance file. No change to your payment processor.</dd></div>
+          <div><dt>Card fees</dt><dd>The round-up rides on the existing charge, so it adds only the percentage fee on a few cents.</dd></div>
+          <div><dt>Payouts</dt><dd>One pooled transfer per month to the project, with a public reference number.</dd></div>
+          <div><dt>Reporting</dt><dd>A monthly statement of your customers&rsquo; round-ups for your impact report.</dd></div>
+        </dl>
       </div>
-      <div class="register-wrap">
-        <table class="register">
-          <thead>
-            <tr><th>Contributor</th><th>Method</th><th class="n">Pledge</th><th class="n">Routed to date</th><th class="n">Since</th></tr>
-          </thead>
-          <tbody id="register-body"></tbody>
-        </table>
-      </div>
-      <span class="demo-flag">All contributors and figures on this page are demo data</span>
     </section>
   </div>
 
   <section class="cta-band">
     <div class="wrap">
       <div style="display:grid;gap:10px;">
-        <h2>Your AI bill is already being paid. <em>Route a slice of it.</em></h2>
-        <p class="lede">Organizations pledge a share of their AI budget or meter usage through the proxy. Individuals add a small monthly amount on top of their subscriptions.</p>
+        <h2>Round up your AI spend. <em>Send the change downstream.</em></h2>
+        <p class="lede">Look for the round-up checkbox the next time you buy credits.</p>
       </div>
       <div class="hero-cta">
-        <a class="btn" href="organizations.html">For organizations <span class="arrow">&rarr;</span></a>
-        <a class="btn ghost" href="individuals.html">For individuals</a>
+        <a class="btn" href="#history">See the giving history <span class="arrow">&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -251,109 +257,108 @@
 
 <footer class="site-foot">
   <div class="wrap">
-    <span>Tributary &middot; a StormHacks 2026 prototype for UN SDG 17</span>
+    <span>Tributary &middot; Vancouver, BC &middot; Built for UN SDG 17</span>
     <span class="mono">Ledger ref. TRB-202610</span>
   </div>
 </footer>
 
 <script src="assets/site.js"></script>
 <script>
-  // Demo data. Replace with the proxy's ledger once it is persisted centrally.
-  const DEMO = {
-    routed: 2486310,
-    month: 64820,
-    people: 1284,
-    calls: 418_600_000,
-    motmGoal: 186000,
-    motmRaised: 121540,
-    contributors: [
-      { who: "Halden Labs", method: "proxy", pledge: "0.50% of usage", routed: 412800, since: "Jan 2026" },
-      { who: "Pelagic Systems", method: "budget", pledge: "1.00% of AI budget", routed: 386000, since: "Mar 2026" },
-      { who: "Quillmark", method: "proxy", pledge: "0.75% of usage", routed: 241650, since: "Feb 2026" },
-      { who: "Corvid Analytics", method: "budget", pledge: "0.50% of AI budget", routed: 198400, since: "Apr 2026" },
-      { who: "Tamarind Health", method: "proxy", pledge: "0.25% of usage", routed: 87260, since: "May 2026" },
-      { who: "Mosswood Studio", method: "proxy", pledge: "2.00% of usage", routed: 41915, since: "Jul 2026" },
-      { who: "Lattice Harbor", method: "budget", pledge: "0.25% of AI budget", routed: 36500, since: "Aug 2026" },
-    ],
-    arithmetic: [
-      { who: "Seed-stage startup", spend: 250_000, rate: 0.01 },
-      { who: "Mid-size software company", spend: 8_000_000, rate: 0.005 },
-      { who: "Enterprise AI program", spend: 120_000_000, rate: 0.0025 },
-      { who: "Frontier training budget", spend: 2_000_000_000, rate: 0.001 },
-    ],
-  };
-
   const T = window.Tributary;
-  const fmtInt = (n) => Math.round(n).toLocaleString("en-US");
-  const fmtCompact = (n) => Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+  const cad = (n, d) => "C$" + n.toLocaleString("en-CA", { minimumFractionDigits: d ?? 0, maximumFractionDigits: d ?? 0 });
+  const int = (n) => Math.round(n).toLocaleString("en-CA");
 
-  function renderArithmetic() {
-    const body = document.querySelector(".arith tbody");
-    body.innerHTML = DEMO.arithmetic.map((row) =>
-      `<tr><td>${row.who}<br><span class="fine mono" style="text-transform:none;letter-spacing:0">${T.money(row.spend, 0)}</span></td>` +
-      `<td>${(row.rate * 100).toFixed(2)}%</td><td>${T.money(row.spend * row.rate, 0)}</td></tr>`
+  const HISTORY = [
+    { month: "Oct 2026", project: "Rift Valley Statistics Fellowship", place: "Nakuru and Baringo counties, Kenya", target: "17.18", count: 74180, sent: 43920, ref: "In progress", current: true },
+    { month: "Sep 2026", project: "Open Crop-Price SMS Service", place: "Central Region, Malawi", target: "17.8", count: 98410, sent: 57630, ref: "TRB-202609-0218" },
+    { month: "Aug 2026", project: "District Clinic Solar Retrofits", place: "Northern Province, Rwanda", target: "17.7", count: 87265, sent: 50410, ref: "TRB-202608-0197" },
+    { month: "Jul 2026", project: "Revenue Office Software Training", place: "Ashanti Region, Ghana", target: "17.1", count: 79940, sent: 46280, ref: "TRB-202607-0164" },
+    { month: "Jun 2026", project: "Mobile-Money Fee Waiver Pilot", place: "Sylhet Division, Bangladesh", target: "17.3", count: 66320, sent: 38150, ref: "TRB-202606-0139" },
+    { month: "May 2026", project: "Community Broadband Cooperative", place: "Cusco Region, Peru", target: "17.6", count: 52870, sent: 30740, ref: "TRB-202605-0112" },
+    { month: "Apr 2026", project: "Open Budget Data Desk", place: "Lusaka Province, Zambia", target: "17.18", count: 39105, sent: 22610, ref: "TRB-202604-0085" },
+    { month: "Mar 2026", project: "Coding Bootcamp for Public Servants", place: "Northern Mindanao, Philippines", target: "17.9", count: 24660, sent: 14390, ref: "TRB-202603-0051" },
+  ];
+
+  const FEED = [
+    { name: "Marcus L.", province: "BC", cents: 36, mins: 2 },
+    { name: "Anonymous", province: "ON", cents: 18, mins: 4 },
+    { name: "Jia W.", province: "BC", cents: 77, mins: 7 },
+    { name: "Daniel O.", province: "AB", cents: 50, mins: 11 },
+    { name: "Fatima R.", province: "QC", cents: 136, mins: 16 },
+    { name: "Anonymous", province: "BC", cents: 9, mins: 22 },
+  ];
+
+  // Round-ups made in the checkout in this browser are added on top.
+  function localRoundUps() {
+    try {
+      return JSON.parse(localStorage.getItem("tributary.roundups") || "[]");
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function ago(ms) {
+    const mins = Math.floor(ms / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + " min ago";
+    return Math.floor(mins / 60) + " h ago";
+  }
+
+  function renderHistory(extra) {
+    const rows = HISTORY.map((h, i) => {
+      const sent = i === 0 ? h.sent + extra.dollars : h.sent;
+      const count = i === 0 ? h.count + extra.count : h.count;
+      return `<tr class="${h.current ? "current" : ""}"><td class="mono" style="letter-spacing:0">${h.month}</td>` +
+        `<td><span class="proj">${h.project}</span><span class="place">${h.place}</span></td>` +
+        `<td><span class="sdg">${h.target}</span></td><td class="n">${int(count)}</td>` +
+        `<td class="n">${cad(sent, i === 0 && extra.count ? 2 : 0)}</td><td class="ref">${h.ref}</td></tr>`;
+    });
+    document.getElementById("history-body").innerHTML = rows.join("");
+  }
+
+  function renderFeed(local) {
+    const now = Date.now();
+    const items = local.slice(0, 3).map((r) => ({ name: r.name, province: r.province, cents: r.cents, when: ago(now - r.ts), fresh: true }))
+      .concat(FEED.map((f) => ({ ...f, when: f.mins + " min ago" })))
+      .slice(0, 6);
+    document.getElementById("feed").innerHTML = items.map((f) =>
+      `<li class="${f.fresh ? "new" : ""}"><span class="who">${f.name}</span><span class="amt">+${cad(f.cents / 100, 2)}</span>` +
+      `<span class="when">${f.province} &middot; ${f.when}</span></li>`
     ).join("");
   }
 
-  function renderRegister(live) {
-    const rows = DEMO.contributors.map((c) =>
-      `<tr><td class="who">${c.who}</td>` +
-      `<td class="method ${c.method}">${c.method === "proxy" ? "Metered via proxy" : "Budget pledge"}</td>` +
-      `<td class="n">${c.pledge}</td><td class="n">${T.money(c.routed, 0)}</td><td class="n">${c.since}</td></tr>`
-    );
-    if (live) {
-      rows.unshift(
-        `<tr class="live"><td class="who">Your local proxy</td><td class="method proxy">Live, this machine</td>` +
-        `<td class="n">${(live.pledgeRate * 100).toFixed(2)}% of usage</td><td class="n">${T.money(live.pledgeUsd, 4)}</td><td class="n">Today</td></tr>`
-      );
-    }
-    rows.push(
-      `<tr class="people"><td class="who">${fmtInt(DEMO.people)} individuals</td><td class="method">Monthly pledges</td>` +
-      `<td class="n">avg. $4.10 / mo</td><td class="n">${T.money(214870, 0)}</td><td class="n">&nbsp;</td></tr>`
-    );
-    document.getElementById("register-body").innerHTML = rows.join("");
-  }
+  function render() {
+    const local = localRoundUps();
+    const extra = { count: local.length, dollars: local.reduce((s, r) => s + r.cents, 0) / 100 };
+    const total = HISTORY.reduce((s, h) => s + h.sent, 0) + extra.dollars;
+    const count = HISTORY.reduce((s, h) => s + h.count, 0) + extra.count;
+    const month = HISTORY[0].sent + extra.dollars;
 
-  function renderTotals(live) {
-    const extra = live ? live.pledgeUsd : 0;
-    T.countTo(document.getElementById("total-routed"), DEMO.routed + extra, (n) => T.money(n, 0), 1600);
-    T.countTo(document.getElementById("t-month"), DEMO.month + extra, (n) => T.money(n, 0), 1200);
-    T.countTo(document.getElementById("t-orgs"), DEMO.contributors.length + (live ? 1 : 0), fmtInt, 900);
-    T.countTo(document.getElementById("t-people"), DEMO.people, fmtInt, 1200);
-    T.countTo(document.getElementById("t-calls"), DEMO.calls + (live ? live.calls : 0), fmtCompact, 1200);
+    T.countTo(document.getElementById("total"), total, (n) => cad(n), 1600);
+    T.countTo(document.getElementById("t-month"), month, (n) => cad(n), 1200);
+    T.countTo(document.getElementById("t-count"), count, int, 1200);
+    document.getElementById("t-avg").textContent = cad(total / count, 2);
+    document.getElementById("t-projects").textContent = String(HISTORY.length);
+    document.getElementById("h-count").textContent = int(count);
+    document.getElementById("h-total").textContent = cad(total);
 
-    const pct = Math.round((DEMO.motmRaised / DEMO.motmGoal) * 100);
+    const goal = 64000;
+    const pct = Math.min(100, Math.round((month / goal) * 100));
     const bar = document.getElementById("motm-bar");
     bar.setAttribute("aria-valuenow", String(pct));
     bar.querySelector("i").style.width = pct + "%";
-    document.getElementById("motm-raised").textContent = T.money(DEMO.motmRaised, 0) + " raised";
-    document.getElementById("motm-goal").textContent = "of " + T.money(DEMO.motmGoal, 0) + " (" + pct + "%)";
+    document.getElementById("motm-raised").textContent = cad(month, extra.count ? 2 : 0) + " raised";
+    document.getElementById("motm-goal").textContent = "of " + cad(goal) + " (" + pct + "%)";
+
+    renderHistory(extra);
+    renderFeed(local);
   }
 
-  // If the proxy is running locally, fold its live ledger into the page.
-  async function loadLiveSummary() {
-    try {
-      const res = await fetch("http://localhost:8787/tributary/summary", { signal: AbortSignal.timeout(1200) });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      return null;
-    }
-  }
-
-  renderArithmetic();
-  renderRegister(null);
-  renderTotals(null);
+  render();
   T.mountRosette(document.getElementById("rosette"));
-
-  loadLiveSummary().then((live) => {
-    if (!live) return;
-    const flag = document.getElementById("source-flag");
-    flag.textContent = "Demo + live proxy";
-    flag.classList.add("live");
-    renderRegister(live);
-    renderTotals(live);
-  });
+  // Pick up a round-up made in the checkout tab without a reload.
+  window.addEventListener("storage", (e) => { if (e.key === "tributary.roundups") render(); });
+  window.addEventListener("focus", render);
 </script>
 </body>
 </html>
