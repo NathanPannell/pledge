@@ -2,3 +2,4 @@ node_modules/
 proxy/data/
 *.log
 .env
+server/data/

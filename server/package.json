@@ -1,0 +1,13 @@
+{
+  "name": "tributary-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tributary API: connects a business card and AI provider accounts, measures AI spend, and issues pledge invoices.",
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/main.js",
+    "sandbox-config": "node src/sandbox-config.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}
