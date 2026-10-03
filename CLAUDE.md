@@ -11,6 +11,8 @@ next $1 or $5, and the change goes to a development project chosen each month.
     latest round-ups, giving history, provider pitch.
   - `settings/usage.html` unbranded Settings > Usage page and "Buy more usage" checkout with
     the round-up in the order summary. Mirrors the native purchase steps.
+  - `console/billing.html` unbranded API console Billing page and "Buy credits" modal with
+    the round-up in the order summary. Credits at face value, no volume discount.
   - `assets/roundup.js` checkout math (volume discount, estimated tax, round-up), in cents.
   - `assets/styles.css`, `assets/site.js` shared Tributary styles and helpers.
 - `proxy/` Node metering proxy from an earlier direction. Not part of the current demo.

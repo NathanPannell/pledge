@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<style>
+  /* Layout concept: an AI lab's API console, Organization settings > Billing,
+     with the first-purchase "Buy credits" modal. Follows the native steps;
+     the round-up sits in the order summary above the buy button. */
+  :root {
+    --bg: #faf9f6;
+    --rail: #f1efea;
+    --side: #f5f3ee;
+    --panel: #ffffff;
+    --field: #f3f1ec;
+    --hover: #ebe9e3;
+    --active: #e4e2dc;
+    --border: #e0ddd5;
+    --text: #1c1c1a;
+    --muted: #6b6963;
+    --faint: #8f8d86;
+    --blue: #2563c9;
+    --blue-soft: #dfe9fb;
+    --blue-ink: #1d4fa3;
+    --chip: #ebe9e3;
+    --btn: #1c1c1a;
+    --btn-ink: #ffffff;
+    --btn-off: #c9c6be;
+    --scrim: rgba(20, 20, 18, 0.45);
+    --danger: #d23b3b;
+    --good: #2f7a47;
+    --f: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+    --f-brand: "Source Serif 4", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --rail: #1a1a19; --side: #1a1a19; --panel: #1c1c1b; --field: #262625; --hover: #262625;
+      --active: #2e2e2c; --border: #343432; --text: #ecebe7; --muted: #a3a19b; --faint: #7d7b76;
+      --blue: #3b82f6; --blue-soft: #1a2f57; --blue-ink: #8db6ff; --chip: #2e2e2c; --btn: #ffffff;
+      --btn-ink: #161615; --btn-off: #5a5a57; --scrim: rgba(0, 0, 0, 0.6); --danger: #e5534b; --good: #7cc792;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141413; --rail: #1a1a19; --side: #1a1a19; --panel: #1c1c1b; --field: #262625; --hover: #262625;
+    --active: #2e2e2c; --border: #343432; --text: #ecebe7; --muted: #a3a19b; --faint: #7d7b76;
+    --blue: #3b82f6; --blue-soft: #1a2f57; --blue-ink: #8db6ff; --chip: #2e2e2c; --btn: #ffffff;
+    --btn-ink: #161615; --btn-off: #5a5a57; --scrim: rgba(0, 0, 0, 0.6); --danger: #e5534b; --good: #7cc792;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 var(--f); }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  .app { display: grid; grid-template-columns: 48px 300px minmax(0, 1fr); min-height: 100%; }
+  .rail { background: var(--rail); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 0; color: var(--muted); }
+  .rail .dot { width: 18px; height: 18px; border-radius: 4px; background: var(--chip); border: 1px solid var(--border); }
+  .rail .bottom { margin-top: auto; }
+
+  .side { background: var(--side); border-right: 1px solid var(--border); padding: 18px 14px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 100vh; }
+  .side-top { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 10px; }
+  .side-top b { font: 600 1.25rem var(--f-brand); }
+  .side a, .side .row { display: flex; align-items: center; gap: 14px; padding: 9px 12px; border-radius: 9px; color: var(--text); text-decoration: none; font-size: 1.02rem; }
+  .side a:hover { background: var(--hover); }
+  .side a.sub { padding-left: 46px; color: var(--muted); }
+  .side a.sub:hover { color: var(--text); }
+  .side a[aria-current="page"] { background: var(--active); color: var(--text); }
+  .search { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); background: var(--panel); border-radius: 9px; padding: 8px 12px; margin: 4px 0 12px; color: var(--faint); font-size: 0.98rem; }
+  .search span { flex: 1; }
+  .search .kbd { flex: none; }
+  .kbd { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font-size: 0.8rem; }
+  .side-foot { margin-top: auto; display: grid; gap: 2px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .badge { margin-left: auto; min-width: 22px; height: 22px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 0.78rem; display: grid; place-items: center; }
+  .credits-row .val { margin-left: auto; color: var(--muted); }
+  .credits-row a { padding: 0; display: inline; color: var(--blue-ink); text-decoration: underline; margin-left: 8px; }
+  .user { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+  .user .av { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); display: grid; place-items: center; color: var(--muted); }
+  .user b { display: block; font-weight: 500; }
+  .user small { color: var(--muted); font-size: 0.88rem; }
+
+  .main { padding: 40px 48px 64px; min-width: 0; }
+  .main-inner { max-width: 1050px; margin-inline: auto; display: grid; gap: 18px; }
+  .main-inner > * { min-width: 0; }
+  h1 { font-size: 1.75rem; font-weight: 500; margin: 0 0 4px; }
+  .card { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+  .empty { padding: 90px 24px; display: grid; justify-items: center; gap: 8px; text-align: center; }
+  .empty svg { width: 76px; height: 76px; stroke: var(--text); stroke-width: 1.4; fill: none; margin-bottom: 18px; }
+  .empty h2 { font-size: 1.15rem; font-weight: 600; margin: 0; }
+  .empty p { margin: 0; color: var(--muted); }
+  .empty .fine { font-size: 0.92rem; }
+  .btn-white { border: 0; border-radius: 8px; background: var(--btn); color: var(--btn-ink); padding: 8px 14px; font-weight: 500; cursor: pointer; margin: 12px 0; }
+  .contact { display: flex; align-items: center; gap: 14px; padding: 12px 12px 12px 20px; }
+  .contact span { flex: 1; }
+  .btn-soft { border: 0; border-radius: 8px; background: var(--chip); padding: 7px 12px; cursor: pointer; }
+  .balance { padding: 26px 28px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .balance .amt { font-size: 2.2rem; font-weight: 500; margin-top: 6px; }
+  .muted { color: var(--muted); }
+  .toast { padding: 14px 20px; display: grid; gap: 4px; }
+  .toast b { color: var(--good); font-weight: 600; }
+
+  /* Modal */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 16px; z-index: 20; }
+  .modal { width: 100%; max-width: 610px; max-height: calc(100vh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 28px 28px 22px; display: grid; gap: 22px; }
+  .modal-head { display: flex; justify-content: space-between; gap: 12px; }
+  .modal-head h2 { font-size: 1.7rem; font-weight: 600; margin: 0 0 8px; }
+  .modal-head p { margin: 0; color: var(--muted); }
+  .x { border: 0; background: none; cursor: pointer; padding: 4px; border-radius: 6px; height: fit-content; }
+  .x:hover { background: var(--hover); }
+  .tiers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-bottom: 26px; border-bottom: 1px solid var(--border); }
+  .tier { text-align: left; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 14px 10px; min-height: 84px; cursor: pointer; display: grid; align-content: start; gap: 10px; }
+  .tier:hover { background: var(--hover); }
+  .tier .amt { font-size: 1.12rem; font-weight: 600; }
+  .tier .tag { width: fit-content; background: var(--chip); border-radius: 5px; padding: 2px 7px; font-size: 0.82rem; }
+  .tier[aria-pressed="true"] { border-color: var(--blue); }
+  .tier[aria-pressed="true"] .tag { background: var(--blue-soft); color: var(--blue-ink); }
+  .tier input { border: 1px solid var(--border); border-radius: 6px; background: var(--field); padding: 4px 6px; width: 100%; min-width: 0; }
+
+  .label-muted { color: var(--muted); font-size: 1.02rem; }
+  .group { display: grid; gap: 12px; }
+  .radios { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .radios label { display: flex; align-items: center; gap: 16px; padding: 12px 18px; cursor: pointer; }
+  .radios label + label { border-top: 1px solid var(--border); }
+  .radios input { width: 20px; height: 20px; margin: 0; accent-color: var(--blue); }
+  .pay-mark { min-width: 44px; font-weight: 600; font-size: 0.95rem; }
+  .collapse { display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0; cursor: pointer; width: 100%; text-align: left; }
+  .collapse svg { width: 18px; height: 18px; stroke: var(--muted); fill: none; stroke-width: 1.8; transition: transform 0.15s; }
+  .collapse[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .field { display: grid; gap: 8px; }
+  .field label { font-size: 1rem; }
+  .in { border: 1px solid var(--border); background: var(--field); border-radius: 8px; padding: 9px 14px; width: 100%; min-width: 0; }
+  .in::placeholder { color: var(--faint); }
+  .two { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr); gap: 14px; }
+  .saved { display: flex; align-items: center; gap: 14px; border: 1px solid var(--blue); border-radius: 10px; padding: 12px 16px; }
+  .saved .brand { width: 32px; height: 22px; border-radius: 4px; background: var(--blue); color: #fff; font-size: 0.55rem; font-weight: 700; display: grid; place-items: center; }
+  .saved div { flex: 1; display: grid; }
+  .saved small { color: var(--muted); }
+  .saved button { border: 0; background: none; color: var(--blue-ink); cursor: pointer; }
+  .check { display: flex; gap: 12px; align-items: flex-start; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--blue); }
+  .check small { display: block; color: var(--muted); }
+  .tax-head { font-weight: 600; margin: 0; }
+
+  .summary { border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; display: grid; }
+  .srow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 5px; }
+  .srow.total { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 16px; font-size: 1.05rem; }
+  .srow.total .num { font-weight: 600; font-size: 1.2rem; }
+  .was { color: var(--muted); text-decoration: line-through; font-weight: 400; font-size: 0.95rem; margin-right: 8px; }
+  .ru { display: grid; gap: 6px; padding-block: 8px 2px; }
+  .ru label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+  .ru input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 2px 9px; font-size: 0.82rem; cursor: pointer; color: var(--muted); }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button[aria-pressed="true"] { background: var(--chip); color: var(--text); }
+  .ru .add.off { color: var(--muted); }
+  .ru .why { font-size: 0.86rem; color: var(--muted); padding-left: 28px; }
+  .ru .why a { color: var(--muted); }
+
+  .buy { border: 0; border-radius: 8px; background: var(--btn); color: var(--btn-ink); padding: 11px; font-weight: 500; font-size: 1.05rem; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  .buy:disabled { background: var(--btn-off); color: var(--btn-ink); cursor: default; }
+  .terms { text-align: center; color: var(--muted); font-size: 0.92rem; margin: -8px 0 0; }
+  .terms a { color: var(--blue-ink); }
+  .spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .rail { display: none; }
+    .side { min-height: 0; border-right: 0; border-bottom: 1px solid var(--border); }
+    .side .sub, .side-foot, .search { display: none; }
+    .main { padding: 24px 16px 48px; }
+    .tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .modal { padding: 22px 18px; }
+    .two { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="rail" aria-hidden="true">
+    <span class="dot"></span>
+    <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="13" height="10" rx="2"/><rect x="11" y="10" width="10" height="10" rx="2"/></svg>
+    <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <svg class="i bottom" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+  </div>
+
+  <nav class="side" aria-label="Console">
+    <div class="side-top"><b>Console</b><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></div>
+    <a href="../settings/usage.html"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Back to app</a>
+    <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Search Console...</span><span class="kbd">Ctrl</span><span class="kbd">K</span></div>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h4M7 14h6"/></svg>General</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Organization settings</a>
+    <a class="sub" href="#">Organization</a>
+    <a class="sub" href="#">Workspaces</a>
+    <a class="sub" href="#" aria-current="page">Billing</a>
+    <a class="sub" href="#">Rate limits</a>
+    <a class="sub" href="#">API keys</a>
+    <a class="sub" href="#">Service accounts</a>
+    <a class="sub" href="#">Workload identity</a>
+    <a class="sub" href="#">Data retention</a>
+    <a class="sub" href="#">Capabilities</a>
+    <a class="sub" href="#">Identity and access</a>
+    <div class="side-foot">
+      <a href="#"><svg class="i" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg>Notifications<span class="badge">1</span></a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z"/></svg>Documentation</a>
+      <div class="row credits-row"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/></svg>Credits<span class="val num" id="side-credits">US$0.00</span><a href="#" id="side-add">Add funds</a></div>
+      <div class="user"><span class="av"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-4h4v4"/></svg></span><div><b>Priya</b><small>Priya's Individual Org</small></div></div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="main-inner">
+      <h1>Billing</h1>
+
+      <div class="card toast" id="toast" hidden>
+        <b>Credits added</b>
+        <span id="toast-line"></span>
+        <span class="muted" id="toast-gift" hidden></span>
+      </div>
+
+      <section class="card empty" id="empty">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 30c0-9 9-15 20-15 4 0 7 .8 10 2l6-4v8c2 2 4 5 4 8h4v8h-5c-1 3-4 6-7 7v6h-7v-4h-9v4h-7v-6c-5-3-9-8-9-14z"/><circle cx="34" cy="12" r="5"/><circle cx="45" cy="26" r="1" fill="currentColor"/><path d="M10 32c-3 0-4-2-4-4"/></svg>
+        <h2>Buy credits to get started</h2>
+        <p>Add credits to start making API calls.</p>
+        <button class="btn-white" type="button" id="open-buy">Buy credits from US$5</button>
+        <p class="fine">Credits expire 1 year after purchase</p>
+      </section>
+
+      <section class="card balance" id="balance-card" hidden>
+        <div><span class="muted">Credit balance</span><div class="amt num" id="balance">US$0.00</div></div>
+        <button class="btn-white" type="button" id="open-buy-2">Buy credits</button>
+      </section>
+
+      <div class="card contact">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.5 6.6L4 20l1.2-3.6A8 8 0 0 1 4 12z"/><path d="M9 12h.01M12 12h.01M15 12h.01"/></svg>
+        <span>Contact our accounts team for custom rate limits, monthly invoicing, and more.</span>
+        <button class="btn-soft" type="button">Contact sales</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="buy" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="buy-title">
+    <div class="modal-head">
+      <div><h2 id="buy-title">Buy credits to get started</h2><p>Credits are consumed by usage in the Console, Code and the API</p></div>
+      <button class="x" type="button" id="close" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+
+    <div class="tiers" id="tiers">
+      <button class="tier" type="button" data-amount="5" aria-pressed="false"><span class="amt">US$5</span><span class="tag">Starting out</span></button>
+      <button class="tier" type="button" data-amount="20" aria-pressed="true"><span class="amt">US$20</span><span class="tag">Recommended</span></button>
+      <button class="tier" type="button" data-amount="100" aria-pressed="false"><span class="amt">US$100</span><span class="tag">Building</span></button>
+      <div class="tier" role="button" tabindex="0" data-amount="other" aria-pressed="false" id="tier-other"><span class="amt">Other</span><input type="number" id="custom" min="5" max="5000" value="50" aria-label="Custom amount in US dollars" hidden></div>
+    </div>
+
+    <div class="group">
+      <span class="label-muted">Payment method</span>
+      <div class="radios">
+        <label><input type="radio" name="pm" value="card" checked><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><span>Card</span></label>
+        <label><input type="radio" name="pm" value="apple"><span class="pay-mark">Pay</span><span>Apple Pay</span></label>
+        <label><input type="radio" name="pm" value="google"><span class="pay-mark">G Pay</span><span>Google Pay</span></label>
+      </div>
+    </div>
+
+    <div class="group">
+      <button class="collapse label-muted" type="button" aria-expanded="true" data-target="addr">Billing address <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+      <div class="group" id="addr">
+        <div class="field"><label for="name">Full name</label><input class="in" id="name" value="Priya Sandhu" autocomplete="name"></div>
+        <div class="field"><label for="country">Country or region</label>
+          <select class="in" id="country"><option selected>Canada</option><option>United States</option></select></div>
+        <div class="field"><label for="address">Address</label><input class="in" id="address" value="8888 University Drive, Burnaby, BC V5A 1S6" autocomplete="street-address"></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <button class="collapse label-muted" type="button" aria-expanded="false" data-target="cc">Credit card <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+      <div class="group" id="cc" hidden>
+        <div class="saved"><span class="brand">VISA</span><div><span>Visa debit</span><small class="num">&bull;&bull;&bull;&bull; 4242</small></div><button type="button">Change</button></div>
+        <div class="field"><label for="postal">Confirm postal code</label><input class="in" id="postal" value="V5A 1S6" autocomplete="postal-code"></div>
+      </div>
+    </div>
+
+    <label class="check"><input type="checkbox" checked><span>My shipping address is the same as my billing address<small>This information is used for tax purposes.</small></span></label>
+
+    <div class="group">
+      <p class="tax-head">Business tax ID</p>
+      <span class="muted" style="margin-top:-6px;">If you are a business tax registrant, please enter your business tax ID here.</span>
+      <div class="two"><select class="in" aria-label="Tax ID type"><option>Canadian BN</option><option>Canadian GST/HST</option></select><input class="in" placeholder="123456789" aria-label="Business tax ID"></div>
+    </div>
+
+    <div class="summary" aria-live="polite">
+      <div class="srow"><span>Usage credits</span><span class="num" id="s-credits">US$20.00</span></div>
+      <div class="srow"><span>Estimated tax</span><span class="num" id="s-tax">$2.40</span></div>
+      <div class="ru" id="ru">
+        <div class="srow" style="padding:0;">
+          <span style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label for="ru-on"><input type="checkbox" id="ru-on"><span>Round up for global development</span></label>
+            <span class="seg" id="ru-seg" role="group" aria-label="Round up to"><button type="button" data-step="1" aria-pressed="true">Next $1</button><button type="button" data-step="5" aria-pressed="false">Next $5</button></span>
+          </span>
+          <span class="add num off" id="ru-add">+$0.60</span>
+        </div>
+        <div class="why" id="ru-why">Your change goes to this month&rsquo;s project, Rift Valley Statistics Fellowship. Powered by <a href="../index.html" target="_blank" rel="noopener">Tributary</a>.</div>
+      </div>
+      <div class="srow total"><span>Total due</span><span class="num"><span class="was" id="s-was" hidden></span><span id="s-total">$22.40</span></span></div>
+    </div>
+
+    <button class="buy" type="button" id="pay">Buy US$20 of credits</button>
+    <p class="terms">Credits are consumed with API, Code, and playground usage, and expire 1 year after purchase. By clicking &ldquo;Buy credits&rdquo; you agree to the <a href="#">Credit Terms</a></p>
+  </div>
+</div>
+
+<script src="../assets/roundup.js"></script>
+<script>
+  const R = window.RoundUp;
+  const $ = (id) => document.getElementById(id);
+  const state = { amount: 20, other: false, step: 1, on: false, balance: 0 };
+
+  function amount() {
+    return state.other ? Math.max(0, Number($("custom").value) || 0) : state.amount;
+  }
+
+  // Tax is only estimated once a billing address is filled in, as in the native flow.
+  function addressReady() {
+    return $("name").value.trim() !== "" && $("address").value.trim() !== "";
+  }
+
+  function render() {
+    const a = amount();
+    const q = R.quote(a, state.step, undefined, false);
+    const ready = addressReady();
+    const valid = a >= 5 && a <= 5000;
+    const rounding = state.on && q.roundUp > 0;
+
+    document.querySelectorAll("#tiers [data-amount]").forEach((el) => {
+      const sel = el.dataset.amount === "other" ? state.other : !state.other && Number(el.dataset.amount) === state.amount;
+      el.setAttribute("aria-pressed", String(sel));
+    });
+    $("custom").hidden = !state.other;
+
+    $("s-credits").textContent = R.usd(q.credits);
+    $("s-tax").textContent = ready ? R.dollars(q.tax) : "$--";
+    $("ru").hidden = !ready;
+    $("ru-on").disabled = q.roundUp === 0;
+    $("ru-add").textContent = q.roundUp === 0 ? "Already even" : "+" + R.dollars(q.roundUp);
+    $("ru-add").classList.toggle("off", !state.on || q.roundUp === 0);
+    document.querySelectorAll("#ru-seg button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.step) === state.step)));
+    $("s-was").hidden = !(ready && rounding);
+    $("s-was").textContent = R.dollars(q.total);
+    $("s-total").textContent = ready ? R.dollars(rounding ? q.rounded : q.total) : "$--";
+
+    const credits = Number.isInteger(a) ? "US$" + a : R.usd(q.credits);
+    $("pay").textContent = "Buy " + credits + " of credits";
+    $("pay").disabled = !(ready && valid);
+  }
+
+  function openBuy() { $("buy").hidden = false; render(); }
+  function closeBuy() { $("buy").hidden = true; }
+
+  // Shares the round-up with the Tributary page open in the same browser.
+  function saveRoundUp(cents) {
+    try {
+      const key = "tributary.roundups";
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      list.unshift({ ts: Date.now(), cents, name: "Priya S.", province: "BC" });
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 50)));
+    } catch (err) {
+      // Storage can be blocked; the purchase itself still completes.
+    }
+  }
+
+  function pay() {
+    const q = R.quote(amount(), state.step, undefined, false);
+    const gave = state.on && q.roundUp > 0;
+    const btn = $("pay");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Processing';
+    setTimeout(() => {
+      state.balance += q.credits;
+      if (gave) saveRoundUp(q.roundUp);
+      $("balance").textContent = R.usd(state.balance);
+      $("side-credits").textContent = R.usd(state.balance);
+      $("empty").hidden = true;
+      $("balance-card").hidden = false;
+      $("toast-line").textContent = R.usd(q.credits) + " of credits was added to your organization. You were charged " + R.dollars(gave ? q.rounded : q.total) + ".";
+      $("toast-gift").hidden = !gave;
+      $("toast-gift").textContent = "Your " + R.dollars(q.roundUp) + " round-up is on its way to Rift Valley Statistics Fellowship.";
+      $("toast").hidden = false;
+      closeBuy();
+    }, 1100);
+  }
+
+  $("open-buy").addEventListener("click", openBuy);
+  $("open-buy-2").addEventListener("click", openBuy);
+  $("side-add").addEventListener("click", (e) => { e.preventDefault(); openBuy(); });
+  $("close").addEventListener("click", closeBuy);
+  $("buy").addEventListener("click", (e) => { if (e.target === $("buy")) closeBuy(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("buy").hidden) closeBuy(); });
+  $("tiers").addEventListener("click", (e) => {
+    const tier = e.target.closest("[data-amount]");
+    if (!tier || e.target === $("custom")) return;
+    state.other = tier.dataset.amount === "other";
+    if (!state.other) state.amount = Number(tier.dataset.amount);
+    render();
+    if (state.other) $("custom").focus();
+  });
+  $("tier-other").addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) { e.preventDefault(); e.currentTarget.click(); }
+  });
+  document.querySelectorAll(".collapse").forEach((btn) => btn.addEventListener("click", () => {
+    const open = btn.getAttribute("aria-expanded") !== "true";
+    btn.setAttribute("aria-expanded", String(open));
+    $(btn.dataset.target).hidden = !open;
+  }));
+  ["custom", "name", "address"].forEach((id) => $(id).addEventListener("input", render));
+  $("ru-on").addEventListener("change", (e) => { state.on = e.target.checked; render(); });
+  $("ru-seg").addEventListener("click", (e) => {
+    const s = e.target.dataset.step;
+    if (!s) return;
+    state.step = Number(s);
+    render();
+  });
+  $("pay").addEventListener("click", pay);
+  render();
+</script>
+</body>
+</html>

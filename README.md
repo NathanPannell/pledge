@@ -17,6 +17,8 @@ python -m http.server 5173 --directory web
 
 - http://localhost:5173/settings/usage.html the provider's Settings > Usage page. Click
   Buy more usage, tick the round-up, pay.
+- http://localhost:5173/console/billing.html the provider's API console billing page.
+  Click Buy credits from US$5; US$20 + tax = $22.40 rounds to $23.00.
 - http://localhost:5173/ the Tributary page. Your round-up appears in the latest
   round-ups feed and in October's total.
 

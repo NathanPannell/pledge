@@ -17,10 +17,12 @@
     return tier ? tier.discount : 0;
   }
 
-  function quote(amount, step, taxRate) {
+  // The API console sells credits at face value, so callers can turn the
+  // volume discount off.
+  function quote(amount, step, taxRate, withDiscount) {
     const rate = taxRate === undefined ? TAX_RATE : taxRate;
     const credits = Math.round(amount * 100);
-    const discount = Math.round(credits * discountFor(amount));
+    const discount = withDiscount === false ? 0 : Math.round(credits * discountFor(amount));
     const tax = Math.round((credits - discount) * rate);
     const total = credits - discount + tax;
     const stepCents = step * 100;

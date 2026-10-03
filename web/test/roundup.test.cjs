@@ -34,6 +34,13 @@ test("a total that is already round has no round-up", () => {
   assert.equal(q.roundUp, 0);
 });
 
+test("console credits at face value: US$20 + 12% rounds US$22.40 to US$23.00", () => {
+  const q = quote(20, 1, undefined, false);
+  assert.equal(q.discount, 0);
+  assert.equal(q.total, 2240);
+  assert.equal(q.roundUp, 60);
+});
+
 test("formats cents", () => {
   assert.equal(usd(10080), "US$100.80");
   assert.equal(dollars(123456), "$1,234.56");
