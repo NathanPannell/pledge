@@ -76,7 +76,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     requireOrg();
     const institution = (await plaid.institutionName(accessToken)) || "Business card";
     const { lastInsertRowid } = q(`insert into connection (kind, label, secret, hint, created_at)
-      values ('plaid', ?, ?, ?, ?)`).run(institution, seal(key, accessToken), "Plaid item", now());
+      values ('plaid', ?, ?, ?, ?)`).run(institution, seal(key, accessToken), "Transactions, read-only", now());
     const conn = q("select * from connection where id = ?").get(lastInsertRowid);
     await syncPlaid(conn);
     return conn.id;

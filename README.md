@@ -1,45 +1,76 @@
 # Tributary
 
-Aid budgets are shrinking. AI budgets aren't. Tributary is a round-up button inside AI
-credit checkouts. A US$100 usage-credit purchase with its volume discount and BC tax comes
-to US$100.80; one checkbox rounds it to US$101.00 and sends the 20 cents to a development
-project chosen each month (UN SDG 17, targets 17.3 and 17.17).
+Aid budgets are shrinking. AI budgets aren't. Tributary connects to a company's business
+card and AI provider accounts, measures what it spends on AI, and invoices a pledge the
+company sets on a dial (0.25% to 5%). Pledges go to a charity partner and appear on a
+public ledger. Built for UN SDG 17 (Partnerships for the Goals) at StormHacks 2026.
 
-StormHacks 2026 prototype.
+## How it works
+
+1. **Business card through Plaid.** Transactions are read, and AI charges are picked out
+   by vendor (Anthropic, OpenAI, Cursor, Copilot and 12 more).
+2. **Provider cost reports.** Optional Anthropic and OpenAI admin keys add usage-level
+   daily costs. Keys are encrypted at rest and only used for the cost endpoints.
+3. **The dial.** The pledge is calculated on card charges, provider usage, or the larger
+   of the two. Never the sum, because the card usually pays the provider.
+4. **One invoice.** Issued through Stripe Invoicing when a key is set (test mode for the
+   demo), otherwise recorded locally. Every invoice appears on the public ledger.
+
+## Setup
+
+Requires Node 22.13 or later. No npm dependencies.
+
+```bash
+cp server/.env.example server/.env
+```
+
+Fill in `server/.env`:
+
+| Variable | Where to get it | Needed for |
+|---|---|---|
+| `PLAID_CLIENT_ID`, `PLAID_SECRET` | dashboard.plaid.com, Developers > Keys (sandbox) | Connecting a card |
+| `STRIPE_SECRET_KEY` | dashboard.stripe.com, test mode API keys (`sk_test_...`) | Sending invoices through Stripe |
+| `CHARITY_NAME`, `CHARITY_DESCRIPTION` | Your charity partner | Invoices, ledger, landing page |
+
+Anthropic and OpenAI admin keys are pasted in the dashboard, not in `.env`. Anthropic
+admin keys need a Console organization; individual accounts can't create them.
 
 ## Run
 
-No build step and no backend. Serve the `web` folder:
-
 ```bash
-python -m http.server 5173 --directory web
+npm --prefix server start
 ```
 
-- http://localhost:5173/settings/usage.html the provider's Settings > Usage page. Click
-  Buy more usage, tick the round-up, pay.
-- http://localhost:5173/console/billing.html the provider's API console billing page.
-  Click Buy credits from US$5; US$20 + tax = $22.40 rounds to $23.00.
-- http://localhost:5173/ the Tributary page. Your round-up appears in the latest
-  round-ups feed and in October's total.
+- http://localhost:5173/ landing page and public ledger
+- http://localhost:5173/app.html dashboard
 
-Round-ups are passed between the pages through browser `localStorage`. To reset the demo,
-run `localStorage.removeItem("tributary.roundups")` in the browser console.
+With Plaid sandbox keys, **Use demo card** connects a business card with four months of
+realistic charges (AI vendors plus ordinary expenses) without going through Plaid Link.
+**Connect card** opens real Plaid Link. Print the demo card's config for Plaid's Sandbox
+Studio with `npm --prefix server run sandbox-config`.
+
+To reset everything, stop the server and delete `server/data/`.
 
 ## Demo script
 
-1. Settings > Usage: weekly limit at 91%, no usage credits. Click Buy more usage.
-2. $100 (save 10%) is selected. Tick "Round up for global development". Total due goes
-   from US$100.80 to US$101.00. Try "Next $5" to show US$105.00, then switch back.
-3. Pay. The confirmation shows the 20 cents going to this month's project.
-4. Open the Tributary page: totals, the new round-up at the top of the feed, giving history.
+1. Landing page: the pitch, the charity partner, the empty public ledger.
+2. Dashboard: set up the company, click **Use demo card**. AI vendors appear among
+   ordinary expenses.
+3. Add an Anthropic or OpenAI admin key for provider usage (optional).
+4. Turn the dial. The pledge and the yearly estimate update live.
+5. **Issue invoice for this period.** Open it in Stripe, mark it paid.
+6. Back to the landing page: the pledge is on the public ledger.
 
 ## Tests
 
 ```bash
+npm --prefix server test
 npm --prefix web test
 ```
 
-## Proxy
+## Other folders
 
-`proxy/` holds a metering proxy from an earlier direction. It is not used by the current
-demo. See its tests with `npm --prefix proxy test`.
+- `web/settings/usage.html`, `web/console/billing.html`: unbranded provider checkout
+  mockups with a native round-up step, from an earlier direction ("future: a checkbox in
+  every AI checkout").
+- `proxy/`: metering proxy from an earlier direction. Not used.
