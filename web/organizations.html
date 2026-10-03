@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tributary for Organizations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=DM+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .alloc { display: grid; gap: 14px; }
+  .alloc-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 6px 16px; align-items: center; }
+  .alloc-row label { font-weight: 600; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .alloc-row output { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .alloc-row input { grid-column: 1 / -1; }
+  .split { display: flex; height: 12px; border: 1px solid var(--ink); border-radius: 2px; overflow: hidden; }
+  .split i { display: block; height: 100%; transition: width 0.2s; }
+  .split i:nth-child(1) { background: var(--accent); }
+  .split i:nth-child(2) { background: var(--guil); }
+  .split i:nth-child(3) { background: var(--guil-2); }
+  .split i:nth-child(4) { background: var(--ink-soft); }
+  .key { display: grid; gap: 6px; }
+  .key div { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.88rem; }
+  .key b { width: 10px; height: 10px; border-radius: 1px; }
+  .key span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .badge-preview {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border: 1px solid var(--ink); border-radius: 999px; background: var(--paper);
+    font-size: 0.85rem; width: fit-content; max-width: 100%;
+  }
+  .badge-preview i { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(var(--accent), var(--guil), var(--guil-2), var(--accent)); flex: none; }
+  .issued [data-before] { display: none; }
+  .slip:not(.issued) [data-after] { display: none; }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="wordmark" href="index.html"><b>Tributary</b><span class="mono">SDG 17</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#register">Contributors</a>
+      <a href="organizations.html" aria-current="page">For organizations</a>
+      <a href="individuals.html">For individuals</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="flow-head">
+    <div class="flow-switch" aria-label="Pledge type">
+      <a href="organizations.html" aria-current="page">Organization</a>
+      <a href="individuals.html">Individual</a>
+    </div>
+    <h1 style="font-size:var(--step-3)">Pledge a share of your <em>AI budget</em></h1>
+    <p class="lede">Set a rate once. Tributary meters your model usage or invoices a fixed share of your budget, then sends it to vetted development projects every month.</p>
+  </div>
+
+  <form class="flow" id="org-form" novalidate>
+    <div class="flow-form">
+      <fieldset class="step">
+        <div class="step-head"><h3>Organization</h3><span class="n">Step 1 of 5</span></div>
+        <div class="field">
+          <label for="org-name">Legal name</label>
+          <input type="text" id="org-name" value="Northgate Freight Ltd." autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="org-spend">Annual AI spend</label>
+          <div class="money-input"><span>$</span><input type="text" id="org-spend" inputmode="numeric" value="2,400,000"></div>
+          <span class="hint">Include API usage, seat licenses and inference hosting. An estimate is fine; metered pledges use actual usage.</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>How you&rsquo;ll contribute</h3><span class="n">Step 2 of 5</span></div>
+        <div class="options">
+          <label class="option">
+            <input type="radio" name="method" value="proxy" id="method-proxy" checked>
+            <span class="body"><span class="dot"></span><span class="t">Meter usage through the proxy</span><span class="sdg">17.3</span>
+              <span class="d">Change your API base URL. We read token counts from each response and invoice the pledge monthly. Prompts and outputs are never stored.</span></span>
+          </label>
+          <label class="option">
+            <input type="radio" name="method" value="budget" id="method-budget">
+            <span class="body"><span class="dot"></span><span class="t">Fixed pledge from the AI budget</span><span class="sdg">17.3</span>
+              <span class="d">Commit a share of your estimated annual spend, invoiced quarterly. No code changes.</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>Pledge rate</h3><span class="n">Step 3 of 5</span></div>
+        <div class="seg" role="radiogroup" aria-label="Pledge rate">
+          <label><input type="radio" name="rate" value="0.0025" id="rate-025"><span>0.25%</span></label>
+          <label><input type="radio" name="rate" value="0.005" id="rate-05" checked><span>0.50%</span></label>
+          <label><input type="radio" name="rate" value="0.01" id="rate-1"><span>1.00%</span></label>
+          <label><input type="radio" name="rate" value="0.02" id="rate-2"><span>2.00%</span></label>
+        </div>
+        <span class="hint fine">Most organizations start at 0.50%. You can change the rate at the start of any month.</span>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>Where it goes</h3><span class="n">Step 4 of 5</span></div>
+        <div class="alloc" id="alloc">
+          <div class="alloc-row">
+            <label for="a-motm">Project of the month <span class="sdg">rotating</span></label><output for="a-motm" id="o-motm">40%</output>
+            <input type="range" id="a-motm" min="0" max="100" value="40">
+          </div>
+          <div class="alloc-row">
+            <label for="a-fin">Access to finance fund <span class="sdg">17.3</span></label><output for="a-fin" id="o-fin">20%</output>
+            <input type="range" id="a-fin" min="0" max="100" value="20">
+          </div>
+          <div class="alloc-row">
+            <label for="a-tech">Technology and connectivity fund <span class="sdg">17.8</span></label><output for="a-tech" id="o-tech">20%</output>
+            <input type="range" id="a-tech" min="0" max="100" value="20">
+          </div>
+          <div class="alloc-row">
+            <label for="a-data">Data and statistics fund <span class="sdg">17.18</span></label><output for="a-data" id="o-data">20%</output>
+            <input type="range" id="a-data" min="0" max="100" value="20">
+          </div>
+          <span class="hint fine">Shares are scaled to total 100%.</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>Public listing</h3><span class="n">Step 5 of 5</span></div>
+        <div class="options">
+          <label class="option">
+            <input type="checkbox" id="list-public" checked>
+            <span class="body"><span class="dot"></span><span class="t">List us in the register of contributors</span><span></span>
+              <span class="d">Your name, rate and routed total appear on the public ledger.</span></span>
+          </label>
+          <label class="option">
+            <input type="checkbox" id="show-badge" checked>
+            <span class="body"><span class="dot"></span><span class="t">Give us an embeddable badge</span><span></span>
+              <span class="d">A small mark for your site or README that links to your ledger entry.</span></span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <aside class="flow-aside">
+      <div class="slip" id="slip" aria-live="polite">
+        <div class="slip-head">
+          <span class="eyebrow">Pledge instrument</span>
+          <span class="mono" id="ref">TRB-ORG-000000-0000</span>
+        </div>
+        <div class="slip-row"><span class="k">Contributor</span><span class="v" id="s-name">&nbsp;</span></div>
+        <div class="slip-row"><span class="k">Method</span><span class="v" id="s-method">&nbsp;</span></div>
+        <div class="slip-row"><span class="k">Rate</span><span class="v" id="s-rate">&nbsp;</span></div>
+        <div class="slip-row"><span class="k">Billed</span><span class="v" id="s-cadence">&nbsp;</span></div>
+        <div class="slip-row"><span class="k" id="s-period-k">Per invoice</span><span class="v" id="s-period">&nbsp;</span></div>
+        <div class="slip-total">
+          <div style="display:grid;gap:4px;">
+            <span class="eyebrow">Routed per year</span>
+            <span class="amount"><span id="s-annual">$0</span><small>USD</small></span>
+          </div>
+        </div>
+        <div style="display:grid;gap:10px;padding-top:16px;">
+          <div class="split" aria-hidden="true" id="split"><i></i><i></i><i></i><i></i></div>
+          <div class="key" id="key"></div>
+        </div>
+
+        <div class="perf" aria-hidden="true"></div>
+
+        <div class="stub" data-before>
+          <button type="submit" class="btn" id="issue">Issue pledge <span class="arrow">&rarr;</span></button>
+          <p class="fine">Issuing creates a draft agreement for your finance team. Nothing is charged until the first invoice is approved.</p>
+        </div>
+        <div class="stub" data-after>
+          <span class="eyebrow" id="next-title">Next: change one line</span>
+          <div class="code" id="next-code"></div>
+          <div class="badge-preview" id="badge"><i></i><span><b id="badge-name">Northgate</b> routes <span id="badge-rate">0.50%</span> of its AI spend to SDG 17</span></div>
+          <button type="button" class="btn ghost" id="reset">Edit pledge</button>
+        </div>
+        <span class="stamp" id="stamp" hidden>Issued</span>
+      </div>
+      <span class="demo-flag">Demo flow. No agreement is created and nothing is charged.</span>
+    </aside>
+  </form>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>Tributary &middot; a StormHacks 2026 prototype for UN SDG 17</span>
+    <span class="mono">Questions: partnerships desk, ref. 17.17</span>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script>
+  const T = window.Tributary;
+  const $ = (id) => document.getElementById(id);
+  const FUNDS = [
+    { id: "a-motm", out: "o-motm", label: "Project of the month" },
+    { id: "a-fin", out: "o-fin", label: "Access to finance (17.3)" },
+    { id: "a-tech", out: "o-tech", label: "Technology (17.8)" },
+    { id: "a-data", out: "o-data", label: "Data and statistics (17.18)" },
+  ];
+  const ref = T.referenceCode("TRB-ORG");
+
+  function parseMoney(text) {
+    const n = Number(String(text).replace(/[^0-9.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function readState() {
+    const raw = FUNDS.map((f) => Number($(f.id).value));
+    const sum = raw.reduce((a, b) => a + b, 0) || 1;
+    return {
+      name: $("org-name").value.trim() || "Unnamed organization",
+      spend: parseMoney($("org-spend").value),
+      method: document.querySelector('input[name="method"]:checked').value,
+      rate: Number(document.querySelector('input[name="rate"]:checked').value),
+      shares: raw.map((v) => v / sum),
+    };
+  }
+
+  function renderAllocation(state, annual) {
+    FUNDS.forEach((f, i) => { $(f.out).textContent = Math.round(state.shares[i] * 100) + "%"; });
+    const bars = $("split").children;
+    state.shares.forEach((s, i) => { bars[i].style.width = (s * 100) + "%"; });
+    const colors = ["var(--accent)", "var(--guil)", "var(--guil-2)", "var(--ink-soft)"];
+    $("key").innerHTML = FUNDS.map((f, i) =>
+      `<div><b style="background:${colors[i]}"></b><span>${f.label}</span><span>${T.money(annual * state.shares[i], 0)}</span></div>`
+    ).join("");
+  }
+
+  function render() {
+    const s = readState();
+    const annual = s.spend * s.rate;
+    const metered = s.method === "proxy";
+    $("ref").textContent = ref;
+    $("s-name").textContent = s.name;
+    $("s-method").textContent = metered ? "Metered via proxy" : "Fixed budget pledge";
+    $("s-rate").textContent = (s.rate * 100).toFixed(2) + (metered ? "% of usage" : "% of budget");
+    $("s-cadence").textContent = metered ? "Monthly, in arrears" : "Quarterly, in advance";
+    $("s-period-k").textContent = metered ? "Est. per month" : "Per quarter";
+    $("s-period").textContent = T.money(metered ? annual / 12 : annual / 4, 0);
+    T.countTo($("s-annual"), annual, (n) => T.money(n, 0), 300);
+    renderAllocation(s, annual);
+    $("badge-name").textContent = s.name.split(" ")[0];
+    $("badge-rate").textContent = (s.rate * 100).toFixed(2) + "%";
+    $("badge").hidden = !$("show-badge").checked;
+  }
+
+  function nextStepCode(s) {
+    if (s.method === "proxy") {
+      $("next-title").textContent = "Next: change one line";
+      return 'client = OpenAI(\n  <span class="hl">base_url="https://proxy.tributary.dev/v1"</span>,\n' +
+        '  default_headers={"x-tributary-key": "' + ref.toLowerCase() + '"},\n)';
+    }
+    $("next-title").textContent = "Next: first invoice";
+    return "Invoice    " + ref + "-Q1\nAmount     " + T.money(s.spend * s.rate / 4, 0) +
+      "\nDue        Net 30 after approval\nSent to    accounts payable";
+  }
+
+  $("org-spend").addEventListener("blur", (e) => {
+    e.target.value = parseMoney(e.target.value).toLocaleString("en-US");
+  });
+  $("org-form").addEventListener("input", render);
+  $("org-form").addEventListener("change", render);
+
+  $("org-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const s = readState();
+    $("next-code").innerHTML = nextStepCode(s);
+    $("slip").classList.add("issued");
+    const stamp = $("stamp");
+    stamp.hidden = false;
+    stamp.classList.remove("landed");
+    void stamp.offsetWidth;
+    stamp.classList.add("landed");
+    document.querySelectorAll("#org-form .flow-form input").forEach((el) => { el.disabled = true; });
+  });
+
+  $("reset").addEventListener("click", () => {
+    $("slip").classList.remove("issued");
+    $("stamp").hidden = true;
+    document.querySelectorAll("#org-form .flow-form input").forEach((el) => { el.disabled = false; });
+  });
+
+  render();
+</script>
+</body>
+</html>

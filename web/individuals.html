@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tributary for Individuals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=DM+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .subs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .subs .option .body { grid-template-columns: auto 1fr auto; }
+  .subs .price { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .custom-row { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 14px; align-items: end; }
+  .receipt { display: grid; gap: 0; }
+  .receipt .slip-row .k { display: flex; gap: 8px; }
+  .share { display: grid; gap: 8px; padding-top: 14px; }
+  .share .bar { height: 10px; background: var(--paper-3); border: 1px solid var(--ink); border-radius: 2px; overflow: hidden; }
+  .share .bar i { display: block; height: 100%; background: var(--guil); transition: width 0.3s; }
+  .issued [data-before] { display: none; }
+  .slip:not(.issued) [data-after] { display: none; }
+  .anon-row { display: flex; gap: 10px; align-items: center; font-size: 0.92rem; }
+  .anon-row input { width: 18px; height: 18px; accent-color: var(--accent); }
+  @media (max-width: 560px) {
+    .subs { grid-template-columns: 1fr; }
+    .custom-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="wordmark" href="index.html"><b>Tributary</b><span class="mono">SDG 17</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#register">Contributors</a>
+      <a href="organizations.html">For organizations</a>
+      <a href="individuals.html" aria-current="page">For individuals</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="flow-head">
+    <div class="flow-switch" aria-label="Pledge type">
+      <a href="organizations.html">Organization</a>
+      <a href="individuals.html" aria-current="page">Individual</a>
+    </div>
+    <h1 style="font-size:var(--step-3)">Add a little to what you <em>already pay</em></h1>
+    <p class="lede">Tell us roughly what you spend on AI tools each month. Pick a top-up, and it goes to this month&rsquo;s development project.</p>
+  </div>
+
+  <form class="flow" id="ind-form" novalidate>
+    <div class="flow-form">
+      <fieldset class="step">
+        <div class="step-head"><h3>What you pay for AI</h3><span class="n">Step 1 of 3</span></div>
+        <div class="subs">
+          <label class="option"><input type="checkbox" id="sub-chat" data-price="20" checked>
+            <span class="body"><span class="dot"></span><span class="t">Chat assistant</span><span class="price">$20</span><span class="d">Standard monthly plan</span></span></label>
+          <label class="option"><input type="checkbox" id="sub-code" data-price="10" checked>
+            <span class="body"><span class="dot"></span><span class="t">Coding assistant</span><span class="price">$10</span><span class="d">Editor add-on</span></span></label>
+          <label class="option"><input type="checkbox" id="sub-pro" data-price="200">
+            <span class="body"><span class="dot"></span><span class="t">Power-user tier</span><span class="price">$200</span><span class="d">Highest usage limits</span></span></label>
+          <label class="option"><input type="checkbox" id="sub-media" data-price="15">
+            <span class="body"><span class="dot"></span><span class="t">Image or video tools</span><span class="price">$15</span><span class="d">Generation credits</span></span></label>
+        </div>
+        <div class="custom-row">
+          <div class="field">
+            <label for="api-spend">Pay-as-you-go API usage</label>
+            <div class="money-input"><span>$</span><input type="text" id="api-spend" inputmode="decimal" value="12"></div>
+          </div>
+          <div class="field">
+            <span class="label">Monthly total</span>
+            <span class="mono num" style="font-size:1.25rem;letter-spacing:0;padding-block:10px;" id="spend-total">$0</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>Your top-up</h3><span class="n">Step 2 of 3</span></div>
+        <div class="seg" role="radiogroup" aria-label="Top-up">
+          <label><input type="radio" name="topup" value="pct:0.05" id="t-5"><span>5%</span></label>
+          <label><input type="radio" name="topup" value="pct:0.10" id="t-10" checked><span>10%</span></label>
+          <label><input type="radio" name="topup" value="round:5" id="t-round"><span>Round up to $5</span></label>
+          <label><input type="radio" name="topup" value="flat:3" id="t-flat"><span>Flat $3</span></label>
+        </div>
+        <span class="fine">Rounding up adds whatever brings your AI spend to the next multiple of $5, with at least $1.</span>
+      </fieldset>
+
+      <fieldset class="step">
+        <div class="step-head"><h3>Where it goes</h3><span class="n">Step 3 of 3</span></div>
+        <div class="options">
+          <label class="option"><input type="radio" name="dest" value="Project of the month" id="d-motm" checked>
+            <span class="body"><span class="dot"></span><span class="t">Project of the month</span><span class="sdg">17.9</span>
+              <span class="d">October: Rift Valley Statistics Fellowship, training county statisticians.</span></span></label>
+          <label class="option"><input type="radio" name="dest" value="Technology fund" id="d-tech">
+            <span class="body"><span class="dot"></span><span class="t">Technology and connectivity fund</span><span class="sdg">17.8</span>
+              <span class="d">Internet access and digital tools in the least developed countries.</span></span></label>
+          <label class="option"><input type="radio" name="dest" value="Finance fund" id="d-fin">
+            <span class="body"><span class="dot"></span><span class="t">Access to finance fund</span><span class="sdg">17.3</span>
+              <span class="d">Lowers the cost of mobile money and small-business credit.</span></span></label>
+        </div>
+        <div class="field">
+          <label for="ind-name">Name on the register</label>
+          <input type="text" id="ind-name" value="Priya S." autocomplete="name">
+        </div>
+        <label class="anon-row"><input type="checkbox" id="anon"> Keep me anonymous on the public register</label>
+      </fieldset>
+    </div>
+
+    <aside class="flow-aside">
+      <div class="slip" id="slip" aria-live="polite">
+        <div class="slip-head">
+          <span class="eyebrow">Personal pledge</span>
+          <span class="mono" id="ref">TRB-IND-000000-0000</span>
+        </div>
+        <div class="receipt">
+          <div class="slip-row"><span class="k">AI spend per month</span><span class="v" id="s-spend">&nbsp;</span></div>
+          <div class="slip-row"><span class="k">Top-up</span><span class="v" id="s-rule">&nbsp;</span></div>
+          <div class="slip-row"><span class="k">Goes to</span><span class="v" id="s-dest">&nbsp;</span></div>
+          <div class="slip-row"><span class="k">Listed as</span><span class="v" id="s-name">&nbsp;</span></div>
+        </div>
+        <div class="slip-total">
+          <div style="display:grid;gap:4px;">
+            <span class="eyebrow">Each month</span>
+            <span class="amount"><span id="s-month">$0</span><small>USD</small></span>
+          </div>
+          <div style="display:grid;gap:4px;text-align:right;">
+            <span class="eyebrow">Per year</span>
+            <span class="mono num" id="s-year" style="font-size:1.1rem;letter-spacing:0;">$0</span>
+          </div>
+        </div>
+        <div class="share">
+          <span class="fine" id="share-text">&nbsp;</span>
+          <div class="bar" aria-hidden="true"><i id="share-bar" style="width:0%"></i></div>
+        </div>
+
+        <div class="perf" aria-hidden="true"></div>
+
+        <div class="stub" data-before>
+          <button type="submit" class="btn" id="pay">Continue to payment <span class="arrow">&rarr;</span></button>
+          <p class="fine">Billed monthly. Cancel anytime from the link in your receipt.</p>
+        </div>
+        <div class="stub" data-after>
+          <span class="eyebrow">Demo mode</span>
+          <p>No payment was collected. In the full version, this step hands off to a hosted checkout and your name joins the register after the first payment clears.</p>
+          <button type="button" class="btn ghost" id="reset">Edit pledge</button>
+        </div>
+        <span class="stamp" id="stamp" hidden>Pledged</span>
+      </div>
+      <span class="demo-flag">Demo flow. Prices are examples, not quotes from any provider.</span>
+    </aside>
+  </form>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>Tributary &middot; a StormHacks 2026 prototype for UN SDG 17</span>
+    <span class="mono">Individuals ledger, ref. 17.17</span>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script>
+  const T = window.Tributary;
+  const $ = (id) => document.getElementById(id);
+  const ref = T.referenceCode("TRB-IND");
+  // Demo figures for the project-of-the-month progress line.
+  const MOTM = { goal: 186000, raised: 121540 };
+
+  function parseMoney(text) {
+    const n = Number(String(text).replace(/[^0-9.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function monthlySpend() {
+    const subs = [...document.querySelectorAll(".subs input:checked")]
+      .reduce((sum, el) => sum + Number(el.dataset.price), 0);
+    return subs + parseMoney($("api-spend").value);
+  }
+
+  // Returns the monthly top-up and a short label describing the rule.
+  function topUp(spend, rule) {
+    const [kind, raw] = rule.split(":");
+    const value = Number(raw);
+    if (kind === "pct") return { amount: spend * value, label: Math.round(value * 100) + "% of spend" };
+    if (kind === "round") {
+      const gap = Math.ceil(spend / value) * value - spend;
+      return { amount: gap < 1 ? gap + value : gap, label: "Round up to $" + value };
+    }
+    return { amount: value, label: "Flat amount" };
+  }
+
+  function render() {
+    const spend = monthlySpend();
+    const rule = document.querySelector('input[name="topup"]:checked').value;
+    const t = topUp(spend, rule);
+    const anon = $("anon").checked;
+    $("ind-name").disabled = anon;
+
+    $("ref").textContent = ref;
+    $("spend-total").textContent = T.money(spend, 2);
+    $("s-spend").textContent = T.money(spend, 2);
+    $("s-rule").textContent = t.label;
+    $("s-dest").textContent = document.querySelector('input[name="dest"]:checked').value;
+    $("s-name").textContent = anon ? "Anonymous" : ($("ind-name").value.trim() || "Anonymous");
+    T.countTo($("s-month"), t.amount, (n) => T.money(n, 2), 300);
+    $("s-year").textContent = T.money(t.amount * 12, 2);
+
+    const pct = Math.min(100, (MOTM.raised / MOTM.goal) * 100);
+    $("share-bar").style.width = pct.toFixed(1) + "%";
+    $("share-text").textContent = "This month's project is " + Math.round(pct) + "% funded. " +
+      "Your " + T.money(t.amount, 2) + " joins 1,284 other individuals.";
+  }
+
+  $("ind-form").addEventListener("input", render);
+  $("ind-form").addEventListener("change", render);
+  $("api-spend").addEventListener("blur", (e) => { e.target.value = parseMoney(e.target.value).toFixed(2); });
+
+  $("ind-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    $("slip").classList.add("issued");
+    const stamp = $("stamp");
+    stamp.hidden = false;
+    stamp.classList.remove("landed");
+    void stamp.offsetWidth;
+    stamp.classList.add("landed");
+  });
+  $("reset").addEventListener("click", () => {
+    $("slip").classList.remove("issued");
+    $("stamp").hidden = true;
+  });
+
+  render();
+</script>
+</body>
+</html>
