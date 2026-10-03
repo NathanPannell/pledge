@@ -1,44 +1,42 @@
-// Checkout math for a USD credit purchase charged in CAD, with an optional
-// round-up. Works in the browser (window.RoundUp) and in Node tests.
+// Checkout math for a usage-credit purchase with a volume discount, estimated
+// tax and an optional round-up. All amounts are integer cents so totals never
+// drift. Works in the browser (window.RoundUp) and in Node tests.
 (function (root) {
-  const USD_TO_CAD = 1.38;
+  // Volume tiers offered on the purchase page.
+  const TIERS = [
+    { amount: 100, discount: 0.1 },
+    { amount: 250, discount: 0.2 },
+    { amount: 1000, discount: 0.3 },
+  ];
 
-  // Combined sales tax applied to digital services, by province.
-  const PROVINCES = {
-    BC: { name: "British Columbia", rate: 0.12, label: "GST 5% + PST 7%" },
-    AB: { name: "Alberta", rate: 0.05, label: "GST 5%" },
-    ON: { name: "Ontario", rate: 0.13, label: "HST 13%" },
-    QC: { name: "Quebec", rate: 0.14975, label: "GST 5% + QST 9.975%" },
-  };
+  // Estimated tax for a British Columbia billing address (GST 5% + PST 7%).
+  const TAX_RATE = 0.12;
 
-  // Work in integer cents so totals never drift by a fraction of a cent.
-  function toCents(dollars) {
-    return Math.round(dollars * 100);
+  function discountFor(amount) {
+    const tier = TIERS.find((t) => t.amount === amount);
+    return tier ? tier.discount : 0;
   }
 
-  function quote(usdAmount, provinceCode, step) {
-    const province = PROVINCES[provinceCode];
-    const subtotal = toCents(usdAmount * USD_TO_CAD);
-    const tax = Math.round(subtotal * province.rate);
-    const total = subtotal + tax;
+  function quote(amount, step, taxRate) {
+    const rate = taxRate === undefined ? TAX_RATE : taxRate;
+    const credits = Math.round(amount * 100);
+    const discount = Math.round(credits * discountFor(amount));
+    const tax = Math.round((credits - discount) * rate);
+    const total = credits - discount + tax;
     const stepCents = step * 100;
     const rounded = Math.ceil(total / stepCents) * stepCents;
-    return {
-      usd: toCents(usdAmount),
-      subtotal,
-      tax,
-      total,
-      rounded,
-      roundUp: rounded - total,
-      province,
-    };
+    return { credits, discount, tax, total, rounded, roundUp: rounded - total };
   }
 
-  function cad(cents) {
-    return "C$" + (cents / 100).toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function usd(cents) {
+    return "US$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  const api = { USD_TO_CAD, PROVINCES, quote, cad };
+  function dollars(cents) {
+    return "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  const api = { TIERS, TAX_RATE, discountFor, quote, usd, dollars };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.RoundUp = api;
 })(typeof window !== "undefined" ? window : globalThis);

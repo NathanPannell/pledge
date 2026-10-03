@@ -39,7 +39,8 @@
   .slip .slip-row.round .v { color: var(--accent); }
   .slip .downstream { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding-top: 4px; flex-wrap: wrap; }
   .slip .downstream b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 500; color: var(--accent); font-variant-numeric: lining-nums; }
-  .strike { text-decoration: line-through; color: var(--ink-soft); margin-right: 10px; }
+  .explain > * { min-width: 0; }
+  .strike { display: block; text-decoration: line-through; color: var(--ink-soft); margin-bottom: 6px; }
 
   .motm { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); border: 1px solid var(--ink); background: var(--paper-2); border-radius: var(--radius); position: relative; }
   .motm-main { padding: 32px; display: grid; gap: 18px; min-width: 0; }
@@ -128,7 +129,7 @@
         <canvas id="rosette" aria-hidden="true"></canvas>
         <div class="face">
           <span class="eyebrow">Sent downstream</span>
-          <span class="total" id="total">C$0</span>
+          <span class="total" id="total">$0</span>
           <span class="demo-flag live">Updated with every round-up</span>
         </div>
       </div>
@@ -137,9 +138,9 @@
 
   <div class="wrap">
     <div class="tally" aria-label="Running totals">
-      <div><span class="eyebrow">This month</span><span class="v" id="t-month">C$0</span></div>
+      <div><span class="eyebrow">This month</span><span class="v" id="t-month">$0</span></div>
       <div><span class="eyebrow">Round-ups</span><span class="v" id="t-count">0</span></div>
-      <div><span class="eyebrow">Average round-up</span><span class="v" id="t-avg">C$0.00</span></div>
+      <div><span class="eyebrow">Average round-up</span><span class="v" id="t-avg">$0.00</span></div>
       <div><span class="eyebrow">Projects funded</span><span class="v" id="t-projects">0</span></div>
     </div>
   </div>
@@ -150,7 +151,7 @@
         <div class="block-head">
           <span class="eyebrow">How a round-up works</span>
           <h2>Your AI bill already ends in odd cents.</h2>
-          <p class="lede">Credits are priced in US dollars. By the time they&rsquo;re converted and taxed, a US$25 top-up costs C$38.64. One checkbox rounds it to C$39.00.</p>
+          <p class="lede">Discounts and sales tax leave odd cents on every top-up. A US$100 credit purchase comes to US$100.80 at checkout. One checkbox rounds it to US$101.00.</p>
           <div class="points">
             <div><b>Same charge, same card</b><p>The round-up is part of your normal checkout. There&rsquo;s no second payment and no extra card fee.</p></div>
             <div><b>Pooled monthly</b><p>Round-ups are pooled and sent in one transfer, so almost nothing is lost to fees along the way.</p></div>
@@ -159,18 +160,18 @@
         </div>
         <div class="slip" aria-label="Example checkout">
           <div class="slip-head"><span class="eyebrow">Credit purchase &middot; British Columbia</span><span class="mono">TRB-RU-0436</span></div>
-          <div class="slip-row"><span class="k">Credits</span><span class="v">US$25.00</span></div>
-          <div class="slip-row"><span class="k">Converted at 1.3800</span><span class="v">C$34.50</span></div>
-          <div class="slip-row"><span class="k">GST 5% + PST 7%</span><span class="v">C$4.14</span></div>
-          <div class="slip-row round"><span class="k">Round up to the next dollar</span><span class="v">+C$0.36</span></div>
+          <div class="slip-row"><span class="k">Usage credits</span><span class="v">US$100.00</span></div>
+          <div class="slip-row"><span class="k">Volume discount, 10%</span><span class="v">&minus;US$10.00</span></div>
+          <div class="slip-row"><span class="k">Estimated tax, GST + PST</span><span class="v">US$10.80</span></div>
+          <div class="slip-row round"><span class="k">Round up to the next dollar</span><span class="v">+US$0.20</span></div>
           <div class="slip-total">
             <div style="display:grid;gap:4px;">
               <span class="eyebrow">You pay</span>
-              <span class="amount"><span class="strike" style="font-size:0.45em;font-family:var(--f-mono);">C$38.64</span>C$39.00</span>
+              <span class="amount"><span class="strike" style="font-size:0.45em;font-family:var(--f-mono);">US$100.80</span>US$101.00</span>
             </div>
           </div>
           <div class="perf" aria-hidden="true"></div>
-          <div class="downstream"><span class="eyebrow">Sent downstream</span><b>C$0.36</b></div>
+          <div class="downstream"><span class="eyebrow">Sent downstream</span><b>US$0.20</b></div>
           <p class="fine">To this month&rsquo;s project, Rift Valley Statistics Fellowship.</p>
         </div>
       </div>
@@ -192,7 +193,7 @@
           </div>
           <div style="display:grid;gap:8px;">
             <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="motm-bar" aria-valuenow="0"><i style="width:0%"></i></div>
-            <div class="bar-legend"><span id="motm-raised">C$0 raised</span><span id="motm-goal">of C$64,000</span></div>
+            <div class="bar-legend"><span id="motm-raised">$0 raised</span><span id="motm-goal">of $64,000</span></div>
           </div>
         </div>
         <aside class="motm-side">
@@ -217,7 +218,7 @@
             <tr><th>Month</th><th>Project</th><th>Target</th><th class="n">Round-ups</th><th class="n">Sent</th><th>Transfer</th></tr>
           </thead>
           <tbody id="history-body"></tbody>
-          <tfoot><tr><td colspan="3">Total since launch</td><td class="n" id="h-count">0</td><td class="n" id="h-total">C$0</td><td></td></tr></tfoot>
+          <tfoot><tr><td colspan="3">Total since launch</td><td class="n" id="h-count">0</td><td class="n" id="h-total">$0</td><td></td></tr></tfoot>
         </table>
       </div>
     </section>
@@ -265,7 +266,7 @@
 <script src="assets/site.js"></script>
 <script>
   const T = window.Tributary;
-  const cad = (n, d) => "C$" + n.toLocaleString("en-CA", { minimumFractionDigits: d ?? 0, maximumFractionDigits: d ?? 0 });
+  const cad = (n, d) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: d ?? 0, maximumFractionDigits: d ?? 0 });
   const int = (n) => Math.round(n).toLocaleString("en-CA");
 
   const HISTORY = [
