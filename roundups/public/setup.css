@@ -1,2 +1,56 @@
-@font-face{font-family:'DM Sans';src:url('assets/dm-sans.woff2');font-weight:100 900;font-display:swap}@font-face{font-family:Newsreader;src:url('assets/newsreader.woff2');font-weight:200 800;font-display:swap}
-*{box-sizing:border-box}body{max-width:540px;margin:40px auto;padding:24px;font-family:'DM Sans',sans-serif;color:#182235;background:white}.brand{font-size:24px;font-weight:750;letter-spacing:-.03em;margin-bottom:28px}.brand span{color:#e94732}h1{font:500 30px/1.15 Newsreader,Georgia,serif;margin:0 0 14px}p,li{font-size:13px;color:#586378;line-height:1.7}ol{padding-left:22px}li{margin:12px 0}a{color:#264dce;text-underline-offset:3px}button{font:600 13px 'DM Sans',sans-serif;width:100%;min-height:48px;border:0;border-radius:8px;background:#264dce;color:white;cursor:pointer;margin-top:12px}.quiet{color:#586378;background:transparent;font-weight:400}button:focus-visible,a:focus-visible{outline:3px solid #264dce;outline-offset:3px}button:disabled{opacity:.65}.small{font-size:11px}output{display:block;overflow-wrap:anywhere;background:#f3f5f9;padding:12px;margin-top:14px;border-radius:8px;font-size:12px}#error{color:#9e3028}section{margin-bottom:28px}[hidden]{display:none!important}@media(max-width:600px){body{margin:0 auto;padding:28px 20px}}
+/* /roundups/: install, connect, pending round-ups and payment returns, in
+   Pledge's design system (/assets/pledge.css). This page is served with a
+   strict content security policy, so the font is self-hosted. */
+@font-face { font-family: "Figtree"; src: url("/assets/fonts/figtree.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
+
+body { background: var(--surface); }
+.nav .brand { gap: 10px; }
+.for-chrome { margin-left: 2px; padding: 2px 9px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-size: 0.78rem; font-weight: 700; letter-spacing: 0; }
+.su { padding-block: 40px 64px; display: grid; gap: 28px; }
+
+.su-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 28px; align-items: center; }
+.su-hero { display: grid; gap: 16px; }
+.su-hero h1 { font-size: clamp(2.1rem, 4.4vw, 3.2rem); }
+
+/* Pending round-ups, filling toward C$5. */
+.su-balance { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 12px; }
+.su-bal-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.su-goal { color: var(--ink-3); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.su-big { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; }
+.su-bar { height: 12px; }
+.su-note { color: var(--ink-2); font-size: 0.95rem; }
+.motion #pay:not([hidden]) { animation: rise 0.6s var(--ease-out) backwards, su-breathe 2.8s ease-in-out 1s infinite; }
+@keyframes su-breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(14, 127, 114, 0.3); } 50% { box-shadow: 0 0 0 4px rgba(14, 127, 114, 0); } }
+
+.su-install { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px 28px 12px; display: grid; gap: 16px; }
+.su-install .block-head { margin-bottom: 0; }
+
+/* Returning from Stripe: checking, then paid or expired. */
+.su-pay { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 20px; align-items: center; padding: 24px; border-radius: var(--r-lg); background: #fff; border: 2px solid var(--flow); }
+.motion .su-pay:not([hidden]) { animation: dialog-in 0.6s var(--ease-spring); }
+.su-pay h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+.su-pay-text { display: grid; gap: 8px; }
+.su-pay-text p { color: var(--ink-2); }
+.su-pay-ic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); }
+.su-pay-ic svg { grid-area: 1 / 1; width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; display: none; }
+.su-pay.checking .spin-ring { display: block; stroke-dasharray: 60 100; animation: spin 0.9s linear infinite; transform-origin: center; }
+.su-pay.paid .su-pay-ic { background: var(--flow); color: #fff; }
+.su-pay.paid .tick { display: block; stroke-dasharray: 1; }
+.motion .su-pay.paid .su-pay-ic { animation: xt-pop 0.6s var(--ease-spring); }
+.motion .su-pay.paid .tick { animation: draw 0.6s 0.2s var(--ease-out) backwards; }
+.su-pay.expired .clock { display: block; }
+.su-pay.expired { border-color: var(--line-strong); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.page-notes { border-top: 1px solid var(--line); padding-top: 16px; }
+.notes { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.84rem; color: var(--ink-3); }
+
+@media (max-width: 860px) {
+  .su-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .su { padding-block: 24px 48px; }
+  .su-install { padding: 20px 16px 8px; }
+  .su-pay { grid-template-columns: 1fr; }
+  .nav .btn-ghost { display: none; }
+}

@@ -1,10 +1,69 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spare · Chrome setup</title><link rel="stylesheet" href="./setup.css"><script type="module" src="./setup.js"></script></head>
-<body><div class="brand">spare<span>.</span></div><main>
-<section id="payment" aria-live="polite" hidden><h1 id="payment-title">Checking your payment.</h1><p id="payment-description">We’re confirming with Stripe before clearing any round-ups.</p><button id="check" hidden>Check again</button></section>
-<section id="installation"><h1>Install Spare in Chrome.</h1><p>Connect once, then your round-up appears directly in OpenRouter’s Add Credits window.</p>
-<ol><li><a href="./extension.zip" download>Download the extension</a>, then unzip it.</li><li>Open <strong>chrome://extensions</strong>, enable Developer mode, choose <strong>Load unpacked</strong>, and select the unzipped folder.</li><li>Open Spare’s extension popup and paste the connection code below.</li><li><a href="https://openrouter.ai/settings/credits" target="_blank" rel="noopener">Open OpenRouter’s Credits page</a> and choose Add Credits.</li></ol>
-<button id="pair">Get a connection code</button><output id="pair-code" hidden></output><button id="copy-code" class="quiet" hidden>Copy code</button><p class="small">Codes expire after five minutes. Your card details are never shared with the extension.</p></section>
-<section aria-live="polite"><p><strong id="balance">C$0.00</strong> in pending round-ups.<br>No money taken.</p><button id="pay" hidden>Continue to Stripe</button></section>
-<p id="error" role="alert" hidden></p><p class="small">Desktop Chrome required. Sandbox prototype · no real donation or tax receipt.<br>Intended charity: VGH &amp; UBC Hospital Foundation; this prototype is not affiliated with the Foundation.</p>
-</main></body></html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pledge for Chrome</title>
+<link rel="icon" href="/assets/pledge-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/pledge.css">
+<link rel="stylesheet" href="/assets/extension.css">
+<link rel="stylesheet" href="./setup.css">
+<script src="/assets/motion.js"></script>
+<script src="/assets/extension.js" defer></script>
+<script type="module" src="./setup.js"></script>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Pledge home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M10 7.5v17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="13.5" r="6" fill="none" stroke="#fff" stroke-width="2.6"/><path class="mark-share" pathLength="1" d="M20.6 9.64A6 6 0 0 1 20.6 17.36" fill="none" stroke="#5fd6c4" stroke-width="2.8" stroke-linecap="round"/></svg>Pledge<span class="for-chrome">for Chrome</span></a>
+    <a class="btn btn-ghost btn-sm" href="/">Pledge home</a>
+  </div>
+</header>
+
+<main class="wrap su">
+  <section id="payment" class="su-pay checking" aria-live="polite" hidden>
+    <span class="su-pay-ic" aria-hidden="true">
+      <svg class="spin-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/></svg>
+      <svg class="tick" viewBox="0 0 48 48"><path pathLength="1" d="M14 25l7 7 13-15"/></svg>
+      <svg class="clock" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"/><path d="M24 15v10l6 4"/></svg>
+    </span>
+    <div class="su-pay-text">
+      <h1 id="payment-title">Checking your payment.</h1>
+      <p id="payment-description">We&rsquo;re confirming with Stripe before clearing any round-ups.</p>
+      <div><button id="check" class="btn btn-secondary btn-sm" type="button" hidden>Check again</button></div>
+    </div>
+  </section>
+
+  <div class="su-top">
+    <section class="su-hero" data-reveal-group>
+      <span class="eyebrow">Pledge for Chrome</span>
+      <h1>Round up your AI credits for charity.</h1>
+      <p class="lede">Connect once, and a round-up appears in OpenRouter&rsquo;s Add Credits window. Your spare change is saved until it reaches C$5, then you give it in one go.</p>
+    </section>
+
+    <section class="su-balance" aria-live="polite" data-reveal>
+      <div class="su-bal-top"><span class="eyebrow">Your round-ups</span><span class="su-goal">Goal C$5.00</span></div>
+      <strong id="balance" class="su-big">C$0.00</strong>
+      <div class="xt-bar su-bar" id="balance-bar"><i></i></div>
+      <p id="balance-note" class="su-note">Nothing is charged until you confirm.</p>
+      <button id="pay" class="btn btn-flow btn-lg" type="button" hidden>Continue to Stripe</button>
+    </section>
+  </div>
+
+  <section id="installation" class="su-install">
+    <div class="block-head" data-reveal><span class="eyebrow">Install</span><h2>Set up in about a minute</h2></div>
+    <div id="steps"></div>
+  </section>
+
+  <p id="error" class="xt-error" role="alert" hidden></p>
+
+  <footer class="page-notes" aria-label="Notes">
+    <ol class="notes">
+      <li>Desktop Chrome required. Pledge for Chrome works on OpenRouter credit checkout only for now.</li>
+      <li>Sandbox prototype: payments run in Stripe&rsquo;s test mode. No real donation is made and no tax receipt is issued.</li>
+      <li>Intended charity: VGH &amp; UBC Hospital Foundation. This prototype is not affiliated with the Foundation.</li>
+    </ol>
+  </footer>
+</main>
+</body>
+</html>

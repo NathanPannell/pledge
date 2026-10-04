@@ -1,5 +1,90 @@
-@font-face{font-family:'DM Sans';src:url('assets/dm-sans.woff2');font-weight:100 900;font-display:swap}@font-face{font-family:Newsreader;src:url('assets/newsreader.woff2');font-weight:200 800;font-display:swap}body{width:320px;margin:0;padding:24px;font-family:'DM Sans',sans-serif;color:#182235;background:white;box-sizing:border-box}.brand{font-size:24px;font-weight:750;letter-spacing:-.03em;margin-bottom:24px}.brand span{color:#e94732}h1{font:500 28px/1.15 Newsreader,Georgia,serif;margin:0 0 14px}p{font-size:13px;color:#586378;line-height:1.6}label{display:block;font-size:12px;margin:18px 0 8px}input{width:100%;box-sizing:border-box;padding:10px;font-size:16px;border:1px solid #bec8d8;border-radius:7px;min-height:44px}button{width:100%;min-height:44px;border:0;border-radius:8px;background:#264dce;color:white;cursor:pointer;font-size:13px;font-weight:600;margin-top:12px}.quiet{color:#586378;background:transparent;font-weight:400}button:focus-visible,input:focus-visible{outline:3px solid #264dce;outline-offset:3px}button:disabled{opacity:.65}#error{color:#9e3028;font-size:12px}.small{font-size:11px}
+/* The Pledge popup, in the website's design system: Figtree, SDG 17 navy for
+   actions, teal for money going to charity, and motion that follows the money. */
+@font-face { font-family: "Figtree"; src: url("assets/figtree.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+:root {
+  --ink: #1d2126; --ink-2: #555b62; --ink-3: #868b91;
+  --line: #e4e1db; --line-strong: #cfcbc3; --surface: #f6f5f2; --surface-2: #ecebe7;
+  --brand: #19486a; --brand-hover: #12364f; --flow: #0e7f72; --flow-soft: #e3f2ef; --danger: #b4351f;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { width: 340px; margin: 0; padding: 18px 20px 20px; font: 400 14px/1.5 "Figtree", "Segoe UI", system-ui, sans-serif; color: var(--ink); background: #fff; overflow-x: hidden; }
+button, input { font: inherit; color: inherit; }
 
-button,input{font-family:inherit}.primary{min-height:48px}
+.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 750; font-size: 1.1rem; letter-spacing: -0.02em; }
+.brand svg { width: 26px; height: 26px; }
+.share { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 0.9s 0.25s var(--ease-out) backwards; }
+@keyframes draw { from { stroke-dashoffset: 1; } }
+.tag { padding: 2px 9px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-size: 0.74rem; font-weight: 700; }
 
-summary{font-size:12px;min-height:44px;padding:12px 0;cursor:pointer;color:#586378}select{font:inherit;width:100%;min-height:44px}button:not(.quiet){min-height:48px}
+/* Each view rises in, a beat at a time. */
+.view { display: grid; gap: 12px; }
+.view > * { animation: rise 0.5s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+
+h1 { margin: 0; font-size: 1.6rem; line-height: 1.12; font-weight: 750; letter-spacing: -0.02em; }
+p { margin: 0; color: var(--ink-2); }
+strong { color: var(--ink); }
+.eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--flow); }
+
+.big { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; }
+.bar { position: relative; height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: calc(var(--p, 0) * 100%); border-radius: 999px; background: linear-gradient(90deg, #1fa392, var(--flow)); transition: width 1s var(--ease-out); }
+.bar.full i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%); transform: translateX(-100%); animation: sheen 1.6s 0.8s ease-in-out infinite; }
+@keyframes sheen { to { transform: translateX(100%); } }
+.note { font-size: 0.86rem; }
+
+/* Buttons */
+.primary, .secondary, .ghost { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; font-weight: 650; transition: background 0.15s, transform 0.25s var(--ease-out); }
+.primary { background: var(--flow); color: #fff; }
+.primary:hover { background: #0b7a6c; transform: translateY(-1px); }
+.secondary { background: #fff; border-color: var(--line-strong); }
+.secondary:hover { background: var(--surface); }
+.ghost { background: transparent; color: var(--ink-2); font-weight: 550; min-height: 38px; }
+.ghost:hover { background: var(--surface); color: var(--ink); }
+.primary:active, .secondary:active, .ghost:active { transform: scale(0.97); }
+button:disabled { opacity: 0.6; cursor: wait; }
+.breathe { animation: rise 0.5s var(--ease-out) backwards, breathe 2.8s ease-in-out 1s infinite; }
+@keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(14, 127, 114, 0.3); } 50% { box-shadow: 0 0 0 4px rgba(14, 127, 114, 0); } }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); outline-offset: 2px; }
+
+/* Connect */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: center; color: var(--ink-2); }
+.steps b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); font-size: 0.8rem; animation: pop 0.5s var(--ease-spring) backwards; animation-delay: calc(0.2s + var(--n, 0) * 0.1s); }
+.link { border: 0; background: none; padding: 0; color: var(--brand); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s; }
+input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+form { display: grid; gap: 10px; }
+
+details { border-top: 1px solid var(--line); padding-top: 6px; }
+summary { cursor: pointer; padding: 8px 0; color: var(--brand); font-weight: 650; font-size: 0.88rem; list-style: none; display: flex; justify-content: space-between; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--ink-3); transition: transform 0.3s var(--ease-spring); }
+details[open] summary::after { transform: rotate(45deg); }
+details[open] form { animation: rise 0.4s var(--ease-out); padding-bottom: 6px; }
+.hint { font-size: 0.8rem; color: var(--ink-3); }
+
+/* Round-up offer */
+.amounts { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.was { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--line-strong); font-variant-numeric: tabular-nums; }
+.now { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; }
+.chip { padding: 2px 9px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-weight: 750; font-size: 0.82rem; animation: pop 0.6s 0.7s var(--ease-spring) backwards; }
+@keyframes pop { from { opacity: 0; transform: scale(0.5); } }
+
+/* Saved */
+.check { position: relative; width: 52px; height: 52px; border-radius: 50%; background: var(--flow); display: grid; place-items: center; animation: pop 0.55s var(--ease-spring) backwards; }
+.check svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; animation: draw 0.5s 0.25s var(--ease-out) backwards; }
+.particle { position: fixed; z-index: 10; pointer-events: none; border-radius: 50%; }
+.particle svg { display: block; width: 100%; height: 100%; }
+
+.foot { font-size: 0.76rem; color: var(--ink-3); line-height: 1.45; padding-top: 4px; }
+#error { margin: 12px 0 0; color: var(--danger); font-size: 0.84rem; animation: rise 0.3s var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
