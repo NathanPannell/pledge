@@ -10,13 +10,21 @@
   let state = null;
   let found = null; // the statement being turned into a first gift
   let statementSent = false; // so a retried first gift doesn't upload twice
-  let holdFlow = false; // keep the flow on screen behind the thank-you
+  let holdFlow = false; // keep the page as it was behind the thank-you
   let saveTimer = null;
   let vendorCache = null;
   // Gifts already on screen, so only a new one arrives with a flourish.
   const seenGifts = new Set();
   const paidGifts = new Set();
   let giftsPrimed = false;
+  // Piggy banks beside "Your impact" and the thank-you's amount. Each gift drops
+  // coins in, and they look a notch fuller with each monthly gift.
+  const givenPig = window.PledgePiggy.create(88);
+  const thanksPig = window.PledgePiggy.create(88);
+  $("given-pig").append(givenPig.el);
+  $("t-pig").append(thanksPig.el);
+  const pigLevel = (gifts) => (gifts ? Math.min(0.92, 0.42 + (gifts - 1) * 0.1) : 0);
+  let givenShown = null; // the impact total on screen; a larger one drops coins in
 
   // ---- Formatting ------------------------------------------------------------
 
@@ -435,13 +443,18 @@
     M.set($("t-companies"), before.companies, (v) => String(Math.round(v)));
     M.set($("t-monthly"), before.monthlyCents, money);
     M.set($("t-amt"), 0, moneyExact);
+    const gifts = state.invoices.length;
+    thanksPig.fill(pigLevel(gifts - 1), 0);
     $("thanks").showModal();
     await wait(250);
+    // The gift drops into the piggy bank as coins while the amount counts up.
+    await thanksPig.add(pigLevel(gifts), 5);
     await M.tween($("t-amt"), 0, invoice.amount_cents, 1000, moneyExact);
-    // The gift lands: hearts thrown out from the amount.
-    const amt = $("t-amt");
-    M.pop(amt);
-    M.burst($("thanks"), amt.offsetLeft + amt.offsetWidth / 2, amt.offsetTop + amt.offsetHeight / 2, 22);
+    // The gift lands: hearts thrown out from the piggy bank.
+    M.pop($("t-amt"));
+    const pig = thanksPig.el.getBoundingClientRect();
+    const box = $("thanks").getBoundingClientRect();
+    M.burst($("thanks"), pig.left - box.left + pig.width / 2, pig.top - box.top + pig.height / 2, 22);
     await wait(500);
     $("t-companies").classList.add("bump");
     $("t-monthly").classList.add("bump");
@@ -552,12 +565,27 @@
     $("next-target").textContent = nextCharity.target;
   }
 
+  // The impact total and its piggy bank. Arriving, the total counts up as the
+  // piggy fills; a new gift drops coins in before the total rolls on.
+  function renderGiven(arriving, given, gifts) {
+    const before = givenShown;
+    givenShown = given;
+    if (arriving) {
+      givenPig.fill(0, 0).fill(pigLevel(gifts), 1400);
+      M.tween($("given-amt"), 0, given, 1400, moneyExact);
+    } else if (before !== null && given > before) {
+      givenPig.add(pigLevel(gifts), 5).then(() => M.to($("given-amt"), given, 900, moneyExact));
+    } else if (given !== before) {
+      givenPig.fill(pigLevel(gifts));
+      M.to($("given-amt"), given, 900, moneyExact);
+    }
+  }
+
   function renderImpact(arriving) {
     const given = givenCents();
     const gifts = state.invoices.length;
     const first = state.invoices.reduce((min, i) => (!min || i.period_start < min ? i.period_start : min), "");
-    if (arriving) M.tween($("given-amt"), 0, given, 1400, moneyExact);
-    else M.to($("given-amt"), given, 900, moneyExact);
+    renderGiven(arriving, given, gifts);
     $("given-text").textContent = gifts
       ? `given across ${gifts} monthly gift${gifts === 1 ? "" : "s"} since ${monthLong(first.slice(0, 7))}.`
       : "given so far. Your first gift will appear here.";
@@ -658,9 +686,13 @@
       await api("POST", "/api/pledge", { rate: rate(), basis: hasProviders() ? $("basis").value : "card" });
       const { start, end } = monthBounds(month);
       const { invoice } = await api("POST", "/api/invoices", { start, end });
+      // Home waits behind the thank-you, so the gift's coins drop into
+      // "Your impact" where they can be seen, once it closes.
+      holdFlow = true;
       await load();
       celebrate(invoice, before);
     } catch (err) {
+      holdFlow = false;
       toast(err.message, true);
     }
   }));

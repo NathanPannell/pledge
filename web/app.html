@@ -156,6 +156,9 @@
   .motion #home.in:not(.settled) .impact img { animation: settle 1.5s var(--ease-out) backwards; }
   @keyframes settle { from { transform: scale(1.12); } }
   .impact .body { padding: 28px; display: grid; gap: 14px; }
+  /* The giving piggy bank (piggy.js) beside a total; gifts drop in as coins. */
+  .bank { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 10px; }
+  .pig { display: inline-flex; }
   .impact .to { color: var(--ink-2); font-size: 1.02rem; }
   .impact .to b { color: var(--ink); }
   .community { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: var(--surface); color: var(--ink-2); font-size: 0.93rem; }
@@ -354,7 +357,7 @@
       <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=600&q=80" alt="A smiling doctor talking with a patient"></figure>
       <div class="body">
         <span class="eyebrow">Your impact</span>
-        <span class="big-money num" id="given-amt">$0</span>
+        <div class="bank"><span class="big-money num" id="given-amt">$0</span><span class="pig" id="given-pig"></span></div>
         <p class="to" id="given-text">given so far.</p>
         <p class="community" id="community"></p>
         <div class="gift-list" id="gifts"></div>
@@ -443,7 +446,7 @@
   <figure><img src="https://images.unsplash.com/photo-1631815590058-860e4f83c1e8?auto=format&fit=crop&w=1000&q=80" alt="A health care worker checking a patient&rsquo;s blood pressure"></figure>
   <div class="dlg">
     <span class="eyebrow">Thank you</span>
-    <span class="big-money num" id="t-amt">$0</span>
+    <div class="bank"><span class="big-money num" id="t-amt">$0</span><span class="pig" id="t-pig"></span></div>
     <p class="muted" id="t-text">is on its way.</p>
     <div class="joined" aria-live="polite">
       <div><b id="t-companies">45</b><span>companies giving</span></div>
@@ -491,6 +494,7 @@
 
 <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 <script src="assets/statement.js"></script>
+<script src="assets/piggy.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>
