@@ -105,6 +105,10 @@
   .tbl .r { text-align: right; }
   .tbl tr.not-ai td { color: var(--ink-3); }
 
+  .page-notes { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 8px; color: var(--ink-3); font-size: 0.84rem; }
+  .page-notes h4 { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .page-notes ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  .page-notes code { font-family: var(--mono); }
   .foot-actions { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--ink-3); font-size: 0.88rem; }
   .linkish { border: 0; background: none; color: var(--ink-3); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.88rem; }
 
@@ -243,12 +247,11 @@
             <button class="btn btn-secondary btn-sm" type="button" id="connect-plaid">Connect with Plaid</button>
             <button class="btn btn-secondary btn-sm" type="button" id="connect-sandbox" hidden>Sandbox card</button>
           </div>
-          <span class="hint" id="plaid-banner" hidden>Needs Plaid keys in <code>server/.env</code>.</span>
         </div>
       </div>
       <details class="advanced">
         <summary>Optional: provider cost reports</summary>
-        <p class="muted small">Adds usage-level detail from Anthropic or OpenAI. Both require an organization admin key, so most companies skip this and use their card.</p>
+        <p class="muted small">Adds usage-level detail from Anthropic or OpenAI cost reports.</p>
         <div class="opt-actions">
           <button class="btn btn-secondary btn-sm" type="button" data-provider="anthropic">Add Anthropic key</button>
           <button class="btn btn-secondary btn-sm" type="button" data-provider="openai">Add OpenAI key</button>
@@ -264,6 +267,11 @@
       <span id="org-email-out"></span>
       <button class="linkish" type="button" id="reset">Start over</button>
     </div>
+
+    <footer class="page-notes" aria-label="Notes">
+      <h4>Notes</h4>
+      <ul id="notes"></ul>
+    </footer>
   </div>
 </main>
 

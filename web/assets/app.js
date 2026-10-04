@@ -121,6 +121,7 @@
     renderDial();
     renderGifts();
     renderSpend();
+    renderNotes();
     $("org-email-out").textContent = state.org.billingEmail ? `Invoices go to ${state.org.billingEmail}` : "";
   }
 
@@ -161,7 +162,7 @@
       $("give").disabled = amount < 100;
       $("give").dataset.month = m.month;
       $("give-note").textContent = state.stripe.configured
-        ? `One invoice to ${state.org.billingEmail || "your finance team"}${state.stripe.testMode ? " (Stripe test mode)" : ""}.`
+        ? `One invoice to ${state.org.billingEmail || "your finance team"}.`
         : `Recorded as a gift to ${state.charity.shortName || state.charity.name}.`;
       return;
     }
@@ -204,7 +205,6 @@
 
   function renderSpend() {
     const s = state.spend;
-    $("plaid-banner").hidden = state.plaid.configured;
     $("connect-plaid").disabled = !state.plaid.configured;
     $("connect-sandbox").hidden = !(state.plaid.configured && state.plaid.env === "sandbox");
     $("spend-period").textContent = s.months.length ? `Since ${monthLong(s.months[0].month)}` : "";
@@ -226,6 +226,18 @@
       <tr class="${t.vendor ? "" : "not-ai"}"><td class="num">${shortDate(t.date)}</td><td>${esc(t.description)}</td>
       <td>${t.vendor ? `<span class="pill ai">${esc(t.vendor)}</span>` : "&mdash;"}</td><td class="r num">${moneyExact(t.amount_cents)}</td></tr>`).join("")
       || '<tr><td colspan="4" class="faint">No card transactions yet.</td></tr>';
+  }
+
+  // Every caveat lives here, at the bottom of the page, not beside the controls.
+  function renderNotes() {
+    const notes = [];
+    if (state.stripe.configured && state.stripe.testMode) notes.push("Invoices are created in Stripe test mode. No real payments are taken.");
+    if (!state.stripe.configured) notes.push("Gifts are recorded in Tributary. Add a Stripe key to send invoices through Stripe.");
+    if (!state.plaid.configured) notes.push("Connecting a card through Plaid needs <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> in <code>server/.env</code>.");
+    notes.push("Provider cost reports need an organization admin key. Anthropic doesn't offer admin keys on individual accounts, so most companies use their card instead.");
+    notes.push("Each month's charity comes from a proposed rotation. Charities must agree before they receive gifts through Tributary.");
+    notes.push("Photos from Unsplash illustrate areas of care. They weren't taken at the foundation's sites.");
+    $("notes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
   }
 
   // ---- Actions ---------------------------------------------------------------
@@ -331,7 +343,7 @@
   }));
 
   const PROVIDERS = {
-    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings (individual accounts can't). Tributary only reads the cost report." },
+    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings. Tributary only reads the cost report." },
     openai: { title: "Add OpenAI admin key", help: "Create an admin key in your organization's settings. Tributary only reads the costs report." },
   };
   let providerKind = null;
