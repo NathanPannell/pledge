@@ -39,7 +39,6 @@
     liveCents += cents;
     M.to(live, liveCents, COUNT_MS, money);
     M.pop(live, "bump");
-    M.floatDelta(live, "+" + money(cents));
   }
 
   function showCommunity(c, ms) {
@@ -53,17 +52,19 @@
   M.set($("h-companies"), 0, count);
   M.set($("h-total"), 0, money);
 
-  // ---- Gift stream over the hero photo ------------------------------------------
+  // ---- Gift stream: each gift pops up beside the total as it rolls up ------------
 
   let toastIndex = 0;
   let holdUntil = 0;
   let hideTimer;
 
-  function showToast(html, fresh) {
-    const el = $("gift-toast");
+  function showGift(company, cents, fresh) {
+    const el = $("gift-chip");
     el.classList.remove("show");
     void el.offsetWidth;
-    el.innerHTML = HEART + `<span>${html}</span>`;
+    // Only a gift made just now is read out to screen readers; the rest is ambient.
+    el.setAttribute("aria-live", fresh ? "polite" : "off");
+    el.innerHTML = `${HEART}<span class="who">${esc(company)}</span><span>${fresh ? "just gave" : "gave"}</span><b>${money(cents)}</b>`;
     el.classList.toggle("fresh", Boolean(fresh));
     el.classList.add("show");
     clearTimeout(hideTimer);
@@ -74,7 +75,7 @@
     if (!data || !data.entries.length || Date.now() < holdUntil) return;
     const e = data.entries[toastIndex % data.entries.length];
     toastIndex++;
-    showToast(`<b>${esc(e.company)}</b>&nbsp;gave&nbsp;<b>${moneyExact(e.amount_cents)}</b>`, false);
+    showGift(e.company, e.amount_cents, false);
     addToLive(e.amount_cents);
   }
 
@@ -122,7 +123,7 @@
       // A gift made just now, in the giving page or anywhere else.
       holdUntil = Date.now() + 9000;
       const e = fresh[0];
-      showToast(`<b>${esc(e.company)}</b>&nbsp;just gave&nbsp;<b>${moneyExact(e.amount_cents)}</b>`, true);
+      showGift(e.company, e.amount_cents, true);
       addToLive(fresh.reduce((sum, x) => sum + x.amount_cents, 0));
     }
     renderRotation();

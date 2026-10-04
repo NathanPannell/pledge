@@ -68,8 +68,8 @@ Open the landing page and the giving page side by side in the same browser.
    a recent gift passes over the photo and "pledged for VGH & UBC Hospital Foundation
    this month" rolls up to include it.
    Scroll to **The scale**: the chart draws OpenAI and Anthropic's annualized revenue
-   against all foreign aid and marks Q4 2026, where the lines cross (**Replay** draws it
-   again). Below it, the 1% steps go from one team ($188 a month) to companies on Pledge
+   against all foreign aid and marks Q4 2026, where the lines cross. It draws again
+   each time you scroll back to it. Below it, the 1% steps go from one team ($188 a month) to companies on Pledge
    ($24,500 a month) to every company ($26.7 billion a year).
 2. **Giving page, Find.** Click **Try a sample company**, or drop in
    `samples/harbourline-card-statement.csv`. Watch the statement scan: each transaction

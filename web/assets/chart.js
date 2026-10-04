@@ -1,6 +1,6 @@
 // The scale chart: what OpenAI and Anthropic take in each year against all
 // foreign aid, and the quarter the two lines cross. Drawn as SVG at the
-// container's pixel size so text stays crisp. It plays once when scrolled
+// container's pixel size so text stays crisp. It plays every time it scrolls
 // into view: both lines draw through time together, the crossing lands with
 // a pulse and a callout, then a crosshair shows the figures for any month.
 (function () {
@@ -9,7 +9,6 @@
   const M = window.Motion;
   const NS = "http://www.w3.org/2000/svg";
   const plot = root.querySelector(".cc-plot");
-  const replay = root.querySelector(".cc-replay");
 
   // ---- Data. Sources are notes 3 to 5 at the bottom of the page. ----------------
 
@@ -128,8 +127,8 @@
     const w = plot.clientWidth;
     if (!w) return;
     const small = w < 560;
-    const h = small ? 300 : 400;
-    const m = { top: 28, right: small ? 78 : 158, bottom: 30, left: small ? 42 : 52 };
+    const h = small ? 320 : 430;
+    const m = { top: 32, right: small ? 84 : 186, bottom: 34, left: small ? 46 : 60 };
     const x = (t) => m.left + ((t - T0) / (T1 - T0)) * (w - m.left - m.right);
     const y = (v) => m.top + (1 - v / Y_MAX) * (h - m.top - m.bottom);
     const path = (from, to, fn) => {
@@ -150,14 +149,14 @@
     for (const yr of [2025, 2026, 2027]) {
       const tx = x(T(`${yr}-01-01`));
       el("line", { class: "tick", x1: tx, x2: tx, y1: h - m.bottom, y2: h - m.bottom + 5 }, grid);
-      el("text", { x: tx, y: h - 8, "text-anchor": "middle" }, grid).textContent = yr;
+      el("text", { x: tx, y: h - 9, "text-anchor": "middle" }, grid).textContent = yr;
     }
 
     // Everything after the latest reports is a projection.
     const proj = el("g", { class: "cc-proj" }, svg);
     el("rect", { x: x(PROJ), y: m.top - 6, width: w - m.right - x(PROJ), height: h - m.top - m.bottom + 6 }, proj);
     el("line", { x1: x(PROJ), x2: x(PROJ), y1: m.top - 6, y2: h - m.bottom }, proj);
-    el("text", { x: x(PROJ) + 8, y: m.top + 8 }, proj).textContent = "Projection";
+    el("text", { x: x(PROJ) + 8, y: m.top + 10 }, proj).textContent = "Projection";
 
     // The lines, revealed left to right through time.
     const defs = el("defs", {}, svg);
@@ -197,7 +196,7 @@
     const endAi = div("cc-end ai", `<b>${billions(SCENARIOS.central)}</b><span>${small ? "AI labs" : "OpenAI + Anthropic"}</span>${range}`, plot);
     endAi.style.left = x(T1) + 12 + "px";
     endAi.style.top = y(SCENARIOS.central) + "px";
-    const endAid = div("cc-end aid", `<b>${billions(AID[AID.length - 1].value)}</b><span>${small ? "Foreign aid" : "All foreign aid"}</span>`, plot);
+    const endAid = div("cc-end aid", `<b>${billions(AID[AID.length - 1].value)}</b><span>${small ? "Aid" : "All foreign aid"}</span>`, plot);
     endAid.style.left = x(T1) + 12 + "px";
     endAid.style.top = y(AID[AID.length - 1].value) + "px";
 
@@ -234,7 +233,6 @@
     root.classList.toggle("in-projection", t >= PROJ);
     root.classList.toggle("crossed", t >= CROSS);
     root.classList.toggle("done", p >= 1);
-    if (replay) replay.hidden = p < 1 || M.reduce;
   }
 
   function place(tip, read, px, value, y) {
@@ -248,23 +246,25 @@
   // ---- Playing ---------------------------------------------------------------------
 
   let playing = false;
+  let run = 0; // each play gets a number; a newer play or a reset ends older ones
+
   function play() {
     if (M.reduce) return apply((progress = 1));
+    const id = ++run;
     playing = true;
     hideHover();
     root.classList.remove("crossed", "done", "in-projection");
     root.classList.add("playing");
     const start = performance.now();
-    let finished = false;
     const finish = () => {
-      if (finished) return;
-      finished = true;
+      if (id !== run) return;
+      run++;
       playing = false;
       root.classList.remove("playing");
       apply((progress = 1));
     };
     const frame = (now) => {
-      if (finished) return;
+      if (id !== run) return;
       const f = Math.min(1, (now - start) / DRAW_MS);
       apply((progress = ease(f)));
       if (f < 1) requestAnimationFrame(frame);
@@ -273,6 +273,15 @@
     requestAnimationFrame(frame);
     // Frames pause in background tabs; the finished chart always lands.
     setTimeout(finish, DRAW_MS + 300);
+  }
+
+  // Back to an empty chart, ready to draw again.
+  function reset() {
+    run++;
+    playing = false;
+    hideHover();
+    root.classList.remove("playing");
+    apply((progress = 0));
   }
 
   // ---- Crosshair ----------------------------------------------------------------------
@@ -348,7 +357,6 @@
 
   // ---- Start ----------------------------------------------------------------------------
 
-  if (replay) replay.addEventListener("click", play);
   let width = 0;
   new ResizeObserver(() => {
     if (plot.clientWidth === width) return;
@@ -356,14 +364,25 @@
     draw();
   }).observe(plot);
 
+  // The chart draws each time it comes back into view: it resets once it has
+  // left the screen entirely, and plays when most of it is visible again.
   if (!M.reduce && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver((entries) => {
-      if (!entries.some((e) => e.isIntersecting)) return;
-      io.disconnect();
-      // Let the card finish rising before the lines start.
-      setTimeout(play, 350);
-    }, { threshold: 0.45 });
-    io.observe(plot);
+    let armed = true;
+    let startTimer;
+    new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.intersectionRatio >= 0.45 && armed) {
+          armed = false;
+          clearTimeout(startTimer);
+          // Let the card finish rising before the lines start.
+          startTimer = setTimeout(play, 300);
+        } else if (!e.isIntersecting) {
+          armed = true;
+          clearTimeout(startTimer);
+          reset();
+        }
+      }
+    }, { threshold: [0, 0.45] }).observe(plot);
   } else {
     progress = 1;
   }
