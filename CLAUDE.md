@@ -18,9 +18,12 @@ to the charity and listed on a public record. UN SDG 17.
     (`GET /api/sample-statement.csv`) and the Plaid sandbox card.
   - `data/` SQLite database and encryption key. Git-ignored.
 - `web/` static frontend, no build step.
-  - `index.html`, `assets/landing.js` landing page: live hero counter and gift stream,
-    scale steps, charity rotation, gift record. Polls `/api/ledger` and listens on the
-    `pledge` BroadcastChannel for gifts made in another tab.
+  - `index.html`, `assets/landing.js` landing page: hero that rotates through the
+    charities, live monthly total and gift stream, scale steps, gift record. Polls
+    `/api/ledger` and listens on the `pledge` BroadcastChannel for gifts made in another tab.
+  - `assets/chart.js` the scale chart: OpenAI + Anthropic annualized revenue against all
+    foreign aid, with the projected crossing. Data and its derivation are at the top of
+    the file; sources are notes 3 to 5 on the landing page.
   - `app.html`, `assets/app.js` guided Find, Choose, Give flow for a new company (with
     the animated statement scan), then the company home.
   - `assets/statement.js` CSV parsing and AI matching in the browser.

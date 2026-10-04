@@ -12,8 +12,8 @@
 
   // Shown until the ledger loads, and if it can't.
   const SAMPLE = { companies: 45, monthlyCents: 2450000, totalCents: 14680000 };
-  const TOAST_EVERY = 13800; // a gift passes over the photo every 13.8 seconds
-  const TOAST_SHOW = 6500;
+  const TOAST_EVERY = 13800; // a gift passes by every 13.8 seconds
+  const GIFT_MS = 2550; // and stays in view half again as long as a "+$" chip
   const COUNT_MS = 1000; // the total rolls up to each new gift over one second
 
   let data = null;
@@ -33,13 +33,12 @@
   const live = $("h-live");
   const pledgedSoFar = (monthlyCents) => Math.round(monthlyCents * monthFraction(new Date()));
   let liveCents = pledgedSoFar(SAMPLE.monthlyCents);
-  M.set(live, liveCents, moneyExact);
+  M.set(live, liveCents, money);
 
   function addToLive(cents) {
     liveCents += cents;
-    M.to(live, liveCents, COUNT_MS, moneyExact);
+    M.to(live, liveCents, COUNT_MS, money);
     M.pop(live, "bump");
-    M.floatDelta(live, "+" + moneyExact(cents));
   }
 
   function showCommunity(c, ms) {
@@ -53,47 +52,56 @@
   M.set($("h-companies"), 0, count);
   M.set($("h-total"), 0, money);
 
-  // ---- Gift stream over the hero photo ------------------------------------------
+  // ---- Gift stream: each gift passes by beside the total as it rolls up ---------
 
   let toastIndex = 0;
   let holdUntil = 0;
-  let hideTimer;
+  let passing = null;
 
-  function showToast(html, fresh) {
-    const el = $("gift-toast");
-    el.classList.remove("show");
-    void el.offsetWidth;
-    el.innerHTML = HEART + `<span>${html}</span>`;
-    el.classList.toggle("fresh", Boolean(fresh));
-    el.classList.add("show");
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => el.classList.remove("show"), fresh ? 8000 : TOAST_SHOW);
+  // A small chip that pops in just right of the total, drifts up and fades:
+  // a passing notification, not a card.
+  function showGift(company, cents, fresh) {
+    if (passing) passing.remove();
+    // Only a gift made just now is read out to screen readers; the rest is ambient.
+    if (fresh) $("gift-say").textContent = `${company} just gave ${money(cents)}`;
+    const row = live.parentElement;
+    const chip = document.createElement("span");
+    chip.className = "delta gift-pass" + (fresh ? " fresh" : "");
+    chip.setAttribute("aria-hidden", "true");
+    chip.innerHTML = `<span class="who">${esc(company)}</span> ${fresh ? "just gave" : "gave"} <b>${money(cents)}</b>`;
+    row.appendChild(chip);
+    passing = chip;
+    // Beside the number when it fits; on a narrow card, just above it at the right.
+    if (chip.offsetWidth <= row.clientWidth - live.offsetWidth - 12) {
+      chip.style.left = live.offsetLeft + live.offsetWidth + 12 + "px";
+      chip.style.top = live.offsetTop + "px";
+    } else {
+      chip.style.right = "0";
+      chip.style.top = live.offsetTop - chip.offsetHeight - 4 + "px";
+    }
+    const done = () => {
+      chip.remove();
+      if (passing === chip) passing = null;
+    };
+    setTimeout(done, GIFT_MS + 400);
+    if (M.reduce) return;
+    chip.animate([
+      { opacity: 0, transform: "translateY(10px) scale(0.9)" },
+      { opacity: 1, transform: "translateY(0) scale(1)", offset: 0.18 },
+      { opacity: 1, transform: "translateY(-10px)", offset: 0.7 },
+      { opacity: 0, transform: "translateY(-26px)" },
+    ], { duration: GIFT_MS, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }).onfinish = done;
   }
 
   function cycleToast() {
     if (!data || !data.entries.length || Date.now() < holdUntil) return;
     const e = data.entries[toastIndex % data.entries.length];
     toastIndex++;
-    showToast(`<b>${esc(e.company)}</b>&nbsp;gave&nbsp;<b>${moneyExact(e.amount_cents)}</b>`, false);
+    showGift(e.company, e.amount_cents, false);
     addToLive(e.amount_cents);
   }
 
   // ---- Ledger -------------------------------------------------------------------
-
-  let charitySignature = "";
-  function renderCharities() {
-    const s = JSON.stringify(data.rotation);
-    if (s === charitySignature) return;
-    charitySignature = s;
-    const [now, ...next] = data.rotation;
-    document.querySelectorAll(".charity-now").forEach((el) => { el.textContent = now.name; });
-    $("c-now-month").textContent = `This month · ${monthYear(now.month)}`;
-    $("c-now-name").textContent = now.name;
-    $("c-now-focus").textContent = now.focus;
-    $("c-now-target").textContent = now.target;
-    $("c-upcoming").innerHTML = next.map((c) => `
-      <div class="up"><span class="m">${esc(monthYear(c.month))}</span><h4>${esc(c.name)}</h4><p>${esc(c.focus)}</p><span class="tgt">${esc(c.target)}</span></div>`).join("");
-  }
 
   function renderGifts(fresh) {
     $("gift-list").innerHTML = data.entries.slice(0, 8).map((e) => `
@@ -128,7 +136,7 @@
     if (first || wentDown) {
       // First load, or everything was reset in the giving page: start from this month's pace.
       liveCents = pledgedSoFar(next.community.monthlyCents);
-      M.set(live, liveCents, moneyExact);
+      M.set(live, liveCents, money);
     }
     if (first) setTimeout(() => showCommunity(next.community, 1400), 480);
     else showCommunity(next.community, COUNT_MS);
@@ -137,10 +145,10 @@
       // A gift made just now, in the giving page or anywhere else.
       holdUntil = Date.now() + 9000;
       const e = fresh[0];
-      showToast(`<b>${esc(e.company)}</b>&nbsp;just gave&nbsp;<b>${moneyExact(e.amount_cents)}</b>`, true);
+      showGift(e.company, e.amount_cents, true);
       addToLive(fresh.reduce((sum, x) => sum + x.amount_cents, 0));
     }
-    renderCharities();
+    renderRotation();
     renderGifts(new Set(fresh.map(keyOf)));
     if (!first && currentLevel === "today") fill("today", false);
     return true;
@@ -150,6 +158,98 @@
   if ("BroadcastChannel" in window) {
     new BroadcastChannel("pledge").addEventListener("message", () => loadLedger());
   }
+
+  // ---- Hero: the headline and photo rotate through the charities ---------------
+
+  const SLIDE_MS = 6500;
+  const bars = document.querySelector(".rot-bars");
+  const rot = {
+    titles: [...document.querySelectorAll("#rot-title .rot-item")],
+    who: [...document.querySelectorAll(".rot-who > span")],
+    photos: [...document.querySelectorAll("#rot-photos img")],
+    bars: [...bars.querySelectorAll("button")],
+  };
+  let slide = 0;
+  let slideTimer;
+  let titleTimer;
+
+  // Only the ending of the headline changes: the old ending blurs away, then
+  // the new one rises in and is underlined.
+  function swapTitle(prev, next) {
+    clearTimeout(titleTimer);
+    const show = () => {
+      rot.titles.forEach((t, k) => {
+        t.classList.toggle("is-on", k === next);
+        t.setAttribute("aria-hidden", String(k !== next));
+        t.querySelector(".phrase").classList.remove("out", "enter", "drawn");
+      });
+      const phrase = rot.titles[next].querySelector(".phrase");
+      M.pop(phrase, "enter");
+      setTimeout(() => phrase.classList.add("drawn"), M.reduce ? 0 : 450);
+    };
+    if (M.reduce || prev === next) return show();
+    rot.titles[prev].querySelector(".phrase").classList.add("out");
+    titleTimer = setTimeout(show, 340);
+  }
+
+  function scheduleSlide() {
+    clearTimeout(slideTimer);
+    bars.classList.remove("playing");
+    if (M.reduce) return;
+    void bars.offsetWidth;
+    bars.classList.add("playing");
+    slideTimer = setTimeout(() => showSlide(slide + 1), SLIDE_MS);
+  }
+
+  function showSlide(i) {
+    const prev = slide;
+    slide = (i + rot.titles.length) % rot.titles.length;
+    rot.bars.forEach((b, k) => b.setAttribute("aria-current", String(k === slide)));
+    rot.who.forEach((w, k) => w.classList.toggle("is-on", k === slide));
+    rot.photos.forEach((img, k) => {
+      img.classList.toggle("is-on", k === slide);
+      img.setAttribute("aria-hidden", String(k !== slide));
+    });
+    swapTitle(prev, slide);
+    scheduleSlide();
+  }
+
+  rot.bars.forEach((b, k) => b.addEventListener("click", () => showSlide(rot.bars.indexOf(b))));
+
+  // Puts the slides in rotation order, starting with this month's charity.
+  function orderSlides(names) {
+    const rank = rot.titles.map((t) => names.indexOf(t.dataset.charity));
+    if (rank.some((r) => r < 0) || rank.every((r, k) => r === k)) return false;
+    const order = rank.map((r, k) => [r, k]).sort((a, b) => a[0] - b[0]).map(([, k]) => k);
+    for (const key of Object.keys(rot)) {
+      rot[key] = order.map((k) => rot[key][k]);
+      rot[key].forEach((el) => el.parentElement.appendChild(el));
+    }
+    return true;
+  }
+
+  let rotationSignature = "";
+  function renderRotation() {
+    const s = JSON.stringify(data.rotation);
+    if (s === rotationSignature) return;
+    rotationSignature = s;
+    document.querySelectorAll(".charity-now").forEach((el) => { el.textContent = data.rotation[0].name; });
+    if (orderSlides(data.rotation.map((c) => c.name))) {
+      slide = 0;
+      showSlide(0);
+    }
+    const thisYear = data.rotation[0].month.slice(0, 4);
+    rot.who.forEach((w, k) => {
+      const i = data.rotation.findIndex((c) => c.name === rot.titles[k].dataset.charity);
+      if (i < 0) return;
+      const month = data.rotation[i].month;
+      w.querySelector(".when").textContent = i === 0
+        ? "this month"
+        : new Date(month.slice(0, 7) + "-01T00:00:00Z").toLocaleDateString("en-US", month.startsWith(thisYear) ? { month: "long", timeZone: "UTC" } : { month: "long", year: "numeric", timeZone: "UTC" });
+    });
+  }
+
+  scheduleSlide();
 
   // ---- Scale: one team, companies on Pledge, every company ----------------------
 

@@ -50,7 +50,8 @@ async function serveStatic(webRoot, pathname, res) {
     const info = await stat(file);
     if (info.isDirectory()) return serveStatic(webRoot, rel + "/", res);
     const body = await readFile(file);
-    res.writeHead(200, { "content-type": TYPES[extname(file)] || "application/octet-stream" });
+    // Files change while the server runs; never let a browser show a stale page.
+    res.writeHead(200, { "content-type": TYPES[extname(file)] || "application/octet-stream", "cache-control": "no-cache" });
     res.end(body);
   } catch {
     send(res, 404, "Not found", "text/plain");
