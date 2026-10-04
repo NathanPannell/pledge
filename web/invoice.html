@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tributary Gift Invoice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/tributary.css">
+<style>
+  body { background: var(--surface); }
+  .bar-top { max-width: 860px; margin: 24px auto 0; padding-inline: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .doc { max-width: 860px; margin: 16px auto 64px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 48px; display: grid; gap: 32px; box-shadow: var(--shadow); }
+  .doc-head { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .doc-head h1 { font-size: 2rem; }
+  .meta { display: grid; grid-template-columns: auto auto; gap: 4px 20px; font-size: 0.94rem; }
+  .meta dt { color: var(--ink-3); }
+  .meta dd { margin: 0; font-weight: 600; text-align: right; }
+  .parties { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .party h4 { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+  .party p { font-size: 0.95rem; }
+  .recipient { background: var(--flow-soft); border-radius: var(--r); padding: 14px 16px; }
+  .recipient .tgt { display: inline-block; margin-top: 6px; font-size: 0.8rem; font-weight: 650; color: #0b5e54; }
+  table.lines { width: 100%; border-collapse: collapse; }
+  .lines th { text-align: left; font-size: 0.8rem; font-weight: 650; color: var(--ink-3); padding: 10px 0; border-bottom: 2px solid var(--ink); }
+  .lines td { padding: 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .lines .r { text-align: right; white-space: nowrap; padding-left: 16px; }
+  .lines .sub { display: block; font-size: 0.88rem; color: var(--ink-3); margin-top: 2px; }
+  .total-row td { border-bottom: 0; font-size: 1.25rem; font-weight: 780; padding-top: 18px; }
+  .notes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  .note h4 { margin-bottom: 8px; }
+  .note p, .note li { color: var(--ink-2); font-size: 0.93rem; }
+  .note ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+  .rotation { border-top: 1px solid var(--line); padding-top: 24px; display: grid; gap: 14px; }
+  .rot-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .rot { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 4px; }
+  .rot .m { font-size: 0.8rem; font-weight: 650; color: var(--ink-3); }
+  .rot b { font-size: 0.98rem; }
+  .rot .t { font-size: 0.82rem; color: #0b5e54; font-weight: 600; }
+  .fine-print { font-size: 0.82rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
+  @media (max-width: 720px) {
+    .doc { padding: 24px; margin-inline: 12px; }
+    .parties, .notes, .rot-list { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .bar-top { display: none; }
+    .doc { border: 0; box-shadow: none; margin: 0; padding: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="bar-top">
+  <a class="btn btn-ghost btn-sm" href="app.html">&larr; Back to giving</a>
+  <span class="pill">Draft document</span>
+</div>
+
+<article class="doc" id="doc">
+  <header class="doc-head">
+    <div style="display:grid;gap:12px;">
+      <span class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>Tributary</span>
+      <h1>Gift invoice</h1>
+    </div>
+    <dl class="meta">
+      <dt>Invoice</dt><dd id="i-number">TRB-202609-001</dd>
+      <dt>Issued</dt><dd id="i-issued">Oct 1, 2026</dd>
+      <dt>Due</dt><dd id="i-due">Oct 31, 2026</dd>
+      <dt>Period</dt><dd id="i-period">Sep 1 – 30, 2026</dd>
+    </dl>
+  </header>
+
+  <section class="parties">
+    <div class="party">
+      <h4>From</h4>
+      <p><b>Tributary</b><br>Burnaby, BC<br>On behalf of the recipient below</p>
+    </div>
+    <div class="party">
+      <h4>Bill to</h4>
+      <p><b id="i-payer">Northgate Freight</b><br><span id="i-email">ap@northgate.example</span><br>Accounts payable</p>
+    </div>
+    <div class="party recipient">
+      <h4 style="color:#0b5e54;">Gift goes to</h4>
+      <p><b id="i-charity">VGH &amp; UBC Hospital Foundation</b><br><span id="i-focus" class="small"></span></p>
+      <span class="tgt" id="i-target"></span>
+    </div>
+  </section>
+
+  <table class="lines">
+    <thead><tr><th>Description</th><th class="r">Amount (USD)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Monthly gift: <span id="i-rate">1%</span> of AI spend
+          <span class="sub" id="i-basis-line">AI charges on company card, Sep 1 – 30, 2026: $18,822.00</span></td>
+        <td class="r num" id="i-amount-1">$188.22</td>
+      </tr>
+      <tr>
+        <td>Tributary fee<span class="sub">No fee during the pilot. 100% of this invoice goes to the recipient.</span></td>
+        <td class="r num">$0.00</td>
+      </tr>
+      <tr>
+        <td>GST/HST<span class="sub">Not charged. This is a gift to a registered charity, not a purchase.</span></td>
+        <td class="r num">$0.00</td>
+      </tr>
+      <tr class="total-row"><td>Total due</td><td class="r num" id="i-total">$188.22</td></tr>
+    </tbody>
+  </table>
+
+  <section class="notes">
+    <div class="note">
+      <h4>How to pay</h4>
+      <ul>
+        <li>Bank transfer (EFT) to the recipient&rsquo;s account. Details are printed on the final invoice.</li>
+        <li>Or pay online through the secure link in the invoice email.</li>
+        <li>Payment goes straight to the charity. Tributary never holds the money.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h4>Your tax receipt</h4>
+      <p>The recipient charity issues an official donation receipt to <b id="i-payer-2">Northgate Freight</b> when your payment arrives. You&rsquo;ll find it under Your gifts.</p>
+    </div>
+  </section>
+
+  <section class="rotation">
+    <div>
+      <h4>Where your next gifts go</h4>
+      <p class="muted small">Tributary rotates monthly gifts among Canadian charities whose work advances UN Sustainable Development Goal 17, Partnerships for the Goals.</p>
+    </div>
+    <div class="rot-list" id="i-rotation"></div>
+  </section>
+
+  <p class="fine-print">Draft prepared at StormHacks 2026. The charity rotation is a proposal; each charity must agree before it receives gifts through Tributary.</p>
+</article>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const money = (c) => "$" + (c / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const day = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  const monthName = (m) => new Date(m + "-01T00:00:00Z").toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  const pct = (r) => { const p = Math.round(r * 10000) / 100; return (Number.isInteger(p) ? p : p.toFixed(2)) + "%"; };
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+  async function load() {
+    const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
+    const res = await fetch(`/api/invoices/${encodeURIComponent(id)}`);
+    if (!res.ok) return;
+    const { invoice: i, payer, recipient, upcoming } = await res.json();
+    const issued = new Date(i.created_at);
+    $("i-number").textContent = i.number;
+    $("i-issued").textContent = day(issued);
+    $("i-due").textContent = day(issued.getTime() + 30 * 86400000);
+    $("i-period").textContent = `${day(i.period_start + "T00:00:00Z")} – ${day(i.period_end + "T00:00:00Z")}`;
+    if (payer) {
+      $("i-payer").textContent = payer.name;
+      $("i-payer-2").textContent = payer.name;
+      $("i-email").textContent = payer.billingEmail || "";
+    }
+    $("i-charity").textContent = recipient.name;
+    $("i-focus").textContent = recipient.focus || "";
+    $("i-target").textContent = recipient.target || "";
+    $("i-rate").textContent = pct(i.rate);
+    const source = i.basis === "provider" ? "AI usage from provider cost reports" : "AI charges on company card";
+    $("i-basis-line").textContent = `${source}, ${day(i.period_start + "T00:00:00Z")} – ${day(i.period_end + "T00:00:00Z")}: ${money(i.basis_cents)}`;
+    $("i-amount-1").textContent = money(i.amount_cents);
+    $("i-total").textContent = money(i.amount_cents);
+    $("i-rotation").innerHTML = upcoming.map((c) => `
+      <div class="rot"><span class="m">${esc(monthName(c.month))}</span><b>${esc(c.name)}</b><span class="t">${esc(c.target)}</span></div>`).join("");
+  }
+
+  // Static fallback so the draft reads complete without a running invoice.
+  $("i-rotation").innerHTML = [
+    ["November 2026", "Engineers Without Borders Canada", "SDG 17.8 · Technology for the least developed countries"],
+    ["December 2026", "World University Service of Canada", "SDG 17.9 · Capacity building"],
+    ["January 2027", "Cuso International", "SDG 17.3 · New financial resources for developing countries"],
+  ].map(([m, n, t]) => `<div class="rot"><span class="m">${m}</span><b>${n}</b><span class="t">${t}</span></div>`).join("");
+  $("i-focus").textContent = "Care and research at Vancouver's hospitals. This month's StormHacks 2026 cause.";
+  $("i-target").textContent = "SDG 17.17 · Partnerships with civil society";
+  load();
+</script>
+</body>
+</html>

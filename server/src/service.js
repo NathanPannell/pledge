@@ -1,3 +1,4 @@
+import { charityFor, ROTATION, schedule } from "./charities.js";
 import { SAMPLE, sampleGifts } from "./community.js";
 import { now } from "./db.js";
 import { anthropicCosts, openaiCosts } from "./providers.js";
@@ -139,7 +140,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
   }
 
   async function refresh() {
-    for (const conn of q("select * from connection where kind != 'demo'").all()) {
+    for (const conn of q("select * from connection where kind not in ('demo', 'statement')").all()) {
       try {
         if (conn.kind === "plaid") await syncPlaid(conn);
         else await syncProvider(conn);
@@ -151,6 +152,43 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
 
   function removeConnection(id) {
     q("delete from connection where id = ?").run(Number(id));
+  }
+
+  // ---- Statement upload ---------------------------------------------------
+
+  // The browser parses the CSV and sends only rows it matched to an AI
+  // vendor. The server checks each row again and drops anything else, so a
+  // non-AI charge is never stored even if a client sends it.
+  function importStatement({ filename, rows }) {
+    requireOrg();
+    if (!Array.isArray(rows) || !rows.length) throw new UserError("No AI charges found in that file.");
+    if (rows.length > 5000) throw new UserError("That file has too many rows. Split it by month.");
+    const clean = [];
+    for (const r of rows) {
+      const date = String(r.date || "").slice(0, 10);
+      const description = String(r.description || "").slice(0, 200);
+      const amount = Number(r.amount);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(amount) || amount <= 0) continue;
+      if (!detectVendor(description)) continue;
+      clean.push({ date, description, amount });
+    }
+    if (!clean.length) throw new UserError("No AI charges found in that file.");
+    const label = `Statement · ${String(filename || "upload.csv").slice(0, 60)}`;
+    const { lastInsertRowid } = q(`insert into connection (kind, label, secret, hint, synced_at, created_at)
+      values ('statement', ?, ?, ?, ?, ?)`).run(label, seal(key, "none"), `${clean.length} AI charges`, now(), now());
+    const connId = Number(lastInsertRowid);
+    storeCardTxns(connId, clean.map((r, i) => ({
+      transaction_id: `stmt-${connId}-${i}`, date: r.date, name: r.description, amount: r.amount, merchant_name: null,
+    })), []);
+    return { id: connId, imported: clean.length, skipped: rows.length - clean.length };
+  }
+
+  // A realistic business card export for trying the upload.
+  function sampleStatementCsv(today = new Date()) {
+    const txns = buildCustomUser(today).override_accounts[0].transactions;
+    const lines = ["Transaction Date,Description,Amount"];
+    for (const t of txns) lines.push(`${t.date_posted},"${t.description.replace(/"/g, '""')}",${t.amount.toFixed(2)}`);
+    return lines.join("\n") + "\n";
   }
 
   // ---- Demo ---------------------------------------------------------------
@@ -240,6 +278,8 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     if (amount < 100) throw new UserError("The pledge for this period is under $1. Connect spend or choose a longer period.");
 
     const number = nextInvoiceNumber(end);
+    // The gift goes to the charity whose month it is when the gift is made.
+    const recipient = charityFor(new Date()).name;
     let stripeId = null;
     let stripeUrl = null;
     if (stripe.configured) {
@@ -250,8 +290,8 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
         customerId,
         amountCents: amount,
         number,
-        charity: config.charity.name,
-        description: `${pct}% of AI spend, ${start} to ${end}, donated to ${config.charity.name}`,
+        charity: recipient,
+        description: `${pct}% of AI spend, ${start} to ${end}, donated to ${recipient}`,
       });
       stripeId = out.id;
       stripeUrl = out.url;
@@ -259,12 +299,26 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     const { lastInsertRowid } = q(`insert into invoice (number, period_start, period_end, basis, basis_cents, rate,
       amount_cents, charity, status, stripe_invoice_id, stripe_url, created_at)
       values (?, ?, ?, ?, ?, ?, ?, ?, 'issued', ?, ?, ?)`)
-      .run(number, start, end, o.basis, basis, o.pledge_rate, amount, config.charity.name, stripeId, stripeUrl, now());
+      .run(number, start, end, o.basis, basis, o.pledge_rate, amount, recipient, stripeId, stripeUrl, now());
     return q("select * from invoice where id = ?").get(lastInsertRowid);
   }
 
   function markPaid(id) {
     q("update invoice set status = 'paid' where id = ?").run(Number(id));
+  }
+
+  // One invoice with what its documents need: payer, recipient, what's next.
+  function invoiceDocument(id) {
+    const inv = q("select * from invoice where id = ?").get(Number(id));
+    if (!inv) throw new UserError("Invoice not found.", 404);
+    const o = org();
+    const recipient = ROTATION.find((c) => c.name === inv.charity) || { name: inv.charity };
+    return {
+      invoice: inv,
+      payer: o && { name: o.name, billingEmail: o.billing_email },
+      recipient,
+      upcoming: schedule(4, new Date(inv.created_at)).slice(1),
+    };
   }
 
   function invoices() {
@@ -278,6 +332,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
       org: o && { name: o.name, billingEmail: o.billing_email, pledgeRate: o.pledge_rate, basis: o.basis },
       charity: config.charity,
       community: community(),
+      rotation: schedule(4),
       plaid: { configured: plaid.configured, env: config.plaid.env },
       stripe: { configured: stripe.configured, testMode: stripe.testMode },
       connections: q("select id, kind, label, hint, status, error, synced_at from connection order by id").all(),
@@ -310,11 +365,11 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     const entries = [...own, ...others]
       .sort((a, b) => b.period_end.localeCompare(a.period_end) || b.amount_cents - a.amount_cents)
       .slice(0, 12);
-    return { charity: config.charity, community: community(), entries };
+    return { charity: config.charity, community: community(), rotation: schedule(4), entries };
   }
 
   return {
     org, saveOrg, setPledge, linkToken, connectPlaid, connectSandboxCard, connectProvider,
-    refresh, removeConnection, reset, seedDemo, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
+    refresh, removeConnection, reset, seedDemo, importStatement, sampleStatementCsv, invoiceDocument, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
   };
 }

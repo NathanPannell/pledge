@@ -85,7 +85,18 @@
   .tool .track i { display: block; height: 100%; border-radius: 999px; background: var(--series-card); }
   .tool.usage .track i { background: var(--series-usage); }
   .tool span:last-child { text-align: right; font-weight: 600; }
-  .connect-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .opt { border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+  .opt p { color: var(--ink-2); font-size: 0.92rem; }
+  .opt-tag { width: fit-content; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--flow); }
+  .opt-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .opt code { font-family: var(--mono); }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  label.btn:has(+ .visually-hidden:focus-visible) { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); outline-offset: 2px; }
+  details.advanced summary { cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 0.92rem; }
+  details.advanced[open] { display: grid; gap: 10px; }
+  .preview-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .preview-list li { display: flex; justify-content: space-between; gap: 12px; font-size: 0.94rem; }
   details.txns summary { cursor: pointer; color: var(--brand); font-weight: 600; font-size: 0.92rem; }
   .tbl-wrap { overflow-x: auto; margin-top: 12px; }
   table.tbl { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 0.9rem; }
@@ -119,6 +130,7 @@
     .welcome .body, .panel, .impact .body { padding: 22px; }
     .outcomes { grid-template-columns: 1fr; }
     .tool { grid-template-columns: 96px minmax(0, 1fr) 72px; }
+    .options { grid-template-columns: 1fr; }
     .for span { display: none; }
   }
 </style>
@@ -211,14 +223,37 @@
     <section class="panel" aria-labelledby="spend-title">
       <div class="panel-head"><h3 id="spend-title">Where your AI spend goes</h3><span class="faint small" id="spend-period"></span></div>
       <div class="sources" id="sources"></div>
-      <div class="banner" id="plaid-banner" hidden>To connect a real card, add <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> to <code>server/.env</code> and restart.</div>
       <div class="tools" id="tools"></div>
-      <div class="connect-row">
-        <button class="btn btn-secondary btn-sm" type="button" id="connect-plaid">Connect a card</button>
-        <button class="btn btn-secondary btn-sm" type="button" id="connect-sandbox" hidden>Use sandbox card</button>
-        <button class="btn btn-secondary btn-sm" type="button" data-provider="anthropic">Add Anthropic key</button>
-        <button class="btn btn-secondary btn-sm" type="button" data-provider="openai">Add OpenAI key</button>
+      <div class="options">
+        <div class="opt">
+          <span class="opt-tag">No account access</span>
+          <h4>Upload a card statement</h4>
+          <p>Export a CSV from your bank or card portal. It&rsquo;s read on this computer, and only AI charges are sent to Tributary.</p>
+          <div class="opt-actions">
+            <label class="btn btn-primary btn-sm" for="csv-file">Choose CSV file</label>
+            <input type="file" id="csv-file" accept=".csv,text/csv" class="visually-hidden">
+            <a class="small" href="/api/sample-statement.csv">Sample statement</a>
+          </div>
+        </div>
+        <div class="opt">
+          <span class="opt-tag">Read-only</span>
+          <h4>Connect your card</h4>
+          <p>Through Plaid. Transactions only: no payments, no card numbers. Disconnect any time.</p>
+          <div class="opt-actions">
+            <button class="btn btn-secondary btn-sm" type="button" id="connect-plaid">Connect with Plaid</button>
+            <button class="btn btn-secondary btn-sm" type="button" id="connect-sandbox" hidden>Sandbox card</button>
+          </div>
+          <span class="hint" id="plaid-banner" hidden>Needs Plaid keys in <code>server/.env</code>.</span>
+        </div>
       </div>
+      <details class="advanced">
+        <summary>Optional: provider cost reports</summary>
+        <p class="muted small">Adds usage-level detail from Anthropic or OpenAI. Both require an organization admin key, so most companies skip this and use their card.</p>
+        <div class="opt-actions">
+          <button class="btn btn-secondary btn-sm" type="button" data-provider="anthropic">Add Anthropic key</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-provider="openai">Add OpenAI key</button>
+        </div>
+      </details>
       <details class="txns">
         <summary>Show card transactions</summary>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>AI tool</th><th class="r">Amount</th></tr></thead><tbody id="txns"></tbody></table></div>
@@ -246,6 +281,22 @@
   </div>
 </dialog>
 
+<dialog id="csv-dialog">
+  <form class="dlg" id="csv-form">
+    <div style="display:grid;gap:6px;">
+      <h3 id="csv-title">Found AI charges</h3>
+      <p class="muted small" id="csv-help"></p>
+    </div>
+    <ul class="preview-list" id="csv-list"></ul>
+    <p class="muted small" id="csv-private"></p>
+    <p class="error-text" id="csv-error" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn btn-secondary" type="button" id="csv-cancel">Cancel</button>
+      <button class="btn btn-primary" type="submit" id="csv-save">Add these charges</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="key-dialog">
   <form class="dlg" id="key-form">
     <div style="display:grid;gap:6px;">
@@ -264,6 +315,7 @@
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script src="assets/statement.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

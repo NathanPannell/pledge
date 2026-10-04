@@ -6,6 +6,7 @@ import { hint, open, seal } from "../src/secrets.js";
 import { randomBytes } from "node:crypto";
 import { buildCustomUser } from "../src/sandbox-config.js";
 import { sampleGifts } from "../src/community.js";
+import { charityFor, schedule } from "../src/charities.js";
 
 test("detects AI vendors from card descriptors", () => {
   assert.equal(detectVendor("ANTHROPIC, PBC API CREDITS"), "Anthropic");
@@ -37,6 +38,13 @@ test("sealed secrets round-trip and hints hide the key", () => {
   assert.ok(!sealed.includes("abcdef"));
   assert.equal(open(key, sealed), "sk-ant-admin01-abcdefghijkl");
   assert.equal(hint("sk-ant-admin01-abcdefghijkl"), "sk-ant-…ijkl");
+});
+
+test("charity rotation starts with the StormHacks cause in October 2026", () => {
+  assert.equal(charityFor(new Date(Date.UTC(2026, 9, 15))).name, "VGH & UBC Hospital Foundation");
+  assert.equal(charityFor(new Date(Date.UTC(2026, 10, 1))).name, "Engineers Without Borders Canada");
+  assert.equal(charityFor(new Date(Date.UTC(2027, 1, 1))).name, "VGH & UBC Hospital Foundation");
+  assert.equal(schedule(4, new Date(Date.UTC(2026, 9, 3)))[3].month, "2027-01");
 });
 
 test("sample community gifts cover last month", () => {

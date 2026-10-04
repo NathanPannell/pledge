@@ -205,6 +205,61 @@ test("pledge rate is clamped to the dial's range", async () => {
   assert.equal(res.body.org.pledgeRate ?? res.body.org.pledge_rate, 0.05);
 });
 
+test("statement import keeps only AI charges, even if the client sends others", async () => {
+  const res = await api("POST", "/api/statement", {
+    filename: "visa-september.csv",
+    rows: [
+      { date: "2026-09-02", description: "ANTHROPIC, PBC API CREDITS", amount: 3800 },
+      { date: "2026-09-03", description: "OPENAI *API USAGE", amount: 2950.4 },
+      { date: "2026-09-04", description: "WEWORK VANCOUVER", amount: 4200 },
+      { date: "not a date", description: "CURSOR, INC.", amount: 960 },
+      { date: "2026-09-05", description: "MIDJOURNEY INC", amount: -20 },
+    ],
+  });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.imported, 2);
+  assert.equal(res.body.skipped, 3);
+  const { body } = await api("GET", "/api/state?start=2026-09-01&end=2026-09-30");
+  const stmt = body.connections.find((c) => c.kind === "statement");
+  assert.equal(stmt.label, "Statement · visa-september.csv");
+  assert.ok(!body.transactions.some((t) => t.description.includes("WEWORK") && t.id.startsWith("stmt-")));
+});
+
+test("statement import with no AI charges is refused", async () => {
+  const res = await api("POST", "/api/statement", { rows: [{ date: "2026-09-04", description: "WEWORK", amount: 10 }] });
+  assert.equal(res.status, 400);
+});
+
+test("vendor patterns are served for in-browser matching", async () => {
+  const { body } = await api("GET", "/api/vendors");
+  const anthropic = body.vendors.find((v) => v.name === "Anthropic");
+  assert.ok(new RegExp(anthropic.source, anthropic.flags).test("ANTHROPIC, PBC"));
+});
+
+test("serves a sample statement CSV", async () => {
+  const res = await fetch(base + "/api/sample-statement.csv");
+  assert.equal(res.status, 200);
+  const text = await res.text();
+  assert.ok(text.startsWith("Transaction Date,Description,Amount"));
+  assert.match(text, /ANTHROPIC/);
+});
+
+test("invoice document carries payer, recipient and upcoming charities", async () => {
+  const id = (await api("GET", "/api/state")).body.invoices[0].id;
+  const { status, body } = await api("GET", `/api/invoices/${id}`);
+  assert.equal(status, 200);
+  assert.equal(body.payer.name, "Northgate Freight");
+  assert.ok(body.recipient.name);
+  assert.equal(body.upcoming.length, 3);
+  assert.equal((await api("GET", "/api/invoices/99999")).status, 404);
+});
+
+test("state includes the charity rotation", async () => {
+  const { body } = await api("GET", "/api/state");
+  assert.equal(body.rotation.length, 4);
+  assert.ok(body.rotation[0].name && body.rotation[0].target);
+});
+
 test("demo seed leaves two paid months and last month ready to give", async () => {
   assert.equal((await api("POST", "/api/demo")).status, 200);
   const { body } = await api("GET", "/api/state?start=2000-01-01&end=" + today);

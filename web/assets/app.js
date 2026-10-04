@@ -195,7 +195,7 @@
             <div class="s num">${pctText(i.rate)} of ${money(i.basis_cents)} AI spend &middot; ${esc(i.number)}</div></div>
           <div class="r"><b class="num">${moneyExact(i.amount_cents)}</b>
             ${i.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Received</span>' : `<span class="pill warn"><span class="dot"></span>On its way</span>`}
-            ${i.stripe_url ? `<a href="${esc(i.stripe_url)}" target="_blank" rel="noopener">Invoice</a>` : ""}
+            <span class="small"><a href="invoice.html?id=${i.id}">Invoice</a>${i.status === "paid" ? ` &middot; <a href="receipt.html?id=${i.id}">Tax receipt</a>` : ""}</span>
             ${i.status !== "paid" ? `<button class="linkish" type="button" data-paid="${i.id}">Mark received</button>` : ""}
           </div>
         </div>`).join("")
@@ -204,7 +204,7 @@
 
   function renderSpend() {
     const s = state.spend;
-    $("plaid-banner").hidden = state.plaid.configured || state.connections.length > 0;
+    $("plaid-banner").hidden = state.plaid.configured;
     $("connect-plaid").disabled = !state.plaid.configured;
     $("connect-sandbox").hidden = !(state.plaid.configured && state.plaid.env === "sandbox");
     $("spend-period").textContent = s.months.length ? `Since ${monthLong(s.months[0].month)}` : "";
@@ -366,6 +366,50 @@
         toast(err.message, true);
       }
     }
+  });
+
+  // ---- Statement upload: read locally, send only AI charges -----------------
+
+  let pending = null;
+
+  $("csv-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const [text, { vendors }] = await Promise.all([file.text(), api("GET", "/api/vendors")]);
+      const result = window.Statement.readStatement(text, vendors);
+      if (result.error) return toast(result.error, true);
+      if (!result.rows.length) return toast(`No AI charges found among ${result.totalRows} rows in ${file.name}.`, true);
+      pending = { filename: file.name, rows: result.rows };
+      $("csv-title").textContent = `${result.rows.length} AI charges, ${moneyExact(Math.round(result.total * 100))}`;
+      $("csv-help").textContent = `Found in ${file.name}.`;
+      $("csv-list").innerHTML = result.byVendor.map(([name, dollars]) =>
+        `<li><span>${esc(name)}</span><b class="num">${moneyExact(Math.round(dollars * 100))}</b></li>`).join("");
+      const kept = result.totalRows - result.rows.length;
+      $("csv-private").textContent = `Only these ${result.rows.length} rows are sent: date, description and amount. The other ${kept} rows stay on this computer.`;
+      $("csv-error").hidden = true;
+      $("csv-dialog").showModal();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
+
+  $("csv-cancel").addEventListener("click", () => { pending = null; $("csv-dialog").close(); });
+  $("csv-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    busy($("csv-save"), "Adding", async () => {
+      try {
+        const out = await api("POST", "/api/statement", pending);
+        pending = null;
+        $("csv-dialog").close();
+        await load();
+        toast(`Added ${out.imported} AI charges.`);
+      } catch (err) {
+        $("csv-error").textContent = err.message;
+        $("csv-error").hidden = false;
+      }
+    });
   });
 
   $("key-cancel").addEventListener("click", () => $("key-dialog").close());

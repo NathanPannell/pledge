@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sample Donation Receipt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/tributary.css">
+<style>
+  body { background: var(--surface); }
+  .bar-top { max-width: 820px; margin: 24px auto 0; padding-inline: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .doc { position: relative; overflow: hidden; max-width: 820px; margin: 16px auto 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 44px; display: grid; gap: 26px; box-shadow: var(--shadow); }
+  /* Unmistakable marking: this is a design draft, not a receipt anyone can claim. */
+  .doc::before { content: "SAMPLE \2013  NOT AN OFFICIAL RECEIPT"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-24deg); white-space: nowrap; font-size: 3.1rem; font-weight: 800; letter-spacing: 0.04em; color: rgba(180, 53, 31, 0.13); pointer-events: none; }
+  .banner { display: flex; gap: 10px; padding: 12px 16px; border-radius: var(--r); background: var(--danger-soft); color: var(--danger); font-weight: 600; font-size: 0.92rem; }
+  .head { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .head h1 { font-size: 1.5rem; }
+  .head p { color: var(--ink-2); font-size: 0.93rem; }
+  .official { font-size: 1.05rem; font-weight: 700; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+  .row span:first-child { color: var(--ink-3); }
+  .row span:last-child { font-weight: 600; text-align: right; }
+  .amounts .row span:last-child { font-variant-numeric: tabular-nums; }
+  .amounts .row.eligible { border-bottom: 2px solid var(--ink); font-size: 1.1rem; }
+  .sign { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; padding-top: 12px; }
+  .sign .line { width: 260px; max-width: 100%; border-bottom: 1px solid var(--ink); height: 40px; }
+  .sign small { display: block; color: var(--ink-3); margin-top: 6px; }
+  .cra { font-size: 0.88rem; color: var(--ink-2); }
+  .explain { max-width: 820px; margin: 0 auto 64px; padding-inline: 16px; display: grid; gap: 10px; color: var(--ink-2); font-size: 0.93rem; }
+  .explain h3 { color: var(--ink); font-size: 1.05rem; }
+  .explain ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  @media (max-width: 720px) {
+    .doc { padding: 22px; margin-inline: 12px; }
+    .grid { grid-template-columns: 1fr; }
+    .doc::before { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="bar-top">
+  <a class="btn btn-ghost btn-sm" href="app.html">&larr; Back to giving</a>
+  <span class="pill err"><span class="dot"></span>Sample for design review</span>
+</div>
+
+<article class="doc">
+  <div class="banner">Sample layout only. Official receipts are issued by the charity, not by Tributary.</div>
+
+  <header class="head">
+    <div style="display:grid;gap:4px;">
+      <h1 id="r-charity">VGH &amp; UBC Hospital Foundation</h1>
+      <p id="r-address">190-855 West 12th Ave, Vancouver, BC V5Z 1M9</p>
+      <p>Charitable registration number: <b id="r-reg">132173063RR0001</b></p>
+    </div>
+    <div style="display:grid;gap:4px;text-align:right;">
+      <span class="official">Official donation receipt<br>for income tax purposes</span>
+      <p>Receipt no. <b id="r-number">2026-TRB-202609-001</b></p>
+    </div>
+  </header>
+
+  <section class="grid">
+    <div>
+      <div class="row"><span>Donor</span><span id="r-donor">Northgate Freight</span></div>
+      <div class="row"><span>Donor address</span><span>On file with the charity</span></div>
+      <div class="row"><span>Gift made through</span><span>Tributary, invoice <span id="r-invoice">TRB-202609-001</span></span></div>
+    </div>
+    <div>
+      <div class="row"><span>Date gift received</span><span id="r-received">Oct 6, 2026</span></div>
+      <div class="row"><span>Date receipt issued</span><span id="r-issued">Oct 7, 2026</span></div>
+      <div class="row"><span>Location issued</span><span>Vancouver, BC</span></div>
+    </div>
+  </section>
+
+  <section class="amounts">
+    <div class="row"><span>Amount of gift (cash)</span><span id="r-amount">$188.22</span></div>
+    <div class="row"><span>Value of advantage received</span><span>$0.00</span></div>
+    <div class="row eligible"><span>Eligible amount of gift for tax purposes</span><span id="r-eligible">$188.22</span></div>
+  </section>
+
+  <div class="sign">
+    <div><div class="line"></div><small>Authorized signature, on behalf of the charity</small></div>
+    <p class="cra">Canada Revenue Agency: <b>canada.ca/charities-giving</b></p>
+  </div>
+</article>
+
+<section class="explain">
+  <h3>What this draft shows</h3>
+  <p>Every field the Canada Revenue Agency requires on an official cash donation receipt, laid out for a gift made through Tributary:</p>
+  <ul>
+    <li>Statement that it is an official receipt for income tax purposes</li>
+    <li>Charity name and address as on file with the CRA, and its registration number</li>
+    <li>Unique serial number, location issued, date received and date issued</li>
+    <li>Donor name and address</li>
+    <li>Amount of the gift, any advantage, and the eligible amount</li>
+    <li>Signature of an authorized individual, and the CRA&rsquo;s name and website</li>
+  </ul>
+  <p>The charity of the month issues the real receipt. Amounts shown are in the currency the gift was paid in.</p>
+</section>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const money = (c) => "$" + (c / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const day = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+  async function load() {
+    const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
+    const res = await fetch(`/api/invoices/${encodeURIComponent(id)}`);
+    if (!res.ok) return;
+    const { invoice: i, payer, recipient } = await res.json();
+    const received = new Date(new Date(i.created_at).getTime() + 5 * 86400000);
+    $("r-charity").textContent = recipient.name;
+    $("r-address").textContent = recipient.address || "Charity address as on file with the CRA";
+    $("r-reg").textContent = recipient.registration || "Registration number on file with the CRA";
+    $("r-number").textContent = `${i.created_at.slice(0, 4)}-${i.number}`;
+    $("r-invoice").textContent = i.number;
+    if (payer) $("r-donor").textContent = payer.name;
+    $("r-received").textContent = day(received);
+    $("r-issued").textContent = day(received.getTime() + 86400000);
+    $("r-amount").textContent = money(i.amount_cents);
+    $("r-eligible").textContent = money(i.amount_cents);
+  }
+
+  load();
+</script>
+</body>
+</html>

@@ -5,6 +5,32 @@ card and AI provider accounts, measures what it spends on AI, and invoices a ple
 company sets on a dial (0.25% to 5%). Pledges go to a charity partner and appear on a
 public ledger. Built for UN SDG 17 (Partnerships for the Goals) at StormHacks 2026.
 
+## Getting AI spend, least access first
+
+1. **Card statement upload (default).** Export a CSV from any bank or card portal. The
+   browser parses it and matches AI vendors locally (`web/assets/statement.js`, patterns
+   from `GET /api/vendors`). Only matching rows (date, description, amount) are sent;
+   the server re-checks each row and drops anything that isn't an AI charge. No account
+   access at all, works with any card today.
+2. **Plaid, read-only.** Transactions product only: no payments, no card numbers.
+   Needs Plaid production approval before real customers can use it.
+3. **Provider cost reports (optional).** Anthropic and OpenAI require organization
+   admin keys, so this is tucked under "Optional" in the UI.
+
+AI charges are matched by merchant descriptor, not merchant category code. MCCs like 5734,
+7372 and 5818 cover all software and digital goods, so they can't tell AI apart from other
+SaaS.
+
+## Gifts, invoices and receipts
+
+- Each month's gift goes to one charity from a rotation (`server/src/charities.js`):
+  October is the StormHacks 2026 cause (VGH & UBC Hospital Foundation), then charities
+  whose work matches SDG 17 targets. The rotation is a proposal; each charity must agree.
+- `web/invoice.html?id=N` is the gift invoice draft: payable to the charity, no
+  Tributary fee, no GST/HST, and the next three charities in the rotation.
+- `web/receipt.html?id=N` is a sample official donation receipt with every field the
+  CRA requires. It is watermarked as a sample; the charity issues the real one.
+
 ## How it works
 
 1. **Business card through Plaid.** Transactions are read, and AI charges are picked out

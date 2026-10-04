@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, sep } from "node:path";
 import { UserError } from "./service.js";
+import { AI_VENDORS } from "./vendors.js";
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -72,6 +73,9 @@ export function createApp({ service, webRoot }) {
       return { ok: true };
     },
     "POST /api/invoices": async (req, url, body) => ({ invoice: await service.issueInvoice(body) }),
+    "POST /api/statement": (req, url, body) => service.importStatement(body),
+    // Patterns the browser uses to pick AI charges out of a statement locally.
+    "GET /api/vendors": () => ({ vendors: AI_VENDORS.map((v) => ({ name: v.name, source: v.pattern.source, flags: v.pattern.flags })) }),
     "POST /api/demo": () => {
       service.seedDemo();
       return { ok: true };
@@ -90,6 +94,8 @@ export function createApp({ service, webRoot }) {
         service.removeConnection(del[1]);
         return send(res, 200, { ok: true });
       }
+      const doc = url.pathname.match(/^\/api\/invoices\/(\d+)$/);
+      if (req.method === "GET" && doc) return send(res, 200, service.invoiceDocument(doc[1]));
       const paid = url.pathname.match(/^\/api\/invoices\/(\d+)\/paid$/);
       if (req.method === "POST" && paid) {
         service.markPaid(paid[1]);
@@ -99,6 +105,13 @@ export function createApp({ service, webRoot }) {
       if (handler) {
         const body = req.method === "POST" ? await readJson(req) : {};
         return send(res, 200, await handler(req, url, body));
+      }
+      if (req.method === "GET" && url.pathname === "/api/sample-statement.csv") {
+        res.writeHead(200, {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition": 'attachment; filename="sample-business-card.csv"',
+        });
+        return res.end(service.sampleStatementCsv());
       }
       if (url.pathname.startsWith("/api/")) return send(res, 404, { error: "Not found" });
       if (req.method !== "GET") return send(res, 405, { error: "Method not allowed" });
