@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { parseCsv, readStatement, toIsoDate, toAmount } = require("../assets/statement.js");
+const { parseCsv, readStatement, summarize, toIsoDate, toAmount } = require("../assets/statement.js");
 
 const VENDORS = [
   { name: "Anthropic", source: "ANTHROPIC|CLAUDE\\.AI", flags: "i" },
@@ -33,6 +33,31 @@ test("handles banks that show charges as negative, in a debit column, or with MM
   assert.equal(negative.rows[0].date, "2026-09-02");
   const debit = readStatement("Posted Date,Description,Debit,Credit\n2026-09-02,ANTHROPIC,100.00,\n2026-09-05,ANTHROPIC,,100.00\n", VENDORS);
   assert.equal(debit.rows.length, 1);
+});
+
+test("keeps every charge locally for the scan view, but only AI rows for sending", () => {
+  const csv = "Date,Description,Amount\n2026-09-02,ANTHROPIC,10\n2026-09-03,WEWORK,20\n2026-09-04,Payment received,-500\n";
+  const out = readStatement(csv, VENDORS);
+  assert.equal(out.all.length, 2);
+  assert.deepEqual(out.all.map((r) => r.vendor), ["Anthropic", null]);
+  assert.deepEqual(Object.keys(out.rows[0]).sort(), ["amount", "date", "description"]);
+});
+
+test("summarizes AI spend by month and growth across full months", () => {
+  const rows = [
+    { date: "2026-07-05", amount: 100 },
+    { date: "2026-08-05", amount: 120 },
+    { date: "2026-09-05", amount: 150 },
+    { date: "2026-10-01", amount: 40 },
+  ];
+  const s = summarize(rows, new Date(Date.UTC(2026, 9, 3)));
+  assert.equal(s.lastFull.month, "2026-09");
+  assert.equal(s.lastFull.total, 150);
+  assert.equal(s.growthFrom, "2026-07");
+  assert.ok(Math.abs(s.growth - 0.5) < 1e-9);
+  const single = summarize([{ date: "2026-09-05", amount: 10 }], new Date(Date.UTC(2026, 9, 3)));
+  assert.equal(single.growth, null);
+  assert.equal(summarize([{ date: "2026-10-01", amount: 10 }], new Date(Date.UTC(2026, 9, 3))).lastFull, null);
 });
 
 test("explains a file it can't read", () => {

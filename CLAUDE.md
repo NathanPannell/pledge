@@ -1,9 +1,8 @@
 # Tributary (StormHacks 2026)
 
-Companies connect a business card (Plaid) and AI provider admin keys (Anthropic, OpenAI
-cost reports). Tributary measures AI spend, the company sets a pledge rate on a dial, and
-Tributary issues one invoice per period (Stripe Invoicing). Pledges go to a charity partner
-and are listed on a public ledger. UN SDG 17.
+A company finds its AI spend (card statement, Plaid, or provider cost reports), chooses a
+share on a dial, and gives once a month to a rotating charity. Gifts are invoices payable
+to the charity and listed on a public record. UN SDG 17.
 
 ## Layout
 
@@ -13,17 +12,21 @@ and are listed on a public ledger. UN SDG 17.
   - `src/plaid.js`, `src/providers.js`, `src/stripe.js` external API clients.
   - `src/vendors.js` AI vendor detection from card descriptors.
   - `src/pledge.js` pledge math in integer cents.
-  - `src/sandbox-config.js` Plaid sandbox custom user (demo business card).
+  - `src/charities.js` monthly charity rotation (proposal).
+  - `src/community.js` sample giving from 45 other companies (see conventions).
+  - `src/sandbox-config.js` realistic business card data, used for the sample statement
+    (`GET /api/sample-statement.csv`) and the Plaid sandbox card.
   - `data/` SQLite database and encryption key. Git-ignored.
 - `web/` static frontend, no build step.
-  - `index.html` landing page and public ledger (reads `/api/ledger`).
-  - `app.html`, `assets/app.js` dashboard.
+  - `index.html`, `assets/landing.js` landing page: live hero counter and gift stream,
+    scale steps, charity rotation, gift record. Polls `/api/ledger` and listens on the
+    `tributary` BroadcastChannel for gifts made in another tab.
+  - `app.html`, `assets/app.js` guided Find, Choose, Give flow for a new company (with
+    the animated statement scan), then the company home.
+  - `assets/statement.js` CSV parsing and AI matching in the browser.
+  - `invoice.html`, `receipt.html` gift invoice and sample tax receipt.
   - `assets/tributary.css` shared design system: light mode, Figtree, SDG 17 navy brand,
-    teal for money going to charity. Chart series: card `#2f6fd0`, usage `#1fa392`
-    (validated for color-vision deficiency).
-  - `settings/`, `console/`, `assets/roundup.js` older checkout mockups. Not linked. They
-    must stay free of any real provider's name, logo or branding.
-- `proxy/` older metering proxy. Not used.
+    teal for money going to charity.
 
 ## Conventions
 
@@ -31,10 +34,12 @@ and are listed on a public ledger. UN SDG 17.
 - Card and provider spend overlap; the pledge basis is one or the larger, never the sum.
 - Secrets (Plaid access tokens, admin keys) are sealed with AES-256-GCM before storage and
   never returned by the API. Tests assert this.
+- Statement uploads send only AI rows; the server re-checks every row.
 - Stripe invoices are finalized, never emailed by the server.
-- Charity name comes from `CHARITY_NAME` in `server/.env`.
-- `src/community.js` adds sample giving from 45 other companies to real records so
-  the landing page and giving page show a full community. `COMMUNITY_SAMPLE=off` turns
-  it off. The sample is not real giving; never present it as real traction.
+- Disclaimers and sources go in the notes at the bottom of each page, never inline.
+- "Each month" figures use last full month's spend everywhere, so the first gift, the
+  Choose step and the home dial agree.
+- `COMMUNITY_SAMPLE=off` turns off the 45-company sample. The sample is not real giving;
+  never present it as real traction.
 - Tests: `npm --prefix server test` (mock upstream for Plaid, Anthropic, OpenAI, Stripe),
   `npm --prefix web test`.

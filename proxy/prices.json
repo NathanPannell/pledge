@@ -1,5 +1,0 @@
-{
-  "_note": "USD per 1M tokens. These are placeholder values, not real provider prices. Add entries under models keyed by model-name prefix; the longest matching prefix wins.",
-  "default": { "input": 1.0, "output": 4.0 },
-  "models": {}
-}

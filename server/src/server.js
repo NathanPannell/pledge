@@ -76,10 +76,6 @@ export function createApp({ service, webRoot }) {
     "POST /api/statement": (req, url, body) => service.importStatement(body),
     // Patterns the browser uses to pick AI charges out of a statement locally.
     "GET /api/vendors": () => ({ vendors: AI_VENDORS.map((v) => ({ name: v.name, source: v.pattern.source, flags: v.pattern.flags })) }),
-    "POST /api/demo": () => {
-      service.seedDemo();
-      return { ok: true };
-    },
     "POST /api/reset": () => {
       service.reset();
       return { ok: true };

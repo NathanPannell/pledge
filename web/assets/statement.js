@@ -81,30 +81,55 @@
     }
     const matchers = vendors.map((v) => ({ name: v.name, re: new RegExp(v.source, v.flags) }));
     const body = rows.slice(1);
-    const ai = [];
+    const parsed = [];
     for (const r of body) {
       const description = (r[cols.description] || "").trim();
-      const vendor = matchers.find((m) => m.re.test(description));
-      if (!vendor) continue;
       const date = toIsoDate(r[cols.date] || "");
       const amount = cols.debit !== undefined && (r[cols.debit] || "").trim() !== "" ? toAmount(r[cols.debit]) : toAmount(r[cols.amount]);
-      if (!date || !Number.isFinite(amount) || amount === 0) continue;
-      ai.push({ date, description, amount, vendor: vendor.name });
+      if (!description || !date || !Number.isFinite(amount) || amount === 0) continue;
+      const vendor = matchers.find((m) => m.re.test(description));
+      parsed.push({ date, description, amount, vendor: vendor ? vendor.name : null });
     }
-    // Some banks show charges as negative numbers. Charges are what we want.
-    const negatives = ai.filter((r) => r.amount < 0).length;
-    const charges = (negatives > ai.length / 2 ? ai.map((r) => ({ ...r, amount: -r.amount })) : ai).filter((r) => r.amount > 0);
+    // Some banks show charges as negative numbers. Charges are what we want,
+    // so flip the sign when most rows are negative, then drop credits.
+    const negatives = parsed.filter((r) => r.amount < 0).length;
+    const all = (negatives > parsed.length / 2 ? parsed.map((r) => ({ ...r, amount: -r.amount })) : parsed).filter((r) => r.amount > 0);
+    const charges = all.filter((r) => r.vendor);
     const byVendor = {};
     for (const r of charges) byVendor[r.vendor] = (byVendor[r.vendor] || 0) + r.amount;
     return {
+      // Only these leave the device: date, description and amount of AI charges.
       rows: charges.map(({ date, description, amount }) => ({ date, description, amount })),
+      // Every charge with its match, kept in the browser for the scan view.
+      all,
       totalRows: body.length,
       byVendor: Object.entries(byVendor).sort((a, b) => b[1] - a[1]),
       total: charges.reduce((s, r) => s + r.amount, 0),
     };
   }
 
-  const api = { parseCsv, readStatement, toIsoDate, toAmount };
+  // AI spend per calendar month. The current month is partial, so the
+  // "last full month" is the latest month before it.
+  function summarize(rows, today) {
+    const now = (today || new Date()).toISOString().slice(0, 7);
+    const byMonth = {};
+    for (const r of rows) {
+      const m = r.date.slice(0, 7);
+      byMonth[m] = (byMonth[m] || 0) + r.amount;
+    }
+    const months = Object.keys(byMonth).sort().map((m) => ({ month: m, total: byMonth[m] }));
+    const full = months.filter((m) => m.month < now);
+    const last = full.length ? full[full.length - 1] : null;
+    const first = full.length > 1 ? full[0] : null;
+    return {
+      months,
+      lastFull: last,
+      growth: first && last && first.total > 0 ? last.total / first.total - 1 : null,
+      growthFrom: first ? first.month : null,
+    };
+  }
+
+  const api = { parseCsv, readStatement, summarize, toIsoDate, toAmount };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.Statement = api;
 })(typeof window !== "undefined" ? window : globalThis);

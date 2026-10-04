@@ -260,18 +260,52 @@ test("state includes the charity rotation", async () => {
   assert.ok(body.rotation[0].name && body.rotation[0].target);
 });
 
-test("demo seed leaves two paid months and last month ready to give", async () => {
-  assert.equal((await api("POST", "/api/demo")).status, 200);
-  const { body } = await api("GET", "/api/state?start=2000-01-01&end=" + today);
-  assert.equal(body.org.name, "Northgate Freight");
-  assert.equal(body.connections[0].kind, "demo");
-  assert.equal(body.invoices.length, 2);
-  assert.ok(body.invoices.every((i) => i.status === "paid" && i.amount_cents > 0));
-  const lastMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
-  assert.ok(body.invoices.every((i) => i.period_end < lastMonth));
-  assert.equal(body.community.totalCents, body.invoices.reduce((s, i) => s + i.amount_cents, 0));
-  // Refresh skips the demo card instead of calling Plaid with it.
+test("first-gift flow: new company, statement, pledge, gift for last month", async () => {
+  await api("POST", "/api/reset");
+  assert.equal((await api("POST", "/api/org", { name: "Northgate Freight", billingEmail: "ap@northgate.example" })).status, 200);
+  const imported = await api("POST", "/api/statement", {
+    filename: "northgate-visa.csv",
+    rows: [
+      { date: "2026-09-02", description: "ANTHROPIC, PBC API CREDITS", amount: 4050 },
+      { date: "2026-09-24", description: "OPENAI *API USAGE", amount: 2178.14 },
+    ],
+  });
+  assert.equal(imported.body.imported, 2);
+  await api("POST", "/api/pledge", { rate: 0.01, basis: "card" });
+  const gift = await api("POST", "/api/invoices", { start: "2026-09-01", end: "2026-09-30" });
+  assert.equal(gift.status, 200);
+  assert.equal(gift.body.invoice.amount_cents, 6228);
+  const { body } = await api("GET", "/api/state");
+  assert.equal(body.community.ownGifts, 1);
+  assert.equal(body.invoices[0].charity.length > 0, true);
+  // Refresh skips statement uploads instead of calling Plaid with them.
   assert.equal((await api("POST", "/api/refresh")).status, 200);
+});
+
+test("with the sample community on, a gift made now tops the record and joins the totals", async () => {
+  const config = readConfig({ COMMUNITY_SAMPLE: "on" });
+  const svc = createService({
+    db: openDb(":memory:"),
+    key: loadOrCreateKey(join(tmp, "data2")),
+    plaid: createPlaid(config.plaid),
+    stripe: createStripe({ secretKey: "", baseUrl: "" }),
+    config,
+  });
+  const lastMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1));
+  const start = lastMonth.toISOString().slice(0, 10);
+  const end = new Date(Date.UTC(lastMonth.getUTCFullYear(), lastMonth.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+  const before = svc.ledger().community;
+  assert.equal(before.companies, 45);
+  assert.equal(before.monthlyCents, 2450000);
+  svc.saveOrg({ name: "Northgate Freight" });
+  svc.importStatement({ filename: "s.csv", rows: [{ date: start, description: "ANTHROPIC, PBC", amount: 18822.2 }] });
+  svc.setPledge({ rate: 0.01, basis: "card" });
+  await svc.issueInvoice({ start, end });
+  const after = svc.ledger();
+  assert.equal(after.entries[0].company, "Northgate Freight");
+  assert.equal(after.entries[0].amount_cents, 18822);
+  assert.equal(after.community.companies, 46);
+  assert.equal(after.community.monthlyCents, 2450000 + 18822);
 });
 
 test("reset clears everything", async () => {

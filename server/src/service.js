@@ -96,7 +96,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
 
   async function connectSandboxCard() {
     if (!plaid.configured) throw new UserError("Add PLAID_CLIENT_ID and PLAID_SECRET to server/.env.", 503);
-    if (config.plaid.env !== "sandbox") throw new UserError("The demo card only works with PLAID_ENV=sandbox.");
+    if (config.plaid.env !== "sandbox") throw new UserError("The sandbox card only works with PLAID_ENV=sandbox.");
     const publicToken = await plaid.sandboxPublicToken(buildCustomUser());
     return addPlaidItem(await plaid.exchange(publicToken));
   }
@@ -140,7 +140,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
   }
 
   async function refresh() {
-    for (const conn of q("select * from connection where kind not in ('demo', 'statement')").all()) {
+    for (const conn of q("select * from connection where kind != 'statement'").all()) {
       try {
         if (conn.kind === "plaid") await syncPlaid(conn);
         else await syncProvider(conn);
@@ -191,38 +191,9 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     return lines.join("\n") + "\n";
   }
 
-  // ---- Demo ---------------------------------------------------------------
-
+  // Clears every company, connection and gift so a demo can start fresh.
   function reset() {
     db.exec("delete from invoice; delete from provider_cost; delete from card_txn; delete from connection; delete from org;");
-  }
-
-  // A ready-made company for the happy path: a card with four months of
-  // charges and gifts already made for the months before last. Last month's
-  // gift is left ready to give. Works without Plaid or Stripe keys.
-  function seedDemo(today = new Date()) {
-    reset();
-    q(`insert into org (id, name, billing_email, pledge_rate, basis, created_at)
-       values (1, 'Northgate Freight', 'ap@northgate.example', 0.01, 'card', ?)`).run(now());
-    const { lastInsertRowid: connId } = q(`insert into connection (kind, label, secret, hint, synced_at, created_at)
-      values ('demo', 'Business Visa ending 4821', ?, 'Read-only', ?, ?)`).run(seal(key, "demo"), now(), now());
-    const txns = buildCustomUser(today).override_accounts[0].transactions;
-    storeCardTxns(Number(connId), txns.map((t, i) => ({
-      transaction_id: `demo-${i}`, date: t.date_posted, name: t.description, amount: t.amount, merchant_name: null,
-    })), []);
-
-    const lastMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
-    for (let back = 3; back >= 2; back--) {
-      const first = new Date(Date.UTC(lastMonth.getUTCFullYear(), lastMonth.getUTCMonth() - (back - 1), 1));
-      const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0));
-      const start = first.toISOString().slice(0, 10);
-      const end = last.toISOString().slice(0, 10);
-      const basis = spend(start, end).cardCents;
-      const issued = new Date(last.getTime() + 2 * 86400000).toISOString();
-      q(`insert into invoice (number, period_start, period_end, basis, basis_cents, rate, amount_cents, charity, status, created_at)
-         values (?, ?, ?, 'card', ?, 0.01, ?, ?, 'paid', ?)`)
-        .run(nextInvoiceNumber(end), start, end, basis, pledgeCents(basis, 0.01), config.charity.name, issued);
-    }
   }
 
   // ---- Spend and pledges --------------------------------------------------
@@ -363,13 +334,14 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
       .map((r) => ({ ...r, company: o?.name || "" }));
     const others = config.communitySample ? sampleGifts() : [];
     const entries = [...own, ...others]
-      .sort((a, b) => b.period_end.localeCompare(a.period_end) || b.amount_cents - a.amount_cents)
+      // Newest gift first, so a gift made during a demo lands at the top.
+      .sort((a, b) => b.period_end.localeCompare(a.period_end) || b.created_at.localeCompare(a.created_at) || b.amount_cents - a.amount_cents)
       .slice(0, 12);
     return { charity: config.charity, community: community(), rotation: schedule(4), entries };
   }
 
   return {
     org, saveOrg, setPledge, linkToken, connectPlaid, connectSandboxCard, connectProvider,
-    refresh, removeConnection, reset, seedDemo, importStatement, sampleStatementCsv, invoiceDocument, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
+    refresh, removeConnection, reset, importStatement, sampleStatementCsv, invoiceDocument, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
   };
 }

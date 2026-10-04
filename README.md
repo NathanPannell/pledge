@@ -1,46 +1,37 @@
 # Tributary
 
-Aid budgets are shrinking. AI budgets aren't. Tributary connects to a company's business
-card and AI provider accounts, measures what it spends on AI, and invoices a pledge the
-company sets on a dial (0.25% to 5%). Pledges go to a charity partner and appear on a
-public ledger. Built for UN SDG 17 (Partnerships for the Goals) at StormHacks 2026.
+Aid budgets are shrinking. AI budgets aren't. Tributary finds what a company spends on AI,
+lets it choose a share (most give 1%), and turns that into one gift a month for a charity,
+with every gift on a public record. Built for UN SDG 17 (Partnerships for the Goals) at
+StormHacks 2026.
 
-## Getting AI spend, least access first
+The scale argument: the world will spend $2.67 trillion on AI in 2026 (Gartner, September
+2026). One percent is $26.7 billion, about 15% of all foreign aid given in 2025, the year
+aid fell a record 23.1% to $174.3 billion (OECD, April 2026).
 
-1. **Card statement upload (default).** Export a CSV from any bank or card portal. The
-   browser parses it and matches AI vendors locally (`web/assets/statement.js`, patterns
-   from `GET /api/vendors`). Only matching rows (date, description, amount) are sent;
-   the server re-checks each row and drops anything that isn't an AI charge. No account
-   access at all, works with any card today.
-2. **Plaid, read-only.** Transactions product only: no payments, no card numbers.
-   Needs Plaid production approval before real customers can use it.
-3. **Provider cost reports (optional).** Anthropic and OpenAI require organization
-   admin keys, so this is tucked under "Optional" in the UI.
+## The product in three steps
+
+1. **Find.** Drop in a card statement (CSV from any bank or card portal). The browser reads
+   it and matches AI vendors locally (`web/assets/statement.js`, patterns from
+   `GET /api/vendors`). Only AI rows (date, description, amount) are sent, and the server
+   re-checks each one and drops anything else. Plaid (read-only) and provider cost
+   reports (admin keys) are optional extra sources.
+2. **Choose.** A dial from 0.25% to 5%, showing the gift per month and per year.
+3. **Give.** One invoice a month, paid straight to that month's charity. The charity
+   issues the tax receipt.
 
 AI charges are matched by merchant descriptor, not merchant category code. MCCs like 5734,
-7372 and 5818 cover all software and digital goods, so they can't tell AI apart from other
-SaaS.
+7372 and 5818 cover all software and digital goods, so they can't tell AI from other SaaS.
 
-## Gifts, invoices and receipts
+## Charities, invoices and receipts
 
-- Each month's gift goes to one charity from a rotation (`server/src/charities.js`):
+- Each month's gifts go to one charity from a rotation (`server/src/charities.js`):
   October is the StormHacks 2026 cause (VGH & UBC Hospital Foundation), then charities
   whose work matches SDG 17 targets. The rotation is a proposal; each charity must agree.
-- `web/invoice.html?id=N` is the gift invoice draft: payable to the charity, no
-  Tributary fee, no GST/HST, and the next three charities in the rotation.
-- `web/receipt.html?id=N` is a sample official donation receipt with every field the
-  CRA requires. It is watermarked as a sample; the charity issues the real one.
-
-## How it works
-
-1. **Business card through Plaid.** Transactions are read, and AI charges are picked out
-   by vendor (Anthropic, OpenAI, Cursor, Copilot and 12 more).
-2. **Provider cost reports.** Optional Anthropic and OpenAI admin keys add usage-level
-   daily costs. Keys are encrypted at rest and only used for the cost endpoints.
-3. **The dial.** The pledge is calculated on card charges, provider usage, or the larger
-   of the two. Never the sum, because the card usually pays the provider.
-4. **One invoice.** Issued through Stripe Invoicing when a key is set (test mode for the
-   demo), otherwise recorded locally. Every invoice appears on the public ledger.
+- `web/invoice.html?id=N`: gift invoice draft. Payable to the charity, no Tributary fee,
+  no GST/HST, and the next three charities in the rotation.
+- `web/receipt.html?id=N`: sample official donation receipt with every field the CRA
+  requires, watermarked as a sample. The charity issues the real one.
 
 ## Setup
 
@@ -50,16 +41,11 @@ Requires Node 22.13 or later. No npm dependencies.
 cp server/.env.example server/.env
 ```
 
-Fill in `server/.env`:
-
 | Variable | Where to get it | Needed for |
 |---|---|---|
 | `PLAID_CLIENT_ID`, `PLAID_SECRET` | dashboard.plaid.com, Developers > Keys (sandbox) | Connecting a card |
 | `STRIPE_SECRET_KEY` | dashboard.stripe.com, test mode API keys (`sk_test_...`) | Sending invoices through Stripe |
-| `CHARITY_NAME`, `CHARITY_DESCRIPTION` | Your charity partner | Invoices, ledger, landing page |
-
-Anthropic and OpenAI admin keys are pasted in the dashboard, not in `.env`. Anthropic
-admin keys need a Console organization; individual accounts can't create them.
+| `COMMUNITY_SAMPLE` | `on` or `off` | Sample giving from 45 other companies |
 
 ## Run
 
@@ -67,29 +53,30 @@ admin keys need a Console organization; individual accounts can't create them.
 npm --prefix server start
 ```
 
-- http://localhost:5173/ landing page and public ledger
-- http://localhost:5173/app.html dashboard
+- http://localhost:5173/ landing page
+- http://localhost:5173/app.html giving flow and company home
 
-With Plaid sandbox keys, **Use demo card** connects a business card with four months of
-realistic charges (AI vendors plus ordinary expenses) without going through Plaid Link.
-**Connect card** opens real Plaid Link. Print the demo card's config for Plaid's Sandbox
-Studio with `npm --prefix server run sandbox-config`.
-
-To reset everything, click **Start over** at the bottom of the giving page (it asks once
-more), or stop the server and delete `server/data/`.
+To reset, click **Start over** at the bottom of the company home (it asks once more), or
+stop the server and delete `server/data/`.
 
 ## Demo script (about 2 minutes, no keys needed)
 
-1. Landing page: the message, the StormHacks goal, where gifts go, the gift record.
-2. **Start giving**, then **Try with a demo company**. Northgate Freight appears with
-   $313.70 already given (July and August) and September's gift ready.
-3. **Give $188.22.** The thank-you shows the new total.
-4. Drag the dial: "the impact you can make" per month, per year, and if ten companies
-   like yours joined.
-5. Back to the landing page: the goal bar and the gift record include the new gift.
+Open the landing page and the giving page side by side in the same browser.
 
-With Plaid and Stripe keys set, **Connect a card** and **Add Anthropic key** use the real
-services, and gifts become Stripe test-mode invoices.
+1. **Landing hero.** The live "pledged so far this month" counter ticks and recent gifts
+   pass over the photo. Scroll to **The scale**: it walks from one team ($188 a month) to
+   Tributary today ($24,500 a month) to every company ($26.7 billion a year).
+2. **Giving page, Find.** Click **Try a sample company**. Watch the statement scan: each
+   transaction streams past, AI charges light up, and the AI spend total climbs.
+3. **Choose.** "Northgate Freight spent $18,822 on AI in September, up 29% since July."
+   Drag the dial, then set it back to 1%.
+4. **Give $188.22 for September.** The thank-you counts the gift up, then the community
+   grows from 45 to 46 companies. The landing page next to it updates at the same moment:
+   new totals, and Northgate Freight at the top of the record.
+5. **Home.** Next gift on November 1 goes to Engineers Without Borders Canada (SDG 17.8).
+   Open the invoice; mark the gift received to show the tax receipt.
+
+Click **Start over** before each take.
 
 ## Tests
 
@@ -97,10 +84,3 @@ services, and gifts become Stripe test-mode invoices.
 npm --prefix server test
 npm --prefix web test
 ```
-
-## Other folders
-
-- `web/settings/usage.html`, `web/console/billing.html`: unbranded provider checkout
-  mockups with a native round-up step, from an earlier direction ("future: a checkbox in
-  every AI checkout").
-- `proxy/`: metering proxy from an earlier direction. Not used.
