@@ -51,8 +51,9 @@ button:focus-visible,input:focus-visible{outline:3px solid rgba(25,72,106,.35);o
 .bar i{position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:999px;background:linear-gradient(90deg,#1fa392,#0e7f72);transition:width 1s ${OUT}}
 .bar.full i::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);animation:sheen 1.6s .8s ease-in-out infinite}
 @keyframes sheen{to{transform:translateX(100%)}}
-.check{width:48px;height:48px;border-radius:50%;background:#0e7f72;display:grid;place-items:center;animation:pop .55s ${SPRING} backwards}
-.check svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;animation:draw .5s .25s ${OUT} backwards}
+.bank{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.pig{display:inline-flex}
+.pig.hero{justify-self:start;padding-top:12px}
 details{font-size:12.5px;color:#555b62;border-top:1px solid #e4e1db;padding-top:2px}
 summary{cursor:pointer;padding:8px 0;min-height:36px;list-style:none;display:flex;justify-content:space-between;color:#19486a;font-weight:650}
 summary::-webkit-details-marker{display:none}
@@ -104,6 +105,15 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
     requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.setProperty('--p',String(Math.min(1,to/GOAL)))));
     bar.classList.toggle('full',to>=GOAL);
   }
+  // The piggy bank that holds your round-ups (piggy.js), in the panel's .pig slot.
+  function piggy(size){const p=PledgePiggy.create(size);panel().querySelector('.pig').append(p.el);return p;}
+  // Coins drop in, then the total and bar catch up, if the panel still shows this phase.
+  function deposit(pig,at,before,after,amount){
+    const live=()=>phase===at&&host;
+    setTimeout(async()=>{if(!live())return;await pig.add(after/GOAL,3);if(!live())return;
+      tween(amount,before,after,900);fill(panel().querySelector('.bar'),before,after);
+      setTimeout(()=>{if(live())burst(pig.el);},700);},350);
+  }
   // Hearts and dots thrown out from an element inside the panel.
   function burst(from){
     if(reduce)return;const p0=panel(),box=from.getBoundingClientRect(),base=p0.getBoundingClientRect();
@@ -136,34 +146,36 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
     panel().querySelector('.yes').onclick=async()=>{
       const b=panel().querySelector('.yes');b.disabled=true;try{
         const r=await send({action:'pledge',quoteId:q.id});
-        if(r.ready)ready(r.pending_cents);
+        if(r.ready)ready(r.pending_cents,q.gift_cents);
         else saved(q.gift_cents,r.pending_cents);
       }catch(e){b.disabled=false;error(e);}
     };
   }
   function saved(gift,pending){
-    phase='saved';
-    shell(`<span class="check"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6 12.5l4 4L18 8"/></svg></span>
+    phase='saved';const before=pending-gift;
+    shell(`<span class="pig hero"></span>
       <h2>A little good, saved.</h2>
       <p><strong>+${money(gift)}</strong> added. Nothing taken yet.</p>
-      <div class="jar"><span>Round-ups</span><span><strong>${money(pending)}</strong> of ${money(GOAL)}</span></div>
+      <div class="jar"><span>Round-ups</span><span><strong class="jar-amt">${money(before)}</strong> of ${money(GOAL)}</span></div>
       <div class="bar"><i></i></div>
       <button class="yes">Done</button>`);
-    fill(panel().querySelector('.bar'),pending-gift,pending);
-    setTimeout(()=>{if(phase==='saved'&&host)burst(panel().querySelector('.check'));},250);
+    fill(panel().querySelector('.bar'),before,before);
+    deposit(piggy(84).fill(before/GOAL,0),'saved',before,pending,panel().querySelector('.jar-amt'));
     panel().querySelector('.yes').onclick=close;
   }
-  function ready(total){
-    phase='ready';
+  // Ready to give; when a round-up just took it to C$5, its coins drop in first.
+  function ready(total,gift=0){
+    phase='ready';const before=total-gift;
     shell(`<span class="eyebrow">Ready to give</span>
       <h2>Your spare change is ready.</h2>
-      <div class="now">${money(total)}</div>
+      <div class="bank"><div class="now">${money(before)}</div><span class="pig"></span></div>
       <div class="bar"><i></i></div>
       <p class="small">Stripe opens next. Confirm there.<br>Sandbox only · no real donation.</p>
       <button class="yes breathe">Yes, continue to Stripe</button>
       <button class="no">Later</button>`);
-    tween(panel().querySelector('.now'),0,total,900,200);
-    fill(panel().querySelector('.bar'),0,total);
+    const pig=piggy(76),now=panel().querySelector('.now');
+    if(gift){pig.fill(before/GOAL,0);fill(panel().querySelector('.bar'),before,before);deposit(pig,'ready',before,total,now);}
+    else{pig.fill(total/GOAL,1100);tween(now,0,total,900,200);fill(panel().querySelector('.bar'),0,total);}
     panel().querySelector('.no').onclick=close;
     panel().querySelector('.yes').onclick=async()=>{const b=panel().querySelector('.yes');b.disabled=true;try{await send({action:'checkout'});close();}catch(e){b.disabled=false;error(e);}};
   }

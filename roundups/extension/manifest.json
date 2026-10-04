@@ -43,6 +43,7 @@
       ],
       "js": [
         "detector.js",
+        "piggy.js",
         "content.js"
       ],
       "run_at": "document_idle"

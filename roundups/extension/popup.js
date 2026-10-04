@@ -45,6 +45,13 @@ function fill(bar, from, to) {
   bar.classList.toggle('full', to >= GOAL);
 }
 
+// The piggy bank that holds your round-ups, put in the view's .pig slot.
+function piggy(v, size) {
+  const p = PledgePiggy.create(size);
+  v.querySelector('.pig').append(p.el);
+  return p;
+}
+
 // Hearts and dots thrown out from an element when a round-up is saved.
 function burst(from) {
   if (reduce) return;
@@ -78,8 +85,7 @@ async function connected() {
   const s = await send({ action: 'state' });
   const ready = s.pending_cents >= GOAL;
   const v = view(`
-    <span class="eyebrow">Your round-ups</span>
-    <div class="big" id="pending">C$0.00</div>
+    <div class="bank"><div><span class="eyebrow">Your round-ups</span><div class="big" id="pending">C$0.00</div></div><span class="pig"></span></div>
     <div class="bar"><i></i></div>
     <p class="note">${ready ? '<strong>Ready to give.</strong> Confirm one payment in Stripe.' : `${money(GOAL - s.pending_cents)} to go. Nothing charged yet.`}</p>
     ${ready ? '<button id="pay" class="primary breathe">Continue to Stripe</button>' : ''}
@@ -95,6 +101,7 @@ async function connected() {
     <p class="foot">Works at OpenRouter credit checkout.<br>Sandbox prototype · no real donations.</p>`);
   tween(v.querySelector('#pending'), 0, s.pending_cents, 900, 150);
   fill(v.querySelector('.bar'), 0, s.pending_cents);
+  piggy(v, 76).fill(s.pending_cents / GOAL, 1100);
   v.querySelector('#open').onclick = () => send({ action: 'open' }).catch(showError);
   v.querySelector('#disconnect').onclick = async () => {
     try { await send({ action: 'disconnect' }); setup(); } catch (e) { showError(e); }
@@ -152,16 +159,25 @@ function offer(q) {
   };
 }
 
-// A moment to see the round-up land before the totals come back.
+// A moment to see the round-up land before the totals come back: coins drop
+// into the piggy bank, then the total and the bar catch up.
 async function saved(gift, pending) {
+  const before = pending - gift;
   const v = view(`
-    <span class="check"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6 12.5l4 4L18 8"/></svg></span>
+    <span class="pig hero"></span>
     <h1>A little good, saved.</h1>
     <p><strong>+${money(gift)}</strong> added. Nothing taken yet.</p>
+    <div class="jar"><span>Round-ups</span><span><strong id="jar">${money(before)}</strong> of ${money(GOAL)}</span></div>
     <div class="bar"><i></i></div>`);
-  fill(v.querySelector('.bar'), pending - gift, pending);
-  setTimeout(() => burst(v.querySelector('.check')), 250);
-  await wait(1700);
+  const pig = piggy(v, 96).fill(before / GOAL, 0);
+  const bar = v.querySelector('.bar');
+  fill(bar, before, before);
+  await wait(350);
+  await pig.add(pending / GOAL, 3);
+  tween(v.querySelector('#jar'), before, pending, 900);
+  fill(bar, before, pending);
+  setTimeout(() => burst(pig.el), 700);
+  await wait(1900);
 }
 
 // ---- Connect this browser once -------------------------------------------------------
