@@ -7,9 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/tributary.css">
+<link rel="icon" href="assets/pledge-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/pledge.css">
+<script src="assets/motion.js"></script>
 <style>
-  body { background: var(--surface); }
+  /* The page tilts slightly as it rises; never let that scroll sideways. */
+  body { background: var(--surface); overflow-x: clip; }
   .bar-top { max-width: 820px; margin: 24px auto 0; padding-inline: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .doc { position: relative; overflow: hidden; max-width: 820px; margin: 16px auto 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 44px; display: grid; gap: 26px; box-shadow: var(--shadow); }
   /* Unmistakable marking: this is a design draft, not a receipt anyone can claim. */
@@ -32,6 +35,11 @@
   .explain { max-width: 820px; margin: 0 auto 64px; padding-inline: 16px; display: grid; gap: 10px; color: var(--ink-2); font-size: 0.93rem; }
   .explain h3 { color: var(--ink); font-size: 1.05rem; }
   .explain ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  /* The receipt rises into place, then the sample mark is stamped across it. */
+  .motion .doc.in { animation: paper 0.9s var(--ease-out) backwards; }
+  @keyframes paper { from { opacity: 0; transform: translateY(40px) rotate(0.6deg); } }
+  .motion .doc.in::before { animation: stamp 0.6s 0.9s var(--ease-spring) backwards; }
+  @keyframes stamp { from { opacity: 0; transform: translate(-50%, -50%) rotate(-24deg) scale(1.7); } }
   @media (max-width: 720px) {
     .doc { padding: 22px; margin-inline: 12px; }
     .grid { grid-template-columns: 1fr; }
@@ -45,8 +53,8 @@
   <span class="pill err"><span class="dot"></span>Sample for design review</span>
 </div>
 
-<article class="doc">
-  <div class="banner">Sample layout only. Official receipts are issued by the charity, not by Tributary.</div>
+<article class="doc" data-reveal>
+  <div class="banner">Sample layout only. Official receipts are issued by the charity, not by Pledge.</div>
 
   <header class="head">
     <div style="display:grid;gap:4px;">
@@ -56,15 +64,15 @@
     </div>
     <div style="display:grid;gap:4px;text-align:right;">
       <span class="official">Official donation receipt<br>for income tax purposes</span>
-      <p>Receipt no. <b id="r-number">2026-TRB-202609-001</b></p>
+      <p>Receipt no. <b id="r-number">2026-PLG-202609-001</b></p>
     </div>
   </header>
 
-  <section class="grid">
+  <section class="grid" data-reveal-group style="--d:300ms">
     <div>
       <div class="row"><span>Donor</span><span id="r-donor">Northgate Freight</span></div>
       <div class="row"><span>Donor address</span><span>On file with the charity</span></div>
-      <div class="row"><span>Gift made through</span><span>Tributary, invoice <span id="r-invoice">TRB-202609-001</span></span></div>
+      <div class="row"><span>Gift made through</span><span>Pledge, invoice <span id="r-invoice">PLG-202609-001</span></span></div>
     </div>
     <div>
       <div class="row"><span>Date gift received</span><span id="r-received">Oct 6, 2026</span></div>
@@ -73,7 +81,7 @@
     </div>
   </section>
 
-  <section class="amounts">
+  <section class="amounts" data-reveal-group style="--d:500ms">
     <div class="row"><span>Amount of gift (cash)</span><span id="r-amount">$188.22</span></div>
     <div class="row"><span>Value of advantage received</span><span>$0.00</span></div>
     <div class="row eligible"><span>Eligible amount of gift for tax purposes</span><span id="r-eligible">$188.22</span></div>
@@ -85,9 +93,9 @@
   </div>
 </article>
 
-<section class="explain">
+<section class="explain" data-reveal style="--d:300ms">
   <h3>What this draft shows</h3>
-  <p>Every field the Canada Revenue Agency requires on an official cash donation receipt, laid out for a gift made through Tributary:</p>
+  <p>Every field the Canada Revenue Agency requires on an official cash donation receipt, laid out for a gift made through Pledge:</p>
   <ul>
     <li>Statement that it is an official receipt for income tax purposes</li>
     <li>Charity name and address as on file with the CRA, and its registration number</li>

@@ -3,13 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tributary Gift Invoice</title>
+<title>Pledge Gift Invoice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/tributary.css">
+<link rel="icon" href="assets/pledge-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/pledge.css">
+<script src="assets/motion.js"></script>
 <style>
-  body { background: var(--surface); }
+  /* The page tilts slightly as it rises; never let that scroll sideways. */
+  body { background: var(--surface); overflow-x: clip; }
   .bar-top { max-width: 860px; margin: 24px auto 0; padding-inline: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .doc { max-width: 860px; margin: 16px auto 64px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 48px; display: grid; gap: 32px; box-shadow: var(--shadow); }
   .doc-head { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
@@ -39,6 +42,13 @@
   .rot b { font-size: 0.98rem; }
   .rot .t { font-size: 0.82rem; color: #0b5e54; font-weight: 600; }
   .fine-print { font-size: 0.82rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
+  /* The page rises like a sheet of paper; the gift line is drawn in last. */
+  .motion .doc.in { animation: paper 0.9s var(--ease-out) backwards; }
+  @keyframes paper { from { opacity: 0; transform: translateY(40px) rotate(-0.6deg); } }
+  .motion .recipient { position: relative; overflow: hidden; }
+  .motion .doc.in .recipient::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%); transform: translateX(-100%); animation: sheen 1.4s 1.1s ease-in-out; }
+  @keyframes sheen { to { transform: translateX(100%); } }
+  .total-row td:last-child { color: #0b5e54; }
   @media (max-width: 720px) {
     .doc { padding: 24px; margin-inline: 12px; }
     .parties, .notes, .rot-list { grid-template-columns: 1fr; }
@@ -56,24 +66,24 @@
   <span class="pill">Draft document</span>
 </div>
 
-<article class="doc" id="doc">
+<article class="doc" id="doc" data-reveal>
   <header class="doc-head">
     <div style="display:grid;gap:12px;">
-      <span class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>Tributary</span>
+      <span class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M10 7.5v17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="13.5" r="6" fill="none" stroke="#fff" stroke-width="2.6"/><path class="mark-share" pathLength="1" d="M20.6 9.64A6 6 0 0 1 20.6 17.36" fill="none" stroke="#5fd6c4" stroke-width="2.8" stroke-linecap="round"/></svg>Pledge</span>
       <h1>Gift invoice</h1>
     </div>
     <dl class="meta">
-      <dt>Invoice</dt><dd id="i-number">TRB-202609-001</dd>
+      <dt>Invoice</dt><dd id="i-number">PLG-202609-001</dd>
       <dt>Issued</dt><dd id="i-issued">Oct 1, 2026</dd>
       <dt>Due</dt><dd id="i-due">Oct 31, 2026</dd>
       <dt>Period</dt><dd id="i-period">Sep 1 – 30, 2026</dd>
     </dl>
   </header>
 
-  <section class="parties">
+  <section class="parties" data-reveal-group style="--d:250ms">
     <div class="party">
       <h4>From</h4>
-      <p><b>Tributary</b><br>Burnaby, BC<br>On behalf of the recipient below</p>
+      <p><b>Pledge</b><br>Burnaby, BC<br>On behalf of the recipient below</p>
     </div>
     <div class="party">
       <h4>Bill to</h4>
@@ -88,14 +98,14 @@
 
   <table class="lines">
     <thead><tr><th>Description</th><th class="r">Amount (USD)</th></tr></thead>
-    <tbody>
+    <tbody data-reveal-group style="--d:450ms">
       <tr>
         <td>Monthly gift: <span id="i-rate">1%</span> of AI spend
           <span class="sub" id="i-basis-line">AI charges on company card, Sep 1 – 30, 2026: $18,822.00</span></td>
         <td class="r num" id="i-amount-1">$188.22</td>
       </tr>
       <tr>
-        <td>Tributary fee<span class="sub">No fee during the pilot. 100% of this invoice goes to the recipient.</span></td>
+        <td>Pledge fee<span class="sub">No fee during the pilot. 100% of this invoice goes to the recipient.</span></td>
         <td class="r num">$0.00</td>
       </tr>
       <tr>
@@ -112,7 +122,7 @@
       <ul>
         <li>Bank transfer (EFT) to the recipient&rsquo;s account. Details are printed on the final invoice.</li>
         <li>Or pay online through the secure link in the invoice email.</li>
-        <li>Payment goes straight to the charity. Tributary never holds the money.</li>
+        <li>Payment goes straight to the charity. Pledge never holds the money.</li>
       </ul>
     </div>
     <div class="note">
@@ -124,12 +134,12 @@
   <section class="rotation">
     <div>
       <h4>Where your next gifts go</h4>
-      <p class="muted small">Tributary rotates monthly gifts among Canadian charities whose work advances UN Sustainable Development Goal 17, Partnerships for the Goals.</p>
+      <p class="muted small">Pledge rotates monthly gifts among Canadian charities whose work advances UN Sustainable Development Goal 17, Partnerships for the Goals.</p>
     </div>
-    <div class="rot-list" id="i-rotation"></div>
+    <div class="rot-list" id="i-rotation" data-reveal-group></div>
   </section>
 
-  <p class="fine-print">Draft prepared at StormHacks 2026. The charity rotation is a proposal; each charity must agree before it receives gifts through Tributary.</p>
+  <p class="fine-print">Draft prepared at StormHacks 2026. The charity rotation is a proposal; each charity must agree before it receives gifts through Pledge.</p>
 </article>
 
 <script>
@@ -163,7 +173,9 @@
     const source = i.basis === "provider" ? "AI usage from provider cost reports" : "AI charges on company card";
     $("i-basis-line").textContent = `${source}, ${day(i.period_start + "T00:00:00Z")} – ${day(i.period_end + "T00:00:00Z")}: ${money(i.basis_cents)}`;
     $("i-amount-1").textContent = money(i.amount_cents);
-    $("i-total").textContent = money(i.amount_cents);
+    // The total rolls up once the line items have arrived.
+    Motion.set($("i-total"), 0, money);
+    setTimeout(() => Motion.tween($("i-total"), 0, i.amount_cents, 1200, money), 900);
     $("i-rotation").innerHTML = upcoming.map((c) => `
       <div class="rot"><span class="m">${esc(monthName(c.month))}</span><b>${esc(c.name)}</b><span class="t">${esc(c.target)}</span></div>`).join("");
   }

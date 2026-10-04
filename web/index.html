@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tributary</title>
-<meta name="description" content="Tributary turns a share of your company's AI spend into one monthly gift to charity. Every dollar on the record.">
+<title>Pledge</title>
+<meta name="description" content="Pledge turns a share of your company's AI spend into one monthly gift to charity. Every dollar on the record.">
+<link rel="icon" href="assets/pledge-mark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/tributary.css">
+<link rel="stylesheet" href="assets/pledge.css">
+<script src="assets/motion.js"></script>
 <style>
   /* ---- Hero: the message beside a photo of care, with live giving on it ---- */
   .hero { padding-block: 56px 72px; }
@@ -16,77 +18,127 @@
   .hero-copy { display: grid; gap: 22px; min-width: 0; }
   .for-pill { display: inline-flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; padding: 6px 14px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-weight: 600; font-size: 0.9rem; }
   .for-pill svg { width: 16px; height: 16px; flex: none; }
+  .motion .for-pill svg { animation: beat 2.8s ease-in-out 1.4s infinite; }
+  @keyframes beat { 0%, 30%, 100% { transform: scale(1); } 8% { transform: scale(1.25); } 16% { transform: scale(1.05); } 22% { transform: scale(1.18); } }
   .hero h1 { font-size: clamp(2.3rem, 4.6vw, 3.5rem); }
+  /* A hand-drawn teal line under the outcome, drawn once the headline lands. */
+  .ink { position: relative; white-space: nowrap; }
+  .ink svg { position: absolute; left: -2%; bottom: -0.16em; width: 104%; height: 0.34em; overflow: visible; }
+  .ink path { fill: none; stroke: #1fa392; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .motion .ink path { animation: draw 1.1s 1s var(--ease-out) backwards; }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
   .hero-photo { position: relative; min-width: 0; padding-bottom: 56px; }
   .hero-photo figure { margin: 0; aspect-ratio: 5 / 4; border-radius: 24px; overflow: hidden; background: var(--surface-2); max-width: 100%; }
   .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .motion .hero-photo figure.in img { animation: settle 2.4s var(--ease-out) backwards; }
+  @keyframes settle { from { transform: scale(1.12); } }
   .live-card { position: absolute; left: -28px; right: 40px; bottom: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 22px; display: grid; gap: 12px; box-shadow: var(--shadow-lg); }
   .live-label { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 650; color: var(--ink-2); }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1fa392; box-shadow: 0 0 0 0 rgba(31, 163, 146, 0.6); animation: live 1.6s infinite; }
   @keyframes live { 70% { box-shadow: 0 0 0 8px rgba(31, 163, 146, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 163, 146, 0); } }
-  .live-big { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; }
-  .live-big.bump { animation: bump 0.6s ease-out; }
-  @keyframes bump { 35% { transform: scale(1.06); color: #12a08f; } }
+  .live-row { position: relative; }
+  .live-big { display: inline-block; font-size: 2.3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; transform-origin: left center; }
+  .live-big.bump { animation: bump 1s var(--ease-out); }
+  @keyframes bump { 20% { transform: scale(1.06); color: #12a08f; } 80% { color: #12a08f; } }
   .mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 0.84rem; color: var(--ink-2); }
   .mini b { display: block; font-size: 1.12rem; font-weight: 750; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .gift-toast { position: absolute; top: 18px; left: 18px; max-width: calc(100% - 36px); display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: var(--shadow); font-size: 0.9rem; color: var(--ink-2); opacity: 0; transform: translateY(-6px); transition: opacity 0.35s, transform 0.35s; }
+  .gift-toast { position: absolute; top: 18px; left: 18px; max-width: calc(100% - 36px); display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: var(--shadow); font-size: 0.9rem; color: var(--ink-2); opacity: 0; transform: translateY(-10px) scale(0.96); transition: opacity 0.4s, transform 0.5s var(--ease-spring); }
   .gift-toast.show { opacity: 1; transform: none; }
   .gift-toast.fresh { background: #0b5e54; color: #fff; }
   .gift-toast.fresh b { color: #fff; }
   .gift-toast b { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .gift-toast svg { width: 16px; height: 16px; flex: none; color: #12a08f; }
+  .gift-toast.fresh svg { color: #9fe3d8; }
+  .motion .gift-toast.show svg { animation: heart-pop 0.7s 0.15s var(--ease-spring) backwards; }
+  @keyframes heart-pop { from { transform: scale(0); } }
 
+  /* Cards that slide in from the side must not scroll the page sideways. */
+  main { overflow-x: clip; }
   section.block { padding-block: 96px; }
   section.tint { background: var(--surface); }
   .block-head { display: grid; gap: 14px; max-width: 720px; margin-bottom: 40px; }
   sup a { color: var(--ink-3); text-decoration: none; font-size: 0.75em; }
 
-  /* ---- Scale: one team, Tributary today, every company ---- */
-  .scale-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); margin-bottom: 20px; flex-wrap: wrap; }
-  .scale-tabs button { border: 0; background: transparent; padding: 9px 16px; border-radius: 9px; font-weight: 650; color: var(--ink-2); cursor: pointer; }
-  .scale-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(15, 34, 53, 0.12); }
-  .scale-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; padding: 40px; border-radius: var(--r-lg); background: var(--brand); color: #fff; min-height: 320px; }
+  /* ---- Scale: one team, companies on Pledge, every company ---- */
+  .scale-tabs { position: relative; display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); margin-bottom: 20px; flex-wrap: wrap; max-width: 100%; }
+  .scale-tabs button { position: relative; z-index: 1; border: 0; background: transparent; padding: 9px 16px; border-radius: 9px; font-weight: 650; color: var(--ink-2); cursor: pointer; transition: color 0.3s; }
+  .scale-tabs button[aria-selected="true"] { color: var(--ink); }
+  .scale-tabs:not(.has-ind) button[aria-selected="true"] { background: #fff; box-shadow: 0 1px 3px rgba(15, 34, 53, 0.12); }
+  /* The white pill slides to the chosen step; its teal line fills while the steps play. */
+  .tab-ind { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 0; border-radius: 9px; background: #fff; box-shadow: 0 1px 3px rgba(15, 34, 53, 0.12); overflow: hidden; }
+  .scale-tabs.ready .tab-ind { transition: transform 0.55s var(--ease-spring), width 0.55s var(--ease-spring), height 0.3s; }
+  .tab-ind i { position: absolute; left: 10px; right: 10px; bottom: 3px; height: 3px; border-radius: 3px; background: var(--flow); transform: scaleX(0); transform-origin: left; opacity: 0; }
+  .scale-tabs.playing .tab-ind i { opacity: 1; animation: progress var(--dwell, 7200ms) linear forwards; }
+  @keyframes progress { to { transform: scaleX(1); } }
+  .scale-panel { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; padding: 40px; border-radius: var(--r-lg); background: var(--brand); color: #fff; min-height: 340px; }
+  .scale-panel > div:not(.scale-glow) { position: relative; z-index: 1; display: grid; }
+  /* A soft light that drifts across the panel as the scale grows. */
+  .scale-glow { position: absolute; z-index: 0; top: 50%; left: 0; width: 560px; height: 560px; margin-top: -280px; border-radius: 50%; background: radial-gradient(circle, rgba(95, 214, 196, 0.26), rgba(95, 214, 196, 0) 65%); transform: translateX(var(--gx, 60%)); transition: transform 1.6s var(--ease-out); pointer-events: none; }
+  .scale-panel[data-level="team"] { --gx: -45%; }
+  .scale-panel[data-level="today"] { --gx: 20%; }
+  .scale-panel[data-level="world"] { --gx: 85%; }
   .scale-k { color: #9fe3d8; font-weight: 650; font-size: 0.95rem; }
   .scale-big { font-size: clamp(3rem, 7vw, 5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
   .scale-unit { font-size: 1.2rem; color: #c9dbe8; font-weight: 600; }
   .scale-text { color: #dbe7f0; font-size: 1.1rem; line-height: 1.6; }
   .scale-text sup a { color: #9fe3d8; }
+  /* Between steps the old figures blur away and the new ones rise in. */
+  .scale-panel .sw { transition: opacity 0.26s ease, transform 0.26s ease, filter 0.26s ease; }
+  .scale-panel.leaving .sw { opacity: 0; transform: translateY(-14px); filter: blur(6px); }
+  .scale-panel.entering .sw { animation: swap-in 0.65s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+  @keyframes swap-in { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } }
   .compare { display: grid; gap: 18px; }
   .cmp { display: grid; gap: 8px; }
   .cmp .label { display: flex; justify-content: space-between; gap: 12px; font-size: 0.95rem; color: #dbe7f0; }
   .cmp .label b { color: #fff; font-variant-numeric: tabular-nums; }
   .cmp .track { height: 18px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
-  .cmp .track i { display: block; height: 100%; border-radius: 6px; background: #c9dbe8; transition: width 0.9s cubic-bezier(.2,.8,.2,1); }
-  .cmp.hl .track i { background: #5fd6c4; }
+  .cmp .track i { display: block; height: 100%; border-radius: 6px; background: #c9dbe8; transition: width 1s var(--ease-out); }
+  .cmp.hl .track i { background: #5fd6c4; transition-delay: 0.18s; }
 
   /* ---- How it works ---- */
   .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; list-style: none; margin: 0; padding: 0; }
-  .step { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; display: grid; gap: 12px; align-content: start; }
+  .step { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; display: grid; gap: 12px; align-content: start; transition: transform 0.35s var(--ease-out), box-shadow 0.35s; }
+  .step:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
   .step .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); }
   .step:last-child .ic { background: var(--flow-soft); color: var(--flow); }
-  .step .ic svg { width: 24px; height: 24px; }
+  .step .ic svg { width: 24px; height: 24px; overflow: visible; }
+  .step .ic svg * { transform-box: view-box; }
+  /* Each icon acts out its step once the card arrives, and again on hover. */
+  .motion .steps.in .lens, .motion .step:hover .lens { animation: search 1.3s var(--ease-out) 0.5s; }
+  .motion .steps.in .needle, .motion .step:hover .needle { animation: needle 1.2s var(--ease-spring) 0.6s backwards; }
+  .motion .steps.in .give-heart, .motion .step:hover .give-heart { animation: beat-once 1.1s ease-in-out 0.8s; }
+  .lens { transform-origin: 11px 11px; }
+  .needle { transform-origin: 12px 12px; }
+  .give-heart { transform-origin: 12px 13px; }
+  @keyframes search { 25% { transform: translate(-2.5px, 1.5px); } 50% { transform: translate(1.5px, -2.5px); } 75% { transform: translate(2.5px, 1.5px); } }
+  @keyframes needle { from { transform: rotate(-150deg); } }
+  @keyframes beat-once { 15% { transform: scale(1.28); } 30% { transform: scale(1); } 45% { transform: scale(1.18); } 60% { transform: scale(1); } }
   .step .k { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
   .step p { color: var(--ink-2); }
 
   /* ---- Charities ---- */
   .charities { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 20px; align-items: stretch; }
   .feature { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: #fff; }
-  .feature figure { margin: 0; aspect-ratio: 16 / 8; background: var(--surface-2); max-width: 100%; }
-  .feature img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .feature figure { margin: 0; aspect-ratio: 16 / 8; background: var(--surface-2); max-width: 100%; overflow: hidden; }
+  .feature img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s var(--ease-out); }
+  .feature:hover img { transform: scale(1.04); }
   .feature .body { padding: 24px; display: grid; gap: 8px; align-content: start; }
-  .feature .now { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--flow); }
+  .feature .now { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--flow); }
+  .feature .now::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1fa392; animation: live 1.6s infinite; }
   .tgt { display: inline-block; width: fit-content; padding: 3px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-size: 0.8rem; font-weight: 650; }
   .upcoming { display: grid; gap: 12px; align-content: start; }
-  .up { border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 6px; background: #fff; }
+  .up { border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 6px; background: #fff; transition: transform 0.35s var(--ease-out), border-color 0.35s; }
+  .up:hover { transform: translateX(-4px); border-color: var(--line-strong); }
   .up .m { font-size: 0.8rem; font-weight: 650; color: var(--ink-3); }
   .up p { color: var(--ink-2); font-size: 0.92rem; }
 
   /* ---- Gift record ---- */
   .gifts { display: grid; gap: 10px; }
-  .gift { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); }
-  .gift.new { animation: arrive 1.8s ease-out; }
-  @keyframes arrive { from { background: var(--flow-soft); transform: translateY(-6px); } to { background: #fff; transform: none; } }
+  .gift { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); transition: transform 0.3s var(--ease-out), box-shadow 0.3s; }
+  .gift:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .gift.new { animation: arrive 2s var(--ease-out); }
+  @keyframes arrive { 0% { background: var(--flow-soft); transform: translateY(-14px) scale(0.98); opacity: 0; } 20% { opacity: 1; transform: none; } 60% { background: var(--flow-soft); } 100% { background: #fff; } }
+  .gift.new .mark { animation: heart-pop 0.7s 0.25s var(--ease-spring) backwards; }
   .gift .mark { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); }
   .gift .mark svg { width: 20px; height: 20px; }
   .gift .who { font-weight: 650; }
@@ -94,22 +146,25 @@
   .gift .amt { text-align: right; display: grid; gap: 4px; justify-items: end; }
   .gift .amt b { font-size: 1.2rem; font-weight: 760; font-variant-numeric: tabular-nums; }
 
-  .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .faq details { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; background: #fff; }
+  .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .faq details { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; background: #fff; transition: border-color 0.3s, box-shadow 0.3s; }
+  .faq details[open] { border-color: var(--line-strong); box-shadow: var(--shadow); }
   .faq summary { cursor: pointer; font-weight: 650; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; color: var(--ink-3); font-size: 1.3rem; line-height: 1; }
-  .faq details[open] summary::after { content: "–"; }
-  .faq details p { margin-top: 10px; color: var(--ink-2); }
+  .faq summary::after { content: "+"; flex: none; color: var(--ink-3); font-size: 1.4rem; line-height: 1; transition: transform 0.35s var(--ease-spring), color 0.3s; }
+  .faq details[open] summary::after { transform: rotate(45deg); color: var(--flow); }
+  .faq details p { padding-top: 10px; color: var(--ink-2); }
 
   .closing { position: relative; color: #fff; overflow: hidden; background: #2b2f33; }
   .closing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .motion .closing img { transform: scale(1.12); transition: transform 3s var(--ease-out); }
+  .motion .closing.in img { transform: scale(1); }
   .closing::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(14, 18, 22, 0.8), rgba(14, 18, 22, 0.4)); }
   .closing .wrap { position: relative; z-index: 1; padding-block: 112px 96px; display: grid; gap: 18px; max-width: 760px; margin-inline: auto; text-align: center; justify-items: center; }
   .closing h2 { color: #fff; }
   .closing p { color: rgba(255, 255, 255, 0.86); font-size: 1.15rem; }
   .btn-light { background: #fff; color: var(--ink); }
-  .btn-light:hover { background: #f1f1f1; }
+  .btn-light:hover { background: #f1f1f1; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3); }
 
   .footer { padding-block: 32px 40px; }
   .footer .wrap { display: grid; gap: 18px; }
@@ -122,21 +177,22 @@
     .hero-inner { gap: 36px; }
     .live-card { left: 16px; right: 16px; }
     .steps { grid-template-columns: 1fr; max-width: 560px; }
+    .scale-glow { top: 30%; }
   }
   @media (max-width: 620px) {
     .hero { padding-block: 32px 48px; }
     .hero-photo { padding-bottom: 0; }
-    .live-card { position: static; margin-top: -40px; margin-inline: 12px; }
+    .live-card { position: relative; margin-top: -40px; margin-inline: 12px; left: auto; right: auto; }
     .mini { grid-template-columns: 1fr 1fr; }
     section.block { padding-block: 64px; }
     .scale-panel { padding: 24px; gap: 24px; min-height: 0; }
+    .scale-tabs button { padding: 8px 12px; font-size: 0.92rem; }
     .faq { grid-template-columns: 1fr; }
     .gift { grid-template-columns: 40px minmax(0, 1fr); }
     .gift .amt { grid-column: 2; justify-items: start; text-align: left; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .live-dot, .live-big.bump, .gift.new { animation: none; }
-    .gift-toast, .cmp .track i { transition: none; }
+    .live-dot, .feature .now::before { animation: none; }
   }
 </style>
 </head>
@@ -144,9 +200,9 @@
 
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="index.html" aria-label="Tributary home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
-      Tributary
+    <a class="brand" href="index.html" aria-label="Pledge home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M10 7.5v17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="13.5" r="6" fill="none" stroke="#fff" stroke-width="2.6"/><path class="mark-share" pathLength="1" d="M20.6 9.64A6 6 0 0 1 20.6 17.36" fill="none" stroke="#5fd6c4" stroke-width="2.8" stroke-linecap="round"/></svg>
+      Pledge
     </a>
     <nav class="nav-links" aria-label="Main">
       <a href="#scale">The scale</a>
@@ -161,20 +217,20 @@
   <section class="hero">
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <span class="for-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Raising for <span class="charity-now">VGH &amp; UBC Hospital Foundation</span></span>
-        <h1>Your team&rsquo;s AI spend can help someone get better care.</h1>
-        <p class="lede">Connect your company card and choose a share of your AI spend. Tributary turns it into one gift a month for the <span class="charity-now">VGH &amp; UBC Hospital Foundation</span>, with every dollar on the record.</p>
-        <div class="hero-cta">
+        <span class="for-pill" data-reveal><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Raising for <span class="charity-now">VGH &amp; UBC Hospital Foundation</span></span>
+        <h1 data-reveal style="--d:90ms">Your team&rsquo;s AI spend can help someone get <span class="ink">better care<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 8.5C48 3.5 128 2.8 197 6.8"/></svg></span>.</h1>
+        <p class="lede" data-reveal style="--d:200ms">Connect your company card and choose a share of your AI spend. Pledge turns it into one gift a month for the <span class="charity-now">VGH &amp; UBC Hospital Foundation</span>, with every dollar on the record.</p>
+        <div class="hero-cta" data-reveal style="--d:310ms">
           <a class="btn btn-primary btn-lg" href="app.html">See your AI spend</a>
           <a class="btn btn-secondary btn-lg" href="#how">How it works</a>
         </div>
       </div>
       <div class="hero-photo">
-        <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1400&q=80" alt="A smiling doctor talking with a patient in a clinic" fetchpriority="high"></figure>
+        <figure data-reveal="zoom" style="--d:120ms"><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1400&q=80" alt="A smiling doctor talking with a patient in a clinic" fetchpriority="high"></figure>
         <div class="gift-toast" id="gift-toast" aria-live="polite"></div>
-        <div class="live-card" aria-label="Giving right now">
+        <div class="live-card" aria-label="Giving right now" data-reveal style="--d:480ms">
           <span class="live-label"><span class="live-dot" aria-hidden="true"></span>Pledged so far this month</span>
-          <span class="live-big" id="h-live">$0.00</span>
+          <div class="live-row"><span class="live-big" id="h-live">$0.00</span></div>
           <div class="mini">
             <div><b id="h-monthly">$24,500</b>every month</div>
             <div><b id="h-companies">45</b>companies giving</div>
@@ -187,27 +243,31 @@
 
   <section class="block tint" id="scale">
     <div class="wrap">
-      <div class="block-head">
+      <div class="block-head" data-reveal>
         <span class="eyebrow">The scale</span>
         <h2>Aid budgets are shrinking. AI budgets aren&rsquo;t.</h2>
         <p class="lede">One percent sounds small. It depends on what it&rsquo;s one percent of.</p>
       </div>
-      <div class="scale-tabs" role="tablist" aria-label="Scale">
-        <button type="button" role="tab" id="tab-team" aria-controls="scale-panel" aria-selected="false" data-level="team">One team</button>
-        <button type="button" role="tab" id="tab-today" aria-controls="scale-panel" aria-selected="false" data-level="today">Tributary today</button>
-        <button type="button" role="tab" id="tab-world" aria-controls="scale-panel" aria-selected="true" data-level="world">Every company</button>
-      </div>
-      <div class="scale-panel" id="scale-panel" role="tabpanel" aria-live="polite">
-        <div style="display:grid;gap:10px;">
-          <span class="scale-k" id="scale-k">1% of the world&rsquo;s AI spend</span>
-          <span class="scale-big" id="scale-big">$26.7 billion</span>
-          <span class="scale-unit" id="scale-unit">a year</span>
+      <div data-reveal style="--d:120ms">
+        <div class="scale-tabs" role="tablist" aria-label="Scale">
+          <span class="tab-ind" aria-hidden="true"><i></i></span>
+          <button type="button" role="tab" id="tab-team" aria-controls="scale-panel" aria-selected="false" tabindex="-1" data-level="team">One team</button>
+          <button type="button" role="tab" id="tab-today" aria-controls="scale-panel" aria-selected="false" tabindex="-1" data-level="today">Companies on Pledge</button>
+          <button type="button" role="tab" id="tab-world" aria-controls="scale-panel" aria-selected="true" data-level="world">Every company</button>
         </div>
-        <div style="display:grid;gap:22px;">
-          <p class="scale-text" id="scale-text">The world will spend $2.67 trillion on AI in 2026.<sup><a href="#note-1">1</a></sup> One percent of that is about 15% of all foreign aid given in 2025, the year aid fell a record 23%.<sup><a href="#note-2">2</a></sup></p>
-          <div class="compare" id="scale-compare">
-            <div class="cmp"><div class="label"><span id="cmp-a-label">All foreign aid, 2025</span><b id="cmp-a-val">$174.3B</b></div><div class="track"><i id="cmp-a" style="width:100%"></i></div></div>
-            <div class="cmp hl"><div class="label"><span id="cmp-b-label">1% of AI spend, 2026</span><b id="cmp-b-val">$26.7B</b></div><div class="track"><i id="cmp-b" style="width:15.3%"></i></div></div>
+        <div class="scale-panel" id="scale-panel" role="tabpanel" aria-labelledby="tab-world" aria-live="off" data-level="world">
+          <div class="scale-glow" aria-hidden="true"></div>
+          <div style="gap:10px;">
+            <span class="scale-k sw" style="--i:0" id="scale-k">1% of the world&rsquo;s AI spend</span>
+            <span class="scale-big sw" style="--i:1" id="scale-big">$26.7 billion</span>
+            <span class="scale-unit sw" style="--i:2" id="scale-unit">a year</span>
+          </div>
+          <div style="gap:22px;">
+            <p class="scale-text sw" style="--i:3" id="scale-text">The world will spend $2.67 trillion on AI in 2026.<sup><a href="#note-1">1</a></sup> One percent of that is about 15% of all foreign aid given in 2025, the year aid fell a record 23%.<sup><a href="#note-2">2</a></sup></p>
+            <div class="compare sw" style="--i:4">
+              <div class="cmp"><div class="label"><span id="cmp-a-label">All foreign aid, 2025</span><b id="cmp-a-val">$174.3B</b></div><div class="track"><i id="cmp-a" style="width:100%"></i></div></div>
+              <div class="cmp hl"><div class="label"><span id="cmp-b-label">1% of AI spend, 2026</span><b id="cmp-b-val">$26.7B</b></div><div class="track"><i id="cmp-b" style="width:15.3%"></i></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -216,25 +276,25 @@
 
   <section class="block" id="how">
     <div class="wrap">
-      <div class="block-head">
+      <div class="block-head" data-reveal>
         <span class="eyebrow">How it works</span>
         <h2>Find it, choose a share, give once a month</h2>
       </div>
-      <ol class="steps">
+      <ol class="steps" data-reveal-group>
         <li class="step">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g class="lens"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg></span>
           <span class="k">1 &middot; Find</span>
           <h3>See your AI spend</h3>
-          <p>Drop in a card statement and Tributary picks out every AI charge in seconds. The file is read on your device. Or connect your card read-only.</p>
+          <p>Drop in a card statement and Pledge picks out every AI charge in seconds. The file is read on your device. Or connect your card read-only.</p>
         </li>
         <li class="step">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12l4-3"/></svg></span>
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path class="needle" d="M12 12l4-3"/></svg></span>
           <span class="k">2 &middot; Choose</span>
           <h3>Pick your share</h3>
           <p>Most companies give 1%. See exactly what it adds up to each month and year before you commit.</p>
         </li>
         <li class="step">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="give-heart" d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>
           <span class="k">3 &middot; Give</span>
           <h3>One gift a month</h3>
           <p>One invoice, paid straight to that month&rsquo;s charity. The charity sends your official tax receipt.</p>
@@ -245,13 +305,13 @@
 
   <section class="block tint" id="charities">
     <div class="wrap">
-      <div class="block-head">
+      <div class="block-head" data-reveal>
         <span class="eyebrow">Where gifts go</span>
         <h2>One charity a month</h2>
         <p class="lede">Every company&rsquo;s gift goes to the same cause each month. October supports the StormHacks 2026 cause. After that, the rotation follows UN Sustainable Development Goal 17, Partnerships for the Goals.</p>
       </div>
       <div class="charities">
-        <article class="feature">
+        <article class="feature" data-reveal>
           <figure><img src="https://images.unsplash.com/photo-1579165466949-3180a3d056d5?auto=format&fit=crop&w=1200&q=80" alt="A scientist using a pipette in a laboratory" loading="lazy"></figure>
           <div class="body">
             <span class="now" id="c-now-month">This month</span>
@@ -260,7 +320,7 @@
             <span class="tgt" id="c-now-target">SDG 17.17 &middot; Partnerships with civil society</span>
           </div>
         </article>
-        <div class="upcoming" id="c-upcoming">
+        <div class="upcoming" id="c-upcoming" data-reveal-group="right" style="--d:150ms">
           <div class="up"><span class="m">November 2026</span><h4>Engineers Without Borders Canada</h4><p>Builds technology and business capacity with ventures in sub-Saharan Africa.</p><span class="tgt">SDG 17.8 &middot; Technology for the least developed countries</span></div>
           <div class="up"><span class="m">December 2026</span><h4>World University Service of Canada</h4><p>Education and economic opportunity, including student refugee sponsorship at Canadian campuses.</p><span class="tgt">SDG 17.9 &middot; Capacity building</span></div>
           <div class="up"><span class="m">January 2027</span><h4>Cuso International</h4><p>Partners with local organizations on jobs, skills and economic inclusion.</p><span class="tgt">SDG 17.3 &middot; New financial resources for developing countries</span></div>
@@ -271,29 +331,29 @@
 
   <section class="block" id="gifts">
     <div class="wrap">
-      <div class="block-head">
+      <div class="block-head" data-reveal>
         <span class="eyebrow">The record</span>
         <h2>Every gift, as it happens</h2>
       </div>
-      <div class="gifts" id="gift-list"></div>
+      <div class="gifts" id="gift-list" data-reveal-group></div>
     </div>
   </section>
 
   <section class="block tint" id="faq">
     <div class="wrap">
-      <div class="block-head"><span class="eyebrow">Questions</span><h2>Before you start</h2></div>
-      <div class="faq">
+      <div class="block-head" data-reveal><span class="eyebrow">Questions</span><h2>Before you start</h2></div>
+      <div class="faq" data-reveal-group>
         <details><summary>Do you need access to our accounts?</summary><p>No. Drop in a card statement and it&rsquo;s read on your device; only AI charges are kept. If you&rsquo;d rather not upload each month, connect your card read-only through Plaid.</p></details>
         <details><summary>Is this a fee on our AI spend?</summary><p>No. It&rsquo;s a gift you choose and can change or pause any month. Your AI providers bill you exactly as before.</p></details>
-        <details><summary>Who gets the money and sends the receipt?</summary><p>Each gift is paid straight to that month&rsquo;s registered Canadian charity, which issues your official donation receipt. Tributary never holds the money.</p></details>
+        <details><summary>Who gets the money and sends the receipt?</summary><p>Each gift is paid straight to that month&rsquo;s registered Canadian charity, which issues your official donation receipt. Pledge never holds the money.</p></details>
         <details><summary>Why one gift a month?</summary><p>Card fees take a fixed cut of every charge. One monthly invoice, paid by bank transfer, means almost all of your gift reaches the charity.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="closing" aria-labelledby="closing-title">
+  <section class="closing" aria-labelledby="closing-title" data-inview>
     <img src="https://images.unsplash.com/photo-1660143158587-bddffa026e06?auto=format&fit=crop&w=2000&q=80" alt="Vancouver with snow-covered mountains behind the city" loading="lazy">
-    <div class="wrap">
+    <div class="wrap" data-reveal-group>
       <span class="eyebrow" style="color:#9fe3d8;">Made in Burnaby, given in Vancouver</span>
       <h2 id="closing-title">See what 1% of your AI spend could do</h2>
       <p>It takes about a minute, and your statement never leaves your device.</p>
@@ -306,15 +366,15 @@
   <div class="wrap">
     <div class="row">
       <a class="brand" href="index.html" style="font-size:1rem;">
-        <svg viewBox="0 0 32 32" aria-hidden="true" style="width:22px;height:22px;"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
-        Tributary
+        <svg viewBox="0 0 32 32" aria-hidden="true" style="width:22px;height:22px;"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M10 7.5v17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="13.5" r="6" fill="none" stroke="#fff" stroke-width="2.6"/><path class="mark-share" pathLength="1" d="M20.6 9.64A6 6 0 0 1 20.6 17.36" fill="none" stroke="#5fd6c4" stroke-width="2.8" stroke-linecap="round"/></svg>
+        Pledge
       </a>
       <span class="faint small">Built at StormHacks 2026, Burnaby, BC</span>
     </div>
     <ol class="notes" id="notes">
       <li id="note-1">Gartner forecast of worldwide AI spending in 2026, September 2026. <a href="https://thejournal.com/articles/2026/09/21/gartner-worldwide-ai-spending-to-reach-2-67-trillion-in-2026.aspx" target="_blank" rel="noopener">Report</a></li>
       <li id="note-2">OECD preliminary data on official development assistance in 2025, April 2026: USD 174.3 billion, down 23.1% in real terms. <a href="https://www.oecd.org/en/about/news/press-releases/2026/04/international-aid-fell-sharply-in-2025-says-oecd.html" target="_blank" rel="noopener">Release</a></li>
-      <li>The charity rotation after October is a proposal. Each charity must agree before it receives gifts through Tributary.</li>
+      <li>The charity rotation after October is a proposal. Each charity must agree before it receives gifts through Pledge.</li>
       <li>Photos from <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> illustrate areas of work. They weren&rsquo;t taken at the charities&rsquo; sites.</li>
     </ol>
   </div>

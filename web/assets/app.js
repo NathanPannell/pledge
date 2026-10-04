@@ -1,11 +1,11 @@
-// Tributary giving page: a guided Find, Choose, Give flow for a new company,
+// Pledge giving page: a guided Find, Choose, Give flow for a new company,
 // then a home view for a giving company. Secrets never reach the browser.
 (function () {
   const $ = (id) => document.getElementById(id);
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const M = window.Motion;
   const SAMPLE = { name: "Northgate Freight", email: "ap@northgate.example", file: "northgate-visa-statement.csv" };
   // Tells an open landing page that a gift was just made, so it updates at once.
-  const channel = "BroadcastChannel" in window ? new BroadcastChannel("tributary") : null;
+  const channel = "BroadcastChannel" in window ? new BroadcastChannel("pledge") : null;
 
   let state = null;
   let found = null; // the statement being turned into a first gift
@@ -13,6 +13,10 @@
   let holdFlow = false; // keep the flow on screen behind the thank-you
   let saveTimer = null;
   let vendorCache = null;
+  // Gifts already on screen, so only a new one arrives with a flourish.
+  const seenGifts = new Set();
+  const paidGifts = new Set();
+  let giftsPrimed = false;
 
   // ---- Formatting ------------------------------------------------------------
 
@@ -28,6 +32,7 @@
     return (Number.isInteger(p) ? p : p.toFixed(2)) + "%";
   };
   const HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+  const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
   const HEART_SMALL = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0e7f72" stroke-width="2" style="flex:none" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
 
   function monthBounds(month) {
@@ -76,36 +81,23 @@
     }
   }
 
-  // Animates a number from one value to another. Instant when motion is reduced.
-  function countUp(el, from, to, ms, format) {
-    if (reduceMotion || ms <= 0) {
-      el.textContent = format(to);
-      return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-      let done = false;
-      const finish = () => {
-        if (done) return;
-        done = true;
-        el.textContent = format(to);
-        resolve();
-      };
-      const start = performance.now();
-      function frame(now) {
-        if (done) return;
-        const p = Math.min(1, (now - start) / ms);
-        const eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = format(from + (to - from) * eased);
-        if (p < 1) requestAnimationFrame(frame);
-        else finish();
-      }
-      requestAnimationFrame(frame);
-      // Animation frames pause in background tabs; the final value always lands.
-      setTimeout(finish, ms + 150);
-    });
+  const wait = (ms) => new Promise((r) => setTimeout(r, M.reduce ? 0 : ms));
+
+  // Skips identical re-renders, so a list only replays its entrance when it changes.
+  let rendered = new WeakMap();
+  function setHtml(el, html) {
+    if (rendered.get(el) === html) return;
+    rendered.set(el, html);
+    el.innerHTML = html;
   }
 
-  const wait = (ms) => new Promise((r) => setTimeout(r, reduceMotion ? 0 : ms));
+  // Fills a range input's track up to its thumb.
+  function paintRange(input) {
+    const p = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min));
+    input.style.setProperty("--p", String(p));
+  }
+
+  const giftKey = (i) => `${i.id}|${i.created_at}`;
 
   async function vendors() {
     if (!vendorCache) vendorCache = (await api("GET", "/api/vendors")).vendors;
@@ -115,6 +107,13 @@
   async function load() {
     const r = range();
     state = await api("GET", `/api/state?start=${r.start}&end=${r.end}`);
+    if (!giftsPrimed) {
+      state.invoices.forEach((i) => {
+        seenGifts.add(giftKey(i));
+        if (i.status === "paid") paidGifts.add(giftKey(i));
+      });
+      giftsPrimed = true;
+    }
     render();
   }
 
@@ -145,15 +144,25 @@
   function showFlow(step) {
     $("flow").hidden = false;
     $("home").hidden = true;
-    for (const s of ["find", "scan", "choose"]) $("step-" + s).hidden = s !== step;
+    for (const s of ["find", "scan", "choose"]) {
+      const el = $("step-" + s);
+      if (s !== step) el.hidden = true;
+      else if (el.hidden) {
+        el.hidden = false;
+        M.pop(el, "enter");
+      }
+    }
     setStepper(step === "scan" ? "find" : step === "give" ? "give" : step);
-    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    window.scrollTo({ top: 0, behavior: M.reduce ? "auto" : "smooth" });
   }
 
   function showHome() {
     $("flow").hidden = true;
+    const arriving = $("home").hidden;
     $("home").hidden = false;
-    renderHome();
+    if (arriving) rendered = new WeakMap();
+    renderHome(arriving);
+    if (arriving) M.replay($("home"));
   }
 
   // ---- 1. Find -------------------------------------------------------------------
@@ -222,8 +231,29 @@
   function toolBars(entries, limit = 7) {
     const top = entries.slice(0, limit);
     const max = Math.max(1, ...top.map(([, v]) => v));
-    return top.map(([name, dollars]) => `
-      <div class="tool"><span>${esc(name)}</span><span class="track"><i style="width:${Math.max(3, (dollars / max) * 100)}%"></i></span><span>${money(dollars * 100)}</span></div>`).join("");
+    return top.map(([name, dollars], i) => `
+      <div class="tool"><span>${esc(name)}</span><span class="track"><i style="--w:${Math.max(3, (dollars / max) * 100)}%;--i:${i}"></i></span><span>${money(dollars * 100)}</span></div>`).join("");
+  }
+
+  // The scan's bars update in place, so each one grows as its charges are caught.
+  function liveBars(container, entries, limit = 7) {
+    const max = Math.max(1, ...entries.map(([, v]) => v));
+    const top = new Set(entries.slice(0, limit).map(([name]) => name));
+    for (const row of container.children) row.hidden = !top.has(row.dataset.tool);
+    entries.slice(0, limit).forEach(([name, dollars], rank) => {
+      let row = [...container.children].find((r) => r.dataset.tool === name);
+      if (!row) {
+        row = document.createElement("div");
+        row.className = "tool";
+        row.dataset.tool = name;
+        row.innerHTML = `<span>${esc(name)}</span><span class="track"><i></i></span><span></span>`;
+        container.appendChild(row);
+        void row.offsetWidth; // start the new bar from zero
+      }
+      row.style.order = String(rank);
+      row.querySelector("i").style.setProperty("--w", Math.max(3, (dollars / max) * 100) + "%");
+      row.lastElementChild.textContent = money(dollars * 100);
+    });
   }
 
   function tapeRow(r) {
@@ -236,16 +266,20 @@
   async function scan(f) {
     found = { ...f, summary: window.Statement.summarize(f.result.rows, new Date()) };
     statementSent = false;
+    $("step-scan").classList.remove("done");
     showFlow("scan");
     $("scan-file").textContent = f.filename;
     const tape = $("tape");
     tape.innerHTML = "";
+    $("found-tools").innerHTML = "";
+    M.set($("found-total"), 0, money);
     const rows = [...f.result.all].sort((a, b) => a.date.localeCompare(b.date));
     const seen = [];
     let total = 0;
     let aiCount = 0;
+    let lastDelta = 0;
     // About four seconds end to end, however long the statement is.
-    const step = reduceMotion ? 0 : Math.max(16, Math.min(70, 4200 / rows.length));
+    const step = M.reduce ? 0 : Math.max(16, Math.min(70, 4200 / rows.length));
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
       seen.push(r);
@@ -253,17 +287,24 @@
         total += r.amount;
         aiCount++;
       }
-      if (!reduceMotion || i === rows.length - 1) {
+      if (!M.reduce || i === rows.length - 1) {
         tape.prepend(tapeRow(r));
         while (tape.children.length > 14) tape.lastChild.remove();
-        $("found-total").textContent = money(total * 100);
+        M.to($("found-total"), total * 100, 320, money);
         $("found-count").textContent = `${aiCount} AI charges · ${i + 1} of ${rows.length} transactions read`;
-        if (r.vendor || i === rows.length - 1) $("found-tools").innerHTML = toolBars(tallyVendors(seen));
+        if (r.vendor || i === rows.length - 1) liveBars($("found-tools"), tallyVendors(seen));
+        // Larger catches float up beside the total, a few at a time.
+        if (r.vendor && r.amount >= 400 && performance.now() - lastDelta > 450) {
+          lastDelta = performance.now();
+          M.floatDelta($("found-total"), "+" + money(r.amount * 100));
+        }
       }
       if (step) await new Promise((res) => setTimeout(res, step));
     }
     $("found-count").textContent = `${aiCount} AI charges in ${rows.length} transactions. ${rows.length - aiCount} others stay on this device.`;
-    await wait(1100);
+    await wait(350);
+    $("step-scan").classList.add("done");
+    await wait(1200);
     showChoose();
   }
 
@@ -281,35 +322,40 @@
     const who = sample ? SAMPLE.name : "Your team";
     const monthRows = last ? result.all.filter((r) => r.vendor && r.date.startsWith(last.month)) : result.all.filter((r) => r.vendor);
     const tools = tallyVendors(monthRows);
-    $("reveal-title").textContent = last
-      ? `${who} spent ${money(last.total * 100)} on AI in ${monthLong(last.month)}`
-      : `${who} has spent ${money(result.total * 100)} on AI so far this month`;
+    const spent = '<span class="num" id="reveal-amt">$0</span>';
+    $("reveal-title").innerHTML = last
+      ? `${esc(who)} spent ${spent} on AI in ${monthLong(last.month)}`
+      : `${esc(who)} has spent ${spent} on AI so far this month`;
+    M.tween($("reveal-amt"), 0, Math.round((last ? last.total : result.total) * 100), 1300, money);
     const growth = summary.growth;
     $("reveal-growth").hidden = !(growth && growth > 0.05);
-    if (growth && growth > 0.05) $("reveal-growth").textContent = `Up ${Math.round(growth * 100)}% since ${monthLong(summary.growthFrom)}`;
+    if (growth && growth > 0.05) $("reveal-growth").innerHTML = `${ARROW_UP}Up ${Math.round(growth * 100)}% since ${monthLong(summary.growthFrom)}`;
     $("reveal-sub").textContent = `${tools.length} AI tools, found among ${result.totalRows} card transactions.`;
     $("reveal-tools").innerHTML = toolBars(tools);
     $("first-name").value = sample ? SAMPLE.name : "";
     $("first-email").value = sample ? SAMPLE.email : "";
     $("first-rate").value = "1";
-    updateChoose();
+    M.set($("first-month"), 0, moneyExact);
+    M.set($("first-year"), 0, money);
+    updateChoose(1200);
   }
 
-  function updateChoose() {
+  function updateChoose(ms = 280) {
     const rate = Number($("first-rate").value) / 100;
     const last = found.summary.lastFull;
     const basis = last ? firstGiftBasisCents() : Math.round(found.result.total * 100);
     const monthly = Math.round(basis * rate);
+    paintRange($("first-rate"));
     $("first-rate-out").textContent = pctText(rate);
-    $("first-month").textContent = moneyExact(monthly);
-    $("first-year").textContent = money(monthly * 12);
+    M.to($("first-month"), monthly, ms, moneyExact);
+    M.to($("first-year"), monthly * 12, ms, money);
     const charity = state.rotation[0].name;
     const giftNow = last && monthly >= 100;
     $("give-first").textContent = giftNow ? `Give ${moneyExact(monthly)} for ${monthLong(last.month)}` : "Start monthly giving";
     $("give-first-note").textContent = `Goes to the ${charity}. Then one gift a month, and you can change or pause it any time.`;
   }
 
-  $("first-rate").addEventListener("input", updateChoose);
+  $("first-rate").addEventListener("input", () => updateChoose());
 
   $("give-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -354,18 +400,23 @@
     $("t-text").textContent = `is on its way to the ${invoice.charity}.`;
     $("t-invoice").href = `invoice.html?id=${invoice.id}`;
     $("t-invoice").hidden = false;
-    $("t-companies").textContent = String(before.companies);
-    $("t-monthly").textContent = money(before.monthlyCents);
     $("t-companies").classList.remove("bump");
     $("t-monthly").classList.remove("bump");
-    $("t-amt").textContent = "$0.00";
+    M.set($("t-companies"), before.companies, (v) => String(Math.round(v)));
+    M.set($("t-monthly"), before.monthlyCents, money);
+    M.set($("t-amt"), 0, moneyExact);
     $("thanks").showModal();
-    await countUp($("t-amt"), 0, invoice.amount_cents, 900, moneyExact);
-    await wait(450);
+    await wait(250);
+    await M.tween($("t-amt"), 0, invoice.amount_cents, 1000, moneyExact);
+    // The gift lands: hearts thrown out from the amount.
+    const amt = $("t-amt");
+    M.pop(amt);
+    M.burst($("thanks"), amt.offsetLeft + amt.offsetWidth / 2, amt.offsetTop + amt.offsetHeight / 2, 22);
+    await wait(500);
     $("t-companies").classList.add("bump");
     $("t-monthly").classList.add("bump");
-    countUp($("t-companies"), before.companies, after.companies, 700, (v) => String(Math.round(v)));
-    countUp($("t-monthly"), before.monthlyCents, after.monthlyCents, 900, money);
+    M.tween($("t-companies"), before.companies, after.companies, 700, (v) => String(Math.round(v)));
+    M.tween($("t-monthly"), before.monthlyCents, after.monthlyCents, 1000, money);
   }
 
   // Leaving the thank-you shows home. Runs from the button at once, and from
@@ -427,7 +478,7 @@
     return state.invoices.reduce((s, i) => s + i.amount_cents, 0);
   }
 
-  function renderHome() {
+  function renderHome(arriving) {
     $("org-name-out").textContent = state.org.name;
     $("rate").value = String(Math.round(state.org.pledgeRate * 10000) / 100);
     $("basis").value = state.org.basis;
@@ -435,8 +486,8 @@
     $("s-rate").textContent = pctText(state.org.pledgeRate);
     $("org-email-out").textContent = state.org.billingEmail ? `Invoices go to ${state.org.billingEmail}` : "";
     renderReady();
-    renderImpact();
-    renderDial();
+    renderImpact(arriving);
+    renderDial(arriving);
     renderSpend();
     renderNotes();
   }
@@ -471,11 +522,12 @@
     $("next-target").textContent = nextCharity.target;
   }
 
-  function renderImpact() {
+  function renderImpact(arriving) {
     const given = givenCents();
     const gifts = state.invoices.length;
     const first = state.invoices.reduce((min, i) => (!min || i.period_start < min ? i.period_start : min), "");
-    $("given-amt").textContent = moneyExact(given);
+    if (arriving) M.tween($("given-amt"), 0, given, 1400, moneyExact);
+    else M.to($("given-amt"), given, 900, moneyExact);
     $("given-text").textContent = gifts
       ? `given across ${gifts} monthly gift${gifts === 1 ? "" : "s"} since ${monthLong(first.slice(0, 7))}.`
       : "given so far. Your first gift will appear here.";
@@ -483,41 +535,51 @@
     $("community").innerHTML = gifts
       ? `${HEART_SMALL}<span>You&rsquo;re one of <b>${c.companies}</b> companies giving <b>${money(c.monthlyCents)}</b> every month.</span>`
       : `${HEART_SMALL}<span><b>${c.companies}</b> companies already give <b>${money(c.monthlyCents)}</b> every month.</span>`;
-    $("gifts").innerHTML = state.invoices.map((i) => `
-      <div class="g">
+    // A new gift slides in; a gift just marked received pops its pill.
+    const isNew = (i) => !seenGifts.has(giftKey(i));
+    const justPaid = (i) => i.status === "paid" && !paidGifts.has(giftKey(i));
+    setHtml($("gifts"), state.invoices.map((i) => `
+      <div class="g${isNew(i) ? " new" : ""}">
         <span class="mark">${HEART}</span>
         <div><div class="t">${esc(monthYear(i.period_end.slice(0, 7)))}</div>
           <div class="s">${pctText(i.rate)} of ${money(i.basis_cents)} AI spend, to the ${esc(i.charity)}</div></div>
         <div class="r"><b class="num">${moneyExact(i.amount_cents)}</b>
-          ${i.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Received</span>' : '<span class="pill warn"><span class="dot"></span>On its way</span>'}
+          ${i.status === "paid" ? `<span class="pill ok${justPaid(i) ? " just" : ""}"><span class="dot"></span>Received</span>` : '<span class="pill warn"><span class="dot"></span>On its way</span>'}
           <span class="small"><a href="invoice.html?id=${i.id}">Invoice</a>${i.status === "paid"
             ? ` &middot; <a href="receipt.html?id=${i.id}">Tax receipt</a>`
             : ` &middot; <button class="linkish small" type="button" data-paid="${i.id}">Mark received</button>`}</span>
         </div>
-      </div>`).join("");
+      </div>`).join(""));
+    state.invoices.forEach((i) => {
+      seenGifts.add(giftKey(i));
+      if (i.status === "paid") paidGifts.add(giftKey(i));
+    });
   }
 
-  function renderDial() {
+  function renderDial(arriving) {
     const r = rate();
     // Round to whole cents first so month, year and the first gift agree.
     const monthly = Math.round(monthlyBasis() * r);
+    const ms = arriving ? 1200 : 280;
+    if (arriving) ["o-month", "o-year", "o-ten"].forEach((id) => M.set($(id), 0, money));
+    paintRange($("rate"));
     $("rate-out").textContent = pctText(r);
-    $("o-month").textContent = moneyExact(monthly);
-    $("o-year").textContent = money(monthly * 12);
-    $("o-ten").textContent = money(monthly * 120);
+    M.to($("o-month"), monthly, ms, moneyExact);
+    M.to($("o-year"), monthly * 12, ms, money);
+    M.to($("o-ten"), monthly * 120, ms, money);
   }
 
   function renderSpend() {
     const s = state.spend;
     const rows = [...s.vendors.map((v) => [v.vendor, v.cents / 100]), ...s.providers.map((v) => [`${v.vendor} usage`, v.cents / 100])]
       .sort((a, b) => b[1] - a[1]);
-    $("tools").innerHTML = rows.length ? toolBars(rows, 8) : '<p class="muted">No AI spend yet. Add a statement or connect a card below.</p>';
+    setHtml($("tools"), rows.length ? toolBars(rows, 8) : '<p class="muted">No AI spend yet. Add a statement or connect a card below.</p>');
     $("spend-period").textContent = s.months.length ? `Since ${monthYear(s.months[0].month)}` : "";
-    $("sources").innerHTML = state.connections.map((c) => `
+    setHtml($("sources"), state.connections.map((c) => `
       <span class="source ${c.status === "error" ? "err" : ""}" title="${esc(c.error || "")}">
         ${esc(c.kind === "anthropic" || c.kind === "openai" ? c.label + " usage" : c.label)}
         <button class="x" type="button" data-remove="${c.id}" aria-label="Remove ${esc(c.label)}">&times;</button>
-      </span>`).join("");
+      </span>`).join(""));
     document.querySelector("details.more").open = state.connections.length === 0;
     $("connect-plaid").disabled = !state.plaid.configured;
     $("connect-sandbox").hidden = !(state.plaid.configured && state.plaid.env === "sandbox");
@@ -532,10 +594,10 @@
   function renderNotes() {
     const notes = [];
     if (state.stripe.configured && state.stripe.testMode) notes.push("Invoices are created in Stripe test mode. No real payments are taken.");
-    if (!state.stripe.configured) notes.push("Gifts are recorded in Tributary. Add a Stripe key to send invoices through Stripe.");
+    if (!state.stripe.configured) notes.push("Gifts are recorded in Pledge. Add a Stripe key to send invoices through Stripe.");
     if (!state.plaid.configured) notes.push("Connecting a card through Plaid needs <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> in <code>server/.env</code>.");
     notes.push("Provider cost reports need an organization admin key. Anthropic doesn't offer admin keys on individual accounts, so most companies use their card instead.");
-    notes.push("Each month's charity comes from a proposed rotation. Charities must agree before they receive gifts through Tributary.");
+    notes.push("Each month's charity comes from a proposed rotation. Charities must agree before they receive gifts through Pledge.");
     notes.push("Photos from Unsplash illustrate areas of care. They weren't taken at the foundation's sites.");
     $("notes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
   }
@@ -657,8 +719,8 @@
   }));
 
   const PROVIDERS = {
-    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings. Tributary only reads the cost report." },
-    openai: { title: "Add OpenAI admin key", help: "Create an admin key in your organization's settings. Tributary only reads the costs report." },
+    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings. Pledge only reads the cost report." },
+    openai: { title: "Add OpenAI admin key", help: "Create an admin key in your organization's settings. Pledge only reads the costs report." },
   };
   let providerKind = null;
 

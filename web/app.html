@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tributary Giving</title>
+<title>Give with Pledge</title>
+<link rel="icon" href="assets/pledge-mark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/tributary.css">
+<link rel="stylesheet" href="assets/pledge.css">
+<script src="assets/motion.js"></script>
 <style>
   body { background: var(--surface); }
   .nav { background: rgba(255, 255, 255, 0.96); }
@@ -26,19 +28,36 @@
   .flow { display: grid; gap: 22px; }
   .stepper { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .stepper li { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; font-size: 0.92rem; color: var(--ink-3); }
-  .stepper li + li::before { content: ""; width: 28px; height: 2px; background: var(--line-strong); border-radius: 2px; margin-right: 0; }
-  .stepper .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line-strong); font-size: 0.8rem; background: #fff; }
+  .stepper li { transition: color 0.3s; }
+  /* The line between steps fills with teal as each step is done. */
+  .stepper li + li::before { content: ""; width: 36px; height: 2px; border-radius: 2px; background: linear-gradient(var(--flow), var(--flow)) left / 0% 100% no-repeat, var(--line-strong); transition: background-size 0.6s var(--ease-out); }
+  .stepper li[data-state="done"] + li::before { background-size: 100% 100%; }
+  .stepper .n { position: relative; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line-strong); font-size: 0.8rem; background: #fff; transition: background 0.3s, border-color 0.3s, color 0.3s; }
+  .stepper .n svg { position: absolute; inset: 0; margin: auto; width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
   .stepper li[data-state="current"] { color: var(--ink); }
   .stepper li[data-state="current"] .n { border-color: var(--brand); background: var(--brand); color: #fff; }
+  .motion .stepper li[data-state="current"] .n { animation: step-pop 0.55s var(--ease-spring); }
   .stepper li[data-state="done"] { color: var(--flow); }
-  .stepper li[data-state="done"] .n { border-color: var(--flow); background: var(--flow); color: #fff; }
+  .stepper li[data-state="done"] .n { border-color: var(--flow); background: var(--flow); color: transparent; }
+  .stepper li[data-state="done"] .n svg { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.5s 0.15s var(--ease-out); }
+  @keyframes step-pop { 40% { transform: scale(1.22); } }
+
+  /* Each step rises in as it replaces the last. */
+  .motion .enter { animation: rise 0.6s var(--ease-out) backwards; }
+  .motion .choose.enter { animation: none; }
+  .motion .choose.enter > * { animation: rise 0.65s var(--ease-out) backwards; }
+  .motion .choose.enter > :nth-child(2) { animation-delay: 0.12s; }
 
   .find { text-align: center; justify-items: center; padding: 48px 28px; gap: 20px; }
   .find h1 { font-size: clamp(2rem, 4vw, 2.8rem); max-width: 18ch; }
   .find .lede { margin-inline: auto; }
-  .drop { width: min(560px, 100%); display: grid; justify-items: center; gap: 8px; padding: 32px 20px; border: 2px dashed var(--line-strong); border-radius: var(--r-lg); background: var(--surface); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .drop { width: min(560px, 100%); display: grid; justify-items: center; gap: 8px; padding: 32px 20px; border: 2px dashed var(--line-strong); border-radius: var(--r-lg); background: var(--surface); cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.35s var(--ease-spring); }
   .drop:hover, .drop.over { border-color: var(--flow); background: var(--flow-soft); }
+  .drop.over { transform: scale(1.025); }
   .drop svg { width: 36px; height: 36px; color: var(--flow); }
+  .motion .drop svg { animation: bob 2.6s ease-in-out infinite; }
+  .motion .drop.over svg { animation-duration: 0.9s; }
+  @keyframes bob { 50% { transform: translateY(-5px); } }
   .drop b { font-size: 1.05rem; }
   input#csv-file:focus-visible + .drop, .drop:focus-within { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); outline-offset: 2px; }
   .find-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center; }
@@ -52,35 +71,67 @@
   .scan-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 24px; align-items: stretch; }
   .tape { position: relative; height: 380px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
   .tape::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(transparent, var(--surface)); pointer-events: none; }
+  /* A soft teal band sweeps down the statement while it's being read. */
+  .tape::before { content: ""; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 64px; background: linear-gradient(180deg, rgba(31, 163, 146, 0), rgba(31, 163, 146, 0.14) 70%, rgba(31, 163, 146, 0.5) 100%); border-bottom: 1px solid rgba(31, 163, 146, 0.6); pointer-events: none; opacity: 0; }
+  .motion .scan:not(.done) .tape::before { opacity: 1; animation: sweep 1.5s ease-in-out infinite; }
+  @keyframes sweep { from { transform: translateY(-64px); } to { transform: translateY(380px); } }
   .row { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: 0.88rem; animation: drop-in 0.22s ease-out; }
   .row .d { color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .row .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .a { font-variant-numeric: tabular-nums; font-weight: 600; }
   .row.skip { opacity: 0.45; }
   .row.skip .t { text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .row.ai { border-color: var(--flow); background: var(--flow-soft); box-shadow: inset 3px 0 0 var(--flow); }
-  .row .chip { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--flow); color: #fff; font-size: 0.72rem; font-weight: 700; vertical-align: 1px; }
+  .row.ai { border-color: var(--flow); background: var(--flow-soft); box-shadow: inset 3px 0 0 var(--flow); animation: drop-in 0.22s ease-out, caught 0.9s ease-out; }
+  .row .chip { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--flow); color: #fff; font-size: 0.72rem; font-weight: 700; vertical-align: 1px; animation: chip-pop 0.45s 0.08s var(--ease-spring) backwards; }
   @keyframes drop-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .found { display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: var(--r); border: 1px solid var(--line); }
-  .found .big-money { color: #0b5e54; }
+  @keyframes caught { from { box-shadow: inset 3px 0 0 var(--flow), 0 0 0 0 rgba(14, 127, 114, 0.45); } to { box-shadow: inset 3px 0 0 var(--flow), 0 0 0 10px rgba(14, 127, 114, 0); } }
+  @keyframes chip-pop { from { transform: scale(0); } }
+  .found { position: relative; display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: var(--r); border: 1px solid var(--line); transition: border-color 0.4s, box-shadow 0.4s; }
+  .found .big-money { color: #0b5e54; justify-self: start; }
+  .scan.done .found { border-color: var(--flow); box-shadow: 0 0 0 4px var(--flow-soft); }
+  .scan.done .pulse { animation: none; }
+  .motion .scan.done .found .big-money { animation: pop 0.6s var(--ease-spring); }
 
   .tools { display: grid; gap: 10px; }
   .tool { display: grid; grid-template-columns: 120px minmax(0, 1fr) 84px; gap: 12px; align-items: center; font-size: 0.92rem; }
   .tool .track { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-  .tool .track i { display: block; height: 100%; border-radius: 999px; background: var(--series-card); transition: width 0.25s ease-out; }
+  .tool .track i { display: block; height: 100%; width: var(--w, 0%); border-radius: 999px; background: var(--series-card); transition: width 0.3s ease-out; }
+  /* Bars grow in one after another when a list appears. */
+  .motion .tools.grow .track i { animation: grow 0.9s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms + 0.15s); }
+  @keyframes grow { from { width: 0; } }
   .tool.usage .track i { background: var(--series-usage); }
   .tool span:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 
   .choose { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
   .reveal h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+  .reveal h2 .num { color: #0b5e54; }
   .growth { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 4px 10px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); font-weight: 650; font-size: 0.88rem; }
+  .growth svg { width: 14px; height: 14px; }
+  .motion .choose.enter .growth { animation: badge-in 0.6s 0.9s var(--ease-spring) backwards; }
+  .motion .choose.enter .growth svg { animation: nudge-up 0.8s 1.3s ease-in-out 2; }
+  @keyframes badge-in { from { opacity: 0; transform: scale(0.6); } }
+  @keyframes nudge-up { 50% { transform: translateY(-3px); } }
   .give-card { border: 2px solid var(--flow); }
 
   /* ---- Dial (shared by Choose and home) ---- */
   .dial-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 20px; align-items: center; }
-  .dial-row output { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; min-width: 92px; text-align: right; }
-  input[type="range"] { width: 100%; accent-color: var(--flow); height: 28px; cursor: pointer; grid-column: 1 / -1; }
-  .scale { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--ink-3); margin-top: -6px; grid-column: 1 / -1; }
+  .dial-row output { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; min-width: 92px; text-align: right; font-variant-numeric: tabular-nums; }
+  /* The track fills with teal up to the thumb (--p, 0 to 1); the thumb grows while held. */
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; grid-column: 1 / -1; margin: 0; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 999px; background: linear-gradient(var(--flow), var(--flow)) 0 0 / calc(var(--p, 0.16) * (100% - 24px) + 12px) 100% no-repeat, var(--surface-2); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--flow); box-shadow: 0 2px 6px rgba(15, 34, 53, 0.2); transition: transform 0.25s var(--ease-spring), box-shadow 0.25s; }
+  input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.08); }
+  input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); box-shadow: 0 0 0 8px color-mix(in srgb, var(--flow) 18%, transparent); }
+  input[type="range"]::-moz-range-track { height: 8px; border-radius: 999px; background: var(--surface-2); }
+  input[type="range"]::-moz-range-progress { height: 8px; border-radius: 999px; background: var(--flow); }
+  input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--flow); box-shadow: 0 2px 6px rgba(15, 34, 53, 0.2); }
+  input[type="range"]:focus-visible { outline: none; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent); }
+  /* Each mark sits under the thumb position for its value (--p, 0 to 1). */
+  .scale { position: relative; height: 1.3em; font-size: 0.78rem; color: var(--ink-3); margin-top: -6px; grid-column: 1 / -1; }
+  .scale span { position: absolute; top: 0; left: calc(var(--p) * (100% - 24px) + 12px); transform: translateX(-50%); white-space: nowrap; }
+  .scale span:first-child { transform: translateX(-12px); }
+  .scale span:last-child { transform: translateX(calc(-100% + 12px)); }
   .outcomes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .outcomes.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .outcome { border-radius: var(--r); background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; }
@@ -90,6 +141,9 @@
   .outcome.hl b { color: #0b5e54; }
   .two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .give-btn { width: 100%; font-size: 1.1rem; padding: 15px 22px; }
+  /* The one action that matters breathes gently until it's pressed. */
+  .motion .give-btn:not(:disabled), .motion #give:not(:disabled) { animation: breathe 2.8s ease-in-out 1.2s infinite; }
+  @keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(14, 127, 114, 0.35); } 50% { box-shadow: 0 0 0 9px rgba(14, 127, 114, 0); } }
 
   /* ---- Home ---- */
   .home { display: grid; gap: 20px; }
@@ -97,8 +151,10 @@
   .page-head h1 { font-size: 2rem; }
   .page-head b { color: var(--ink); }
   .impact { grid-template-columns: 220px minmax(0, 1fr); padding: 0; overflow: hidden; gap: 0; }
-  .impact figure { margin: 0; background: var(--surface-2); }
+  .impact figure { margin: 0; background: var(--surface-2); overflow: hidden; }
   .impact img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .motion #home.in:not(.settled) .impact img { animation: settle 1.5s var(--ease-out) backwards; }
+  @keyframes settle { from { transform: scale(1.12); } }
   .impact .body { padding: 28px; display: grid; gap: 14px; }
   .impact .to { color: var(--ink-2); font-size: 1.02rem; }
   .impact .to b { color: var(--ink); }
@@ -112,6 +168,11 @@
   .g .s { font-size: 0.86rem; color: var(--ink-3); }
   .g .r { display: grid; justify-items: end; gap: 4px; }
   .g .r b { font-size: 1.1rem; font-weight: 740; }
+  .g.new { animation: arrive 2.2s var(--ease-out); }
+  .g.new .mark { animation: heart-pop 0.7s 0.3s var(--ease-spring) backwards; }
+  .g .pill.ok.just { animation: pop 0.6s var(--ease-spring); }
+  @keyframes arrive { 0% { opacity: 0; transform: translateY(-12px); background: var(--flow-soft); } 20% { opacity: 1; transform: none; } 65% { background: var(--flow-soft); } 100% { background: transparent; } }
+  @keyframes heart-pop { from { transform: scale(0); } }
   .ready { border: 2px solid var(--flow); background: linear-gradient(180deg, var(--flow-soft), #fff 70%); }
   .ready .math { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-2); }
   .ready .math b { color: var(--ink); }
@@ -147,8 +208,10 @@
   dialog::backdrop { background: rgba(20, 22, 25, 0.55); }
   .dlg { padding: 26px; display: grid; gap: 16px; }
   .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
-  .thanks figure { margin: 0; height: 190px; background: var(--surface-2); }
+  .thanks figure { margin: 0; height: 190px; background: var(--surface-2); overflow: hidden; }
   .thanks img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .motion .thanks[open] img { animation: settle 2s var(--ease-out); }
+  .thanks .big-money { justify-self: start; }
   .thanks .big-money { color: #0b5e54; }
   .joined { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .joined div { border-radius: var(--r); background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; }
@@ -160,6 +223,8 @@
   .preview-list li { display: flex; justify-content: space-between; gap: 12px; font-size: 0.94rem; }
 
   .toast { position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: 420px; padding: 14px 16px; border-radius: var(--r); background: var(--ink); color: #fff; box-shadow: var(--shadow-lg); font-weight: 550; }
+  .motion .toast:not([hidden]) { animation: toast-in 0.5s var(--ease-spring); }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } }
   .toast.err { background: var(--danger); }
   .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -188,9 +253,9 @@
 
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="index.html" aria-label="Tributary home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
-      Tributary
+    <a class="brand" href="index.html" aria-label="Pledge home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M10 7.5v17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="13.5" r="6" fill="none" stroke="#fff" stroke-width="2.6"/><path class="mark-share" pathLength="1" d="M20.6 9.64A6 6 0 0 1 20.6 17.36" fill="none" stroke="#5fd6c4" stroke-width="2.8" stroke-linecap="round"/></svg>
+      Pledge
     </a>
     <span class="for"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Raising for</span>&nbsp;<b class="charity-now">VGH &amp; UBC Hospital Foundation</b></span>
   </div>
@@ -200,15 +265,15 @@
   <!-- ===== Guided flow for a new company ===== -->
   <section class="flow" id="flow" hidden>
     <ol class="stepper" aria-label="Progress">
-      <li data-step="find" data-state="current"><span class="n">1</span>Find</li>
-      <li data-step="choose"><span class="n">2</span>Choose</li>
-      <li data-step="give"><span class="n">3</span>Give</li>
+      <li data-step="find" data-state="current"><span class="n">1<svg viewBox="0 0 16 16" aria-hidden="true"><path pathLength="1" d="M3.5 8.5l2.8 2.8L12.5 5"/></svg></span>Find</li>
+      <li data-step="choose"><span class="n">2<svg viewBox="0 0 16 16" aria-hidden="true"><path pathLength="1" d="M3.5 8.5l2.8 2.8L12.5 5"/></svg></span>Choose</li>
+      <li data-step="give"><span class="n">3<svg viewBox="0 0 16 16" aria-hidden="true"><path pathLength="1" d="M3.5 8.5l2.8 2.8L12.5 5"/></svg></span>Give</li>
     </ol>
 
     <!-- 1. Find -->
     <div class="panel find" id="step-find">
       <h1>How much does your team spend on AI?</h1>
-      <p class="lede">Drop in a card statement and Tributary finds every AI charge in seconds. The file is read on this device, and only AI charges are kept.</p>
+      <p class="lede">Drop in a card statement and Pledge finds every AI charge in seconds. The file is read on this device, and only AI charges are kept.</p>
       <input type="file" id="csv-file" accept=".csv,text/csv" class="visually-hidden">
       <label class="drop" id="drop" for="csv-file">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
@@ -247,7 +312,7 @@
         <h2 id="reveal-title">Your team spent $0 on AI last month</h2>
         <span class="growth" id="reveal-growth" hidden></span>
         <p class="muted" id="reveal-sub"></p>
-        <div class="tools" id="reveal-tools"></div>
+        <div class="tools grow" id="reveal-tools"></div>
       </div>
       <form class="panel give-card" id="give-form">
         <div class="panel-head"><h3>Choose your share</h3></div>
@@ -255,7 +320,7 @@
           <label for="first-rate" class="muted" style="font-weight:600;">Share of AI spend you give</label>
           <output id="first-rate-out" for="first-rate" class="num">1%</output>
           <input type="range" id="first-rate" min="0.25" max="5" step="0.25" value="1">
-          <div class="scale" aria-hidden="true"><span>0.25%</span><span>1%</span><span>2.5%</span><span>5%</span></div>
+          <div class="scale" aria-hidden="true"><span style="--p:0">0.25%</span><span style="--p:0.1579">1%</span><span style="--p:0.4737">2.5%</span><span style="--p:1">5%</span></div>
         </div>
         <div class="outcomes">
           <div class="outcome hl"><b id="first-month">$0</b><span>each month</span></div>
@@ -272,7 +337,7 @@
   </section>
 
   <!-- ===== Home for a giving company ===== -->
-  <div class="home" id="home" hidden>
+  <div class="home" id="home" hidden data-reveal-group>
     <div class="page-head">
       <h1 id="org-name-out">Your company</h1>
       <p class="muted">Giving <b id="s-rate">1%</b> of AI spend. This month&rsquo;s gift goes to the <b class="charity-now">VGH &amp; UBC Hospital Foundation</b>.</p>
@@ -314,7 +379,7 @@
         <label for="rate" class="muted" style="font-weight:600;">Share of AI spend you give</label>
         <output id="rate-out" for="rate" class="num">1%</output>
         <input type="range" id="rate" min="0.25" max="5" step="0.25" value="1">
-        <div class="scale" aria-hidden="true"><span>0.25%</span><span>1%</span><span>2.5%</span><span>5%</span></div>
+        <div class="scale" aria-hidden="true"><span style="--p:0">0.25%</span><span style="--p:0.1579">1%</span><span style="--p:0.4737">2.5%</span><span style="--p:1">5%</span></div>
       </div>
       <div class="outcomes three">
         <div class="outcome"><b id="o-month">$0</b><span>each month</span></div>
@@ -325,7 +390,7 @@
 
     <section class="panel" aria-labelledby="spend-title">
       <div class="panel-head"><h3 id="spend-title">Your AI spend</h3><span class="muted small" id="spend-period"></span></div>
-      <div class="tools" id="tools"></div>
+      <div class="tools grow" id="tools"></div>
       <div class="sources" id="sources"></div>
       <details class="more">
         <summary>Add spending data</summary>
