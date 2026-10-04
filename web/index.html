@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/pledge.css">
+<link rel="stylesheet" href="assets/extension.css">
 <script src="assets/motion.js"></script>
 <style>
   /* ---- Hero: the message beside a photo of care, with live giving on it ---- */
@@ -67,6 +68,56 @@
   .mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 0.84rem; color: var(--ink-2); }
   .mini b { display: block; font-size: 1.12rem; font-weight: 750; color: var(--ink); font-variant-numeric: tabular-nums; }
   @keyframes heart-pop { from { transform: scale(0); } }
+
+  /* ---- Start giving: the button opens into a menu that grows out of it ---- */
+  .cta { position: relative; display: inline-flex; }
+  .cta-btn .chev { width: 18px; height: 18px; margin-right: -4px; transition: transform 0.4s var(--ease-spring); }
+  .cta.open .cta-btn .chev { transform: rotate(180deg); }
+  .cta-menu { position: absolute; z-index: 40; top: calc(100% + 8px); left: 0; width: 360px; max-width: calc(100vw - 32px); padding: 8px; border-radius: 16px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-lg); display: grid; gap: 2px; text-align: left; }
+  .cta.right .cta-menu { left: auto; right: 0; }
+  .cta.up .cta-menu, .cta.flip .cta-menu { top: auto; bottom: calc(100% + 8px); }
+  .motion .cta.open .cta-menu { animation: cta-grow 0.55s var(--ease-out) both; }
+  @keyframes cta-grow { from { clip-path: var(--from); opacity: 0.6; } to { clip-path: inset(0 0 0 0 round 16px); opacity: 1; } }
+  .cta.closing .cta-menu { opacity: 0; transform: translateY(-4px); transition: opacity 0.18s, transform 0.18s; }
+  .cta-item { display: grid; grid-template-columns: 42px minmax(0, 1fr) 20px; gap: 12px; align-items: center; width: 100%; padding: 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-decoration: none; font: inherit; cursor: pointer; text-align: left; transition: background 0.2s; }
+  .cta-item:hover, .cta-item:focus-visible { background: var(--surface); outline: none; }
+  .motion .cta.open .cta-item { animation: rise 0.5s var(--ease-out) backwards; animation-delay: 0.12s; }
+  .motion .cta.open .cta-item + .cta-item { animation-delay: 0.2s; }
+  .cta-ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); transition: transform 0.35s var(--ease-spring); }
+  .cta-item + .cta-item .cta-ic { background: var(--flow-soft); color: var(--flow); }
+  .cta-ic svg { width: 22px; height: 22px; }
+  .cta-item:hover .cta-ic { transform: scale(1.08) rotate(-4deg); }
+  .cta-text { display: grid; gap: 1px; min-width: 0; }
+  .cta-text b { font-weight: 700; font-size: 1rem; }
+  .cta-text small { color: var(--ink-2); font-size: 0.86rem; line-height: 1.35; }
+  .cta-item .go { width: 18px; height: 18px; color: var(--ink-3); transition: transform 0.3s var(--ease-out), color 0.2s; }
+  .cta-item:hover .go, .cta-item:focus-visible .go { transform: translateX(4px); color: var(--ink); }
+
+  /* ---- For individuals: Pledge for Chrome, in a screen over the page ---- */
+  html:has(dialog.ind[open]) { overflow: hidden; }
+  .ind { width: min(1120px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 32px); padding: 0; border: 0; border-radius: 24px; background: #fff; color: var(--ink); overflow: hidden; }
+  .ind::backdrop { background: rgba(14, 22, 30, 0.55); backdrop-filter: blur(6px); }
+  .motion .ind[open] { animation: ind-in 0.6s var(--ease-spring); }
+  @keyframes ind-in { from { opacity: 0; transform: translateY(28px) scale(0.96); } }
+  .ind.closing { opacity: 0; transform: translateY(16px) scale(0.98); transition: opacity 0.22s ease-in, transform 0.22s ease-in; }
+  .ind.closing::backdrop { opacity: 0; transition: opacity 0.22s; }
+  .ind-scroll { max-height: calc(100vh - 32px); overflow: auto; overscroll-behavior: contain; padding: 56px 56px 32px; }
+  .ind-close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--ink-2); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: transform 0.35s var(--ease-spring), background 0.2s, color 0.2s; }
+  .ind-close:hover { transform: rotate(90deg); background: var(--surface); color: var(--ink); }
+  .ind-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 44px; align-items: center; }
+  .ind-copy { display: grid; gap: 18px; }
+  .ind-copy h2 { font-size: clamp(2rem, 3.8vw, 2.9rem); line-height: 1.08; }
+  .ind-copy h2 em { font-style: normal; color: #0b5e54; }
+  .ind-benefits { list-style: none; margin: 44px 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .ind-benefits li { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; display: grid; gap: 8px; align-content: start; transition: transform 0.35s var(--ease-out), border-color 0.35s; }
+  .ind-benefits li:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+  .ind-benefits .ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); }
+  .ind-benefits .ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .motion .ind-benefits.in .ic { animation: xt-pop 0.6s var(--ease-spring) backwards; animation-delay: calc(0.3s + var(--i, 0) * 0.1s); }
+  .ind-benefits p { color: var(--ink-2); font-size: 0.95rem; }
+  .ind-install { border-top: 1px solid var(--line); padding-top: 36px; display: grid; gap: 20px; }
+  .ind-install .block-head { margin-bottom: 0; }
+  .ind-notes { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); }
 
   /* Cards that slide in from the side must not scroll the page sideways. */
   main { overflow-x: clip; }
@@ -264,9 +315,16 @@
     .live-card { left: 16px; right: 16px; }
     .steps { grid-template-columns: 1fr; max-width: 560px; }
     .scale-glow { top: 30%; }
+    .ind-hero, .ind-benefits { grid-template-columns: 1fr; }
+    .ind-hero { gap: 28px; }
+    .ind-scroll { padding: 56px 28px 28px; }
   }
   @media (max-width: 620px) {
     .hero { padding-block: 32px 48px; }
+    .ind { width: calc(100vw - 16px); max-height: calc(100vh - 16px); border-radius: 20px; }
+    .ind-scroll { max-height: calc(100vh - 16px); padding: 52px 16px 20px; }
+    .ind-close { top: 10px; right: 10px; }
+    .ind-benefits { margin: 32px 0; }
     .rot-meta { align-items: flex-start; }
     .rot-bars { margin-top: 9px; }
     .rot-who > span { white-space: normal; }
@@ -305,7 +363,13 @@
     <nav class="nav-links" aria-label="Main">
       <a href="#scale">The scale</a>
       <a href="#how">How it works</a>
-      <a class="btn btn-primary btn-sm" href="app.html">See your AI spend</a>
+      <div class="cta right" data-cta>
+        <button class="btn btn-primary btn-sm cta-btn" type="button" aria-haspopup="menu" aria-expanded="false">Start giving<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="cta-menu" role="menu" hidden>
+          <a class="cta-item" role="menuitem" href="app.html"><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6.5A1.5 1.5 0 0 1 5.5 5H13v15M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M3 20h18M7.5 9h2M7.5 12.5h2M7.5 16h2M16 13.5h1M16 16.5h1"/></svg></span><span class="cta-text"><b>For enterprise</b><small>See your team&rsquo;s AI spend and give a share each month</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <button class="cta-item" role="menuitem" type="button" data-individuals><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 8.5h18M6 6.5h.01M8.5 6.5h.01"/><path d="M12 17s-3-1.9-3-4.3a1.7 1.7 0 0 1 3-1.1 1.7 1.7 0 0 1 3 1.1c0 2.4-3 4.3-3 4.3z"/></svg></span><span class="cta-text"><b>For individuals</b><small>Round up your AI credit top-ups in Chrome</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
     </nav>
   </div>
 </header>
@@ -336,7 +400,13 @@
         </div>
         <p class="lede" data-reveal style="--d:160ms">Connect your company card and choose a share of your AI spend. Pledge turns it into one gift a month for a different charity each month, with every dollar on the record.</p>
         <div class="hero-cta" data-reveal style="--d:250ms">
-          <a class="btn btn-primary btn-lg" href="app.html">See your AI spend</a>
+          <div class="cta" data-cta>
+        <button class="btn btn-primary btn-lg cta-btn" type="button" aria-haspopup="menu" aria-expanded="false">Start giving<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="cta-menu" role="menu" hidden>
+          <a class="cta-item" role="menuitem" href="app.html"><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6.5A1.5 1.5 0 0 1 5.5 5H13v15M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M3 20h18M7.5 9h2M7.5 12.5h2M7.5 16h2M16 13.5h1M16 16.5h1"/></svg></span><span class="cta-text"><b>For enterprise</b><small>See your team&rsquo;s AI spend and give a share each month</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <button class="cta-item" role="menuitem" type="button" data-individuals><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 8.5h18M6 6.5h.01M8.5 6.5h.01"/><path d="M12 17s-3-1.9-3-4.3a1.7 1.7 0 0 1 3-1.1 1.7 1.7 0 0 1 3 1.1c0 2.4-3 4.3-3 4.3z"/></svg></span><span class="cta-text"><b>For individuals</b><small>Round up your AI credit top-ups in Chrome</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
           <a class="btn btn-secondary btn-lg" href="#how">How it works</a>
         </div>
       </div>
@@ -474,10 +544,48 @@
       <span class="eyebrow" style="color:#9fe3d8;">Made in Burnaby, given in Vancouver</span>
       <h2 id="closing-title">See what 1% of your AI spend could do</h2>
       <p>It takes about a minute, and your statement never leaves your device.</p>
-      <a class="btn btn-light btn-lg" href="app.html">See your AI spend</a>
+      <div class="cta up" data-cta>
+        <button class="btn btn-light btn-lg cta-btn" type="button" aria-haspopup="menu" aria-expanded="false">Start giving<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="cta-menu" role="menu" hidden>
+          <a class="cta-item" role="menuitem" href="app.html"><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6.5A1.5 1.5 0 0 1 5.5 5H13v15M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M3 20h18M7.5 9h2M7.5 12.5h2M7.5 16h2M16 13.5h1M16 16.5h1"/></svg></span><span class="cta-text"><b>For enterprise</b><small>See your team&rsquo;s AI spend and give a share each month</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <button class="cta-item" role="menuitem" type="button" data-individuals><span class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 8.5h18M6 6.5h.01M8.5 6.5h.01"/><path d="M12 17s-3-1.9-3-4.3a1.7 1.7 0 0 1 3-1.1 1.7 1.7 0 0 1 3 1.1c0 2.4-3 4.3-3 4.3z"/></svg></span><span class="cta-text"><b>For individuals</b><small>Round up your AI credit top-ups in Chrome</small></span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
     </div>
   </section>
 </main>
+
+<dialog class="ind" id="individuals" aria-labelledby="ind-title">
+  <button class="ind-close" type="button" aria-label="Close">&times;</button>
+  <div class="ind-scroll">
+    <section class="ind-hero">
+      <div class="ind-copy" data-reveal-group>
+        <span class="eyebrow">Pledge for Chrome &middot; For individuals</span>
+        <h2 id="ind-title">Round up your AI credits. <em>Give the spare change.</em></h2>
+        <p class="lede">When you top up OpenRouter credits, Pledge offers to round your total up to the next Canadian dollar. The change adds up, and you give it in one go when it reaches C$5.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="/roundups/extension.zip" download>Download for Chrome</a>
+          <a class="btn btn-secondary btn-lg" href="#ind-install" data-scroll>How to install</a>
+        </div>
+      </div>
+      <div id="ind-demo" data-reveal="zoom"></div>
+    </section>
+    <ul class="ind-benefits" data-reveal-group>
+      <li><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 11.5V6a1.5 1.5 0 0 1 3 0v4.5M12 10V4.5a1.5 1.5 0 0 1 3 0V10M15 10V6.5a1.5 1.5 0 0 1 3 0v6a6.5 6.5 0 0 1-6.5 6.5h-.6a6 6 0 0 1-4.6-2.1L4 13.6a1.5 1.5 0 0 1 2.2-2l2.8 2.4"/></svg></span><h4>One tap at checkout</h4><p>The offer appears right in OpenRouter&rsquo;s Add Credits window. Say yes, or carry on.</p></li>
+      <li><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><h4>Nothing charged until C$5</h4><p>Each yes is saved as a pledge. When they reach C$5, you confirm one payment through Stripe.</p></li>
+      <li><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 7.9-7 9.5-4-1.6-7-5.1-7-9.5V6z"/><path d="M9 12l2 2 4-4"/></svg></span><h4>Never sees your card</h4><p>No bank connection and no API keys. Pledge only reads the checkout&rsquo;s total.</p></li>
+    </ul>
+    <section class="ind-install" id="ind-install">
+      <div class="block-head" data-reveal><span class="eyebrow">Install</span><h3>Set up in about a minute</h3></div>
+      <div id="ind-steps"></div>
+    </section>
+    <ol class="notes ind-notes">
+      <li>Desktop Chrome required. Pledge for Chrome works on OpenRouter credit checkout only for now.</li>
+      <li>Sandbox prototype: payments run in Stripe&rsquo;s test mode. No real donation is made and no tax receipt is issued.</li>
+      <li>Intended charity: VGH &amp; UBC Hospital Foundation. This prototype is not affiliated with the Foundation.</li>
+    </ol>
+  </div>
+</dialog>
 
 <footer class="footer">
   <div class="wrap">
@@ -500,6 +608,8 @@
   </div>
 </footer>
 
+<script src="assets/piggy.js"></script>
+<script src="assets/extension.js"></script>
 <script src="assets/landing.js"></script>
 <script src="assets/chart.js"></script>
 </body>

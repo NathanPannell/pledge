@@ -28,6 +28,11 @@ chrome.runtime.onMessage.addListener((message,sender,send)=>{
       return call('/api/quote',{...message.purchase,purchase_key:saved.purchaseKey});
     }
     if(message.action==='pledge')return call('/api/pledge',{quote_id:message.quoteId});
+    // Sandbox testing only: tops pending round-ups up to C$5 to try Stripe checkout.
+    if(message.action==='fill'){
+      const before=(await call('/api/state')).pending_cents;
+      return{...await call('/api/demo/fill',{run_id:crypto.randomUUID()}),before_cents:before};
+    }
     if(message.action==='checkout'){
       const x=await call('/api/checkout',{});if(x.url)await chrome.tabs.create({url:x.url});return x;
     }

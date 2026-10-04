@@ -1,0 +1,122 @@
+/* Pledge for Chrome: install steps, connection codes and the round-up demo.
+   Shared by the landing page's "For individuals" screen and /roundups/.
+   Builds on pledge.css tokens; no inline styles (/roundups/ forbids them). */
+
+/* ---- Round-up demo: a credits checkout, and Pledge offering to round it up ---- */
+.xt-demo { position: relative; min-height: 450px; border-radius: 22px; background: linear-gradient(160deg, #eef4f8, #e3f2ef); overflow: hidden; isolation: isolate; }
+.xt-demo::before { content: ""; position: absolute; inset: -40%; background: radial-gradient(circle at 30% 30%, rgba(95, 214, 196, 0.35), transparent 45%), radial-gradient(circle at 75% 70%, rgba(47, 111, 208, 0.18), transparent 50%); z-index: -1; }
+.motion .xt-demo::before { animation: xt-drift 14s ease-in-out infinite alternate; }
+@keyframes xt-drift { to { transform: translate(6%, -4%) rotate(8deg); } }
+
+/* The checkout sits top-left and the panel bottom-right, overlapping only below "Total due". */
+.xt-checkout { position: absolute; left: 26px; top: 26px; width: min(280px, calc(100% - 52px)); background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: grid; gap: 8px; font-size: 0.9rem; }
+.xt-checkout h5 { margin: 0 0 4px; font-size: 1rem; font-weight: 700; }
+.xt-line { display: flex; justify-content: space-between; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.xt-line.total { padding-top: 10px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 750; }
+.xt-buy { margin-top: 4px; height: 38px; border-radius: 9px; background: var(--surface-2); }
+
+/* The Pledge panel, as it appears over a real checkout. */
+.xt-panel { position: absolute; right: 22px; bottom: 22px; width: min(290px, calc(100% - 44px)); background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px 18px; display: grid; gap: 10px; box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(24px) scale(0.96); transform-origin: bottom right; }
+.xt-demo.offer .xt-panel, .xt-demo.saved .xt-panel { opacity: 1; transform: none; transition: opacity 0.4s, transform 0.65s var(--ease-spring); }
+.xt-demo.leave .xt-panel { opacity: 0; transform: translateY(16px) scale(0.97); transition: opacity 0.4s, transform 0.4s ease-in; }
+.xt-top { display: flex; align-items: center; justify-content: space-between; }
+.xt-top .brand { font-size: 0.95rem; gap: 7px; }
+.xt-top .brand svg { width: 20px; height: 20px; }
+.xt-x { color: var(--ink-3); font-size: 1.1rem; line-height: 1; }
+.xt-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--flow); }
+.xt-amounts { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.xt-was { color: var(--ink-3); font-size: 0.9rem; text-decoration: line-through; text-decoration-color: var(--line-strong); font-variant-numeric: tabular-nums; }
+.xt-now { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; }
+.xt-chip { padding: 2px 9px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-weight: 750; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.motion .xt-demo.offer .xt-chip { animation: xt-pop 0.6s 0.9s var(--ease-spring) backwards; }
+@keyframes xt-pop { from { opacity: 0; transform: scale(0.5); } }
+.xt-note { color: var(--ink-2); font-size: 0.82rem; line-height: 1.45; }
+.xt-yes { height: 40px; border-radius: 10px; background: var(--flow); color: #fff; font-weight: 700; font-size: 0.88rem; display: grid; place-items: center; }
+.xt-demo.press .xt-yes { animation: xt-press 0.45s var(--ease-out); }
+@keyframes xt-press { 40% { transform: scale(0.95); background: #0b6a5f; } }
+.xt-no { text-align: center; color: var(--ink-3); font-size: 0.8rem; }
+
+/* Offer and saved states swap in place. */
+.xt-state { display: grid; gap: 10px; }
+.xt-saved { display: none; }
+.xt-demo.saved .xt-offer { display: none; }
+.xt-demo.saved .xt-saved { display: grid; }
+.motion .xt-demo.saved .xt-saved > * { animation: rise 0.55s var(--ease-out) backwards; }
+.motion .xt-demo.saved .xt-saved > :nth-child(2) { animation-delay: 0.08s; }
+.motion .xt-demo.saved .xt-saved > :nth-child(3) { animation-delay: 0.16s; }
+/* The piggy bank the round-up's coins drop into (piggy.js draws it). */
+.xt-pig { display: inline-flex; justify-self: start; padding-top: 10px; }
+.motion .xt-demo.saved .xt-pig { animation: xt-pop 0.55s var(--ease-spring) backwards; }
+.xt-saved h5 { margin: 0; font-size: 1.15rem; font-weight: 750; }
+
+/* Pending round-ups filling toward C$5. */
+.xt-jar { display: grid; gap: 6px; }
+.xt-jar-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.xt-jar-row b { color: var(--ink); }
+.xt-bar { position: relative; height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.xt-bar i { position: absolute; inset: 0 auto 0 0; width: calc(var(--p, 0) * 100%); border-radius: 999px; background: linear-gradient(90deg, #1fa392, var(--flow)); transition: width 1s var(--ease-out); }
+.xt-bar.full i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%); transform: translateX(-100%); }
+.motion .xt-bar.full i::after { animation: xt-sheen 1.6s 0.6s ease-in-out infinite; }
+@keyframes xt-sheen { to { transform: translateX(100%); } }
+
+/* ---- Install steps: a timeline that draws itself as the steps arrive ---- */
+.xt-steps { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.xt-steps::before { content: ""; position: absolute; left: 23px; top: 30px; bottom: 30px; width: 2px; border-radius: 2px; background: linear-gradient(var(--flow), #9fd8cf); transform-origin: top; }
+.motion .xt-steps:not(.in)::before { transform: scaleY(0); }
+.motion .xt-steps.in::before { transition: transform 1.4s 0.2s var(--ease-out); }
+.xt-step { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) 72px; gap: 16px; align-items: start; padding: 16px 18px 16px 0; }
+.xt-num { position: relative; z-index: 1; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 2px solid var(--flow); color: var(--flow); font-weight: 800; font-size: 1.05rem; transition: background 0.4s, color 0.4s; }
+.xt-step.done .xt-num { background: var(--flow); color: #fff; }
+.motion .xt-steps.in .xt-num { animation: xt-pop 0.55s var(--ease-spring) backwards; animation-delay: calc(0.25s + var(--i, 0) * 0.12s); }
+.xt-body { display: grid; gap: 6px; min-width: 0; padding-top: 4px; }
+.xt-body h4 { font-size: 1.08rem; }
+.xt-body p { color: var(--ink-2); font-size: 0.95rem; line-height: 1.55; }
+.xt-body code { font-family: var(--mono); font-size: 0.88em; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+.xt-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.xt-meta { color: var(--ink-3); font-size: 0.85rem; }
+
+/* Little pictures that act out each step. */
+.xt-pic { width: 72px; height: 56px; border-radius: 14px; background: var(--flow-soft); color: var(--flow); display: grid; place-items: center; }
+.xt-pic svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.xt-pic svg * { transform-box: fill-box; transform-origin: center; }
+.motion .xt-steps.in .xt-arrow { animation: xt-drop 1.6s ease-in-out 0.8s infinite; }
+@keyframes xt-drop { 0%, 100% { transform: translateY(-3px); opacity: 0.6; } 50% { transform: translateY(3px); opacity: 1; } }
+.xt-toggle-knob { transition: transform 0.5s var(--ease-spring); }
+.motion .xt-steps.in .xt-toggle-knob { animation: xt-flip 3s ease-in-out 1s infinite; }
+@keyframes xt-flip { 0%, 15% { transform: translateX(0); } 30%, 85% { transform: translateX(10px); } 100% { transform: translateX(0); } }
+.motion .xt-steps.in .xt-toggle-track { animation: xt-track 3s ease-in-out 1s infinite; }
+@keyframes xt-track { 0%, 15% { fill: transparent; } 30%, 85% { fill: rgba(14, 127, 114, 0.18); } 100% { fill: transparent; } }
+.motion .xt-steps.in .xt-folder-up { animation: xt-drop 1.8s ease-in-out 1.2s infinite reverse; }
+.motion .xt-steps.in .xt-link-a { animation: xt-link 2.4s ease-in-out 1.4s infinite; }
+@keyframes xt-link { 0%, 100% { transform: translate(-2px, 2px); } 50% { transform: translate(0, 0); } }
+.motion .xt-steps.in .xt-coin { animation: xt-coin 2.2s ease-in-out 1.6s infinite; }
+@keyframes xt-coin { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+/* ---- One-time connection code ---- */
+.xt-pair { display: grid; gap: 10px; margin-top: 6px; }
+.xt-code-wrap { display: grid; gap: 10px; }
+.xt-code { position: relative; display: block; overflow: hidden; padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--flow); background: var(--flow-soft); color: #0b4d45; font: 600 0.86rem/1.5 var(--mono); overflow-wrap: anywhere; user-select: all; }
+.xt-code::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.8) 50%, transparent 80%); transform: translateX(-110%); pointer-events: none; }
+.motion .xt-code.fresh { animation: xt-code-in 0.6s var(--ease-spring); }
+.motion .xt-code.fresh::after { animation: xt-sheen 1.1s 0.2s ease-in-out; }
+@keyframes xt-code-in { from { opacity: 0; transform: scale(0.96); } }
+.xt-code-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.xt-timer { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.xt-timer svg { width: 22px; height: 22px; transform: rotate(-90deg); }
+.xt-timer circle { fill: none; stroke-width: 3; }
+.xt-timer .bg { stroke: var(--surface-2); }
+.xt-timer .fg { stroke: var(--flow); stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: xt-ring var(--ttl, 300s) linear forwards; }
+@keyframes xt-ring { to { stroke-dashoffset: 1; } }
+.xt-copied { animation: xt-pop 0.5s var(--ease-spring); }
+.xt-error { color: var(--danger); font-size: 0.9rem; }
+
+@media (max-width: 620px) {
+  .xt-step { grid-template-columns: 48px minmax(0, 1fr); padding-right: 0; }
+  .xt-pic { display: none; }
+  .xt-demo { min-height: 470px; }
+  .xt-checkout { left: 16px; top: 18px; }
+  .xt-panel { right: 14px; bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xt-panel { opacity: 1; transform: none; }
+}

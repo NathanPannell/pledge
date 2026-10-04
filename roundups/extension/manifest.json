@@ -1,8 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Spare \u00b7 CAD round-ups",
-  "version": "0.1.1",
-  "description": "A small CAD round-up prompt at OpenRouter credit checkout. Sandbox prototype; no automatic charges.",
+  "name": "Pledge · Round-ups for charity",
+  "version": "0.2.0",
+  "description": "Round up OpenRouter credit top-ups for charity. Sandbox prototype; no automatic charges.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
     "storage"
   ],
@@ -24,7 +30,11 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Spare"
+    "default_title": "Pledge",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "content_scripts": [
     {
@@ -33,6 +43,7 @@
       ],
       "js": [
         "detector.js",
+        "piggy.js",
         "content.js"
       ],
       "run_at": "document_idle"

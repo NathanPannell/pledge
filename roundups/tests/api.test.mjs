@@ -9,3 +9,17 @@ test('payment validation rejects wrong CAD amounts and unpaid sessions',async()=
 test('unsigned or stale webhook events cannot clear pledges',async()=>{const env=environment();env.STRIPE_WEBHOOK_SECRET='whsec_test';const r=await worker.fetch(new Request('https://spare.test/api/webhook',{method:'POST',headers:{'stripe-signature':'t=1,v1='+'0'.repeat(64)},body:'{}'}),env);assert.equal(r.status,400);env.DB.close();});
 
 test('disconnect revokes the device token without changing its pledges',async()=>{const env=environment();const a=await call(env,'/api/state');const q=await call(env,'/api/quote',{provider:'OpenRouter',cad_total:'29.85',purchase_key:'revoke-test'},a.cookie);await call(env,'/api/pledge',{quote_id:q.data.id},a.cookie);const code=(await call(env,'/api/pair/code',{},a.cookie)).data.code;const d=await call(env,'/api/pair/redeem',{code});const headers={Authorization:`Bearer ${d.data.token}`,'Content-Type':'application/json'};const r=await worker.fetch(new Request('https://spare.test/api/device/revoke',{method:'POST',headers,body:'{}'}),env);assert.equal(r.status,200);assert.equal((await worker.fetch(new Request('https://spare.test/api/state',{headers}),env)).status,401);assert.equal((await call(env,'/api/state',null,a.cookie)).data.pending_cents,15);env.DB.close();});
+
+test('the sandbox fill tops pending round-ups up to C$5 with valid round-ups',async()=>{
+  for(const start of [0,'29.71','32.95']){
+    const env=environment();const a=await call(env,'/api/state');
+    if(start){const q=await call(env,'/api/quote',{provider:'OpenRouter',cad_total:start,purchase_key:'fill-start'},a.cookie);await call(env,'/api/pledge',{quote_id:q.data.id},a.cookie);}
+    const before=(await call(env,'/api/state',null,a.cookie)).data.pending_cents;
+    const filled=await call(env,'/api/demo/fill',{run_id:crypto.randomUUID()},a.cookie);
+    assert.equal(filled.status,200);
+    assert.equal(filled.data.pending_cents,before>485?before+15:500,`from ${before}`);
+    const again=await call(env,'/api/demo/fill',{run_id:crypto.randomUUID()},a.cookie);
+    assert.equal(again.data.pending_cents,filled.data.pending_cents);
+    env.DB.close();
+  }
+});

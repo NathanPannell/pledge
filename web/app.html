@@ -73,17 +73,17 @@
   .tape::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(transparent, var(--surface)); pointer-events: none; }
   /* A soft teal band sweeps down the statement while it's being read. */
   .tape::before { content: ""; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 64px; background: linear-gradient(180deg, rgba(31, 163, 146, 0), rgba(31, 163, 146, 0.14) 70%, rgba(31, 163, 146, 0.5) 100%); border-bottom: 1px solid rgba(31, 163, 146, 0.6); pointer-events: none; opacity: 0; }
-  .motion .scan:not(.done) .tape::before { opacity: 1; animation: sweep 1.5s ease-in-out infinite; }
+  .motion .scan:not(.done) .tape::before { opacity: 1; animation: sweep 2.6s ease-in-out infinite; }
   @keyframes sweep { from { transform: translateY(-64px); } to { transform: translateY(380px); } }
-  .row { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: 0.88rem; animation: drop-in 0.22s ease-out; }
+  .row { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: 0.88rem; animation: drop-in 0.42s var(--ease-out); }
   .row .d { color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .row .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .a { font-variant-numeric: tabular-nums; font-weight: 600; }
   .row.skip { opacity: 0.45; }
   .row.skip .t { text-decoration: line-through; text-decoration-color: var(--line-strong); }
-  .row.ai { border-color: var(--flow); background: var(--flow-soft); box-shadow: inset 3px 0 0 var(--flow); animation: drop-in 0.22s ease-out, caught 0.9s ease-out; }
+  .row.ai { border-color: var(--flow); background: var(--flow-soft); box-shadow: inset 3px 0 0 var(--flow); animation: drop-in 0.42s var(--ease-out), caught 1.1s ease-out; }
   .row .chip { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--flow); color: #fff; font-size: 0.72rem; font-weight: 700; vertical-align: 1px; animation: chip-pop 0.45s 0.08s var(--ease-spring) backwards; }
-  @keyframes drop-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes drop-in { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes caught { from { box-shadow: inset 3px 0 0 var(--flow), 0 0 0 0 rgba(14, 127, 114, 0.45); } to { box-shadow: inset 3px 0 0 var(--flow), 0 0 0 10px rgba(14, 127, 114, 0); } }
   @keyframes chip-pop { from { transform: scale(0); } }
   .found { position: relative; display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: var(--r); border: 1px solid var(--line); transition: border-color 0.4s, box-shadow 0.4s; }
@@ -156,6 +156,9 @@
   .motion #home.in:not(.settled) .impact img { animation: settle 1.5s var(--ease-out) backwards; }
   @keyframes settle { from { transform: scale(1.12); } }
   .impact .body { padding: 28px; display: grid; gap: 14px; }
+  /* The giving piggy bank (piggy.js) beside a total; gifts drop in as coins. */
+  .bank { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 10px; }
+  .pig { display: inline-flex; }
   .impact .to { color: var(--ink-2); font-size: 1.02rem; }
   .impact .to b { color: var(--ink); }
   .community { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: var(--surface); color: var(--ink-2); font-size: 0.93rem; }
@@ -293,11 +296,11 @@
 
     <!-- 1b. The scan -->
     <div class="panel scan" id="step-scan" hidden aria-live="polite">
-      <div class="scan-head"><span class="pulse" aria-hidden="true"></span><span>Reading <b id="scan-file">statement.csv</b> on this device</span></div>
+      <div class="scan-head"><span class="pulse" aria-hidden="true"></span><span>Reading <span id="scan-month-wrap"><b id="scan-month">September</b> in </span><b id="scan-file">statement.csv</b> on this device</span></div>
       <div class="scan-grid">
         <div class="tape" id="tape" aria-hidden="true"></div>
         <div class="found">
-          <span class="eyebrow">AI spend found</span>
+          <span class="eyebrow" id="found-label">AI spend found</span>
           <span class="big-money num" id="found-total">$0</span>
           <span class="muted small" id="found-count">0 AI charges</span>
           <div class="tools" id="found-tools"></div>
@@ -354,7 +357,7 @@
       <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=600&q=80" alt="A smiling doctor talking with a patient"></figure>
       <div class="body">
         <span class="eyebrow">Your impact</span>
-        <span class="big-money num" id="given-amt">$0</span>
+        <div class="bank"><span class="big-money num" id="given-amt">$0</span><span class="pig" id="given-pig"></span></div>
         <p class="to" id="given-text">given so far.</p>
         <p class="community" id="community"></p>
         <div class="gift-list" id="gifts"></div>
@@ -443,7 +446,7 @@
   <figure><img src="https://images.unsplash.com/photo-1631815590058-860e4f83c1e8?auto=format&fit=crop&w=1000&q=80" alt="A health care worker checking a patient&rsquo;s blood pressure"></figure>
   <div class="dlg">
     <span class="eyebrow">Thank you</span>
-    <span class="big-money num" id="t-amt">$0</span>
+    <div class="bank"><span class="big-money num" id="t-amt">$0</span><span class="pig" id="t-pig"></span></div>
     <p class="muted" id="t-text">is on its way.</p>
     <div class="joined" aria-live="polite">
       <div><b id="t-companies">45</b><span>companies giving</span></div>
@@ -491,6 +494,7 @@
 
 <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 <script src="assets/statement.js"></script>
+<script src="assets/piggy.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>
