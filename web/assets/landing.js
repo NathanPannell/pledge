@@ -33,13 +33,13 @@
   const live = $("h-live");
   const pledgedSoFar = (monthlyCents) => Math.round(monthlyCents * monthFraction(new Date()));
   let liveCents = pledgedSoFar(SAMPLE.monthlyCents);
-  M.set(live, liveCents, moneyExact);
+  M.set(live, liveCents, money);
 
   function addToLive(cents) {
     liveCents += cents;
-    M.to(live, liveCents, COUNT_MS, moneyExact);
+    M.to(live, liveCents, COUNT_MS, money);
     M.pop(live, "bump");
-    M.floatDelta(live, "+" + moneyExact(cents));
+    M.floatDelta(live, "+" + money(cents));
   }
 
   function showCommunity(c, ms) {
@@ -80,21 +80,6 @@
 
   // ---- Ledger -------------------------------------------------------------------
 
-  let charitySignature = "";
-  function renderCharities() {
-    const s = JSON.stringify(data.rotation);
-    if (s === charitySignature) return;
-    charitySignature = s;
-    const [now, ...next] = data.rotation;
-    document.querySelectorAll(".charity-now").forEach((el) => { el.textContent = now.name; });
-    $("c-now-month").textContent = `This month · ${monthYear(now.month)}`;
-    $("c-now-name").textContent = now.name;
-    $("c-now-focus").textContent = now.focus;
-    $("c-now-target").textContent = now.target;
-    $("c-upcoming").innerHTML = next.map((c) => `
-      <div class="up"><span class="m">${esc(monthYear(c.month))}</span><h4>${esc(c.name)}</h4><p>${esc(c.focus)}</p><span class="tgt">${esc(c.target)}</span></div>`).join("");
-  }
-
   function renderGifts(fresh) {
     $("gift-list").innerHTML = data.entries.slice(0, 8).map((e) => `
       <div class="gift${fresh.has(keyOf(e)) ? " new" : ""}">
@@ -128,7 +113,7 @@
     if (first || wentDown) {
       // First load, or everything was reset in the giving page: start from this month's pace.
       liveCents = pledgedSoFar(next.community.monthlyCents);
-      M.set(live, liveCents, moneyExact);
+      M.set(live, liveCents, money);
     }
     if (first) setTimeout(() => showCommunity(next.community, 1400), 480);
     else showCommunity(next.community, COUNT_MS);
@@ -140,7 +125,7 @@
       showToast(`<b>${esc(e.company)}</b>&nbsp;just gave&nbsp;<b>${moneyExact(e.amount_cents)}</b>`, true);
       addToLive(fresh.reduce((sum, x) => sum + x.amount_cents, 0));
     }
-    renderCharities();
+    renderRotation();
     renderGifts(new Set(fresh.map(keyOf)));
     if (!first && currentLevel === "today") fill("today", false);
     return true;
@@ -150,6 +135,98 @@
   if ("BroadcastChannel" in window) {
     new BroadcastChannel("pledge").addEventListener("message", () => loadLedger());
   }
+
+  // ---- Hero: the headline and photo rotate through the charities ---------------
+
+  const SLIDE_MS = 6500;
+  const bars = document.querySelector(".rot-bars");
+  const rot = {
+    titles: [...document.querySelectorAll("#rot-title .rot-item")],
+    who: [...document.querySelectorAll(".rot-who > span")],
+    photos: [...document.querySelectorAll("#rot-photos img")],
+    bars: [...bars.querySelectorAll("button")],
+  };
+  let slide = 0;
+  let slideTimer;
+  let titleTimer;
+
+  // Only the ending of the headline changes: the old ending blurs away, then
+  // the new one rises in and is underlined.
+  function swapTitle(prev, next) {
+    clearTimeout(titleTimer);
+    const show = () => {
+      rot.titles.forEach((t, k) => {
+        t.classList.toggle("is-on", k === next);
+        t.setAttribute("aria-hidden", String(k !== next));
+        t.querySelector(".phrase").classList.remove("out", "enter", "drawn");
+      });
+      const phrase = rot.titles[next].querySelector(".phrase");
+      M.pop(phrase, "enter");
+      setTimeout(() => phrase.classList.add("drawn"), M.reduce ? 0 : 450);
+    };
+    if (M.reduce || prev === next) return show();
+    rot.titles[prev].querySelector(".phrase").classList.add("out");
+    titleTimer = setTimeout(show, 340);
+  }
+
+  function scheduleSlide() {
+    clearTimeout(slideTimer);
+    bars.classList.remove("playing");
+    if (M.reduce) return;
+    void bars.offsetWidth;
+    bars.classList.add("playing");
+    slideTimer = setTimeout(() => showSlide(slide + 1), SLIDE_MS);
+  }
+
+  function showSlide(i) {
+    const prev = slide;
+    slide = (i + rot.titles.length) % rot.titles.length;
+    rot.bars.forEach((b, k) => b.setAttribute("aria-current", String(k === slide)));
+    rot.who.forEach((w, k) => w.classList.toggle("is-on", k === slide));
+    rot.photos.forEach((img, k) => {
+      img.classList.toggle("is-on", k === slide);
+      img.setAttribute("aria-hidden", String(k !== slide));
+    });
+    swapTitle(prev, slide);
+    scheduleSlide();
+  }
+
+  rot.bars.forEach((b, k) => b.addEventListener("click", () => showSlide(rot.bars.indexOf(b))));
+
+  // Puts the slides in rotation order, starting with this month's charity.
+  function orderSlides(names) {
+    const rank = rot.titles.map((t) => names.indexOf(t.dataset.charity));
+    if (rank.some((r) => r < 0) || rank.every((r, k) => r === k)) return false;
+    const order = rank.map((r, k) => [r, k]).sort((a, b) => a[0] - b[0]).map(([, k]) => k);
+    for (const key of Object.keys(rot)) {
+      rot[key] = order.map((k) => rot[key][k]);
+      rot[key].forEach((el) => el.parentElement.appendChild(el));
+    }
+    return true;
+  }
+
+  let rotationSignature = "";
+  function renderRotation() {
+    const s = JSON.stringify(data.rotation);
+    if (s === rotationSignature) return;
+    rotationSignature = s;
+    document.querySelectorAll(".charity-now").forEach((el) => { el.textContent = data.rotation[0].name; });
+    if (orderSlides(data.rotation.map((c) => c.name))) {
+      slide = 0;
+      showSlide(0);
+    }
+    const thisYear = data.rotation[0].month.slice(0, 4);
+    rot.who.forEach((w, k) => {
+      const i = data.rotation.findIndex((c) => c.name === rot.titles[k].dataset.charity);
+      if (i < 0) return;
+      const month = data.rotation[i].month;
+      w.querySelector(".when").textContent = i === 0
+        ? "this month"
+        : new Date(month.slice(0, 7) + "-01T00:00:00Z").toLocaleDateString("en-US", month.startsWith(thisYear) ? { month: "long", timeZone: "UTC" } : { month: "long", year: "numeric", timeZone: "UTC" });
+    });
+  }
+
+  scheduleSlide();
 
   // ---- Scale: one team, companies on Pledge, every company ----------------------
 

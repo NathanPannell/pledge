@@ -63,10 +63,14 @@ stop the server and delete `server/data/`.
 
 Open the landing page and the giving page side by side in the same browser.
 
-1. **Landing hero.** Every 14 seconds a recent gift passes over the photo and the
-   "pledged so far this month" total rolls up to include it. Scroll to **The scale**: it
-   steps from one team ($188 a month) to companies on Pledge ($24,500 a month) to every
-   company ($26.7 billion a year), about 7 seconds each, until you pick a step.
+1. **Landing hero.** The headline and photo rotate through the four charities ("help heal
+   people in Vancouver", "help build technology in Africa", and so on). Every 14 seconds
+   a recent gift passes over the photo and "pledged for VGH & UBC Hospital Foundation
+   this month" rolls up to include it.
+   Scroll to **The scale**: the chart draws OpenAI and Anthropic's annualized revenue
+   against all foreign aid and marks Q4 2026, where the lines cross (**Replay** draws it
+   again). Below it, the 1% steps go from one team ($188 a month) to companies on Pledge
+   ($24,500 a month) to every company ($26.7 billion a year).
 2. **Giving page, Find.** Click **Try a sample company**, or drop in
    `samples/harbourline-card-statement.csv`. Watch the statement scan: each transaction
    streams past, AI charges light up, and the AI spend total climbs.
