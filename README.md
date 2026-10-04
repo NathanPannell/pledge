@@ -1,6 +1,6 @@
-# Tributary
+# Pledge
 
-Aid budgets are shrinking. AI budgets aren't. Tributary finds what a company spends on AI,
+Aid budgets are shrinking. AI budgets aren't. Pledge finds what a company spends on AI,
 lets it choose a share (most give 1%), and turns that into one gift a month for a charity,
 with every gift on a public record. Built for UN SDG 17 (Partnerships for the Goals) at
 StormHacks 2026.
@@ -28,7 +28,7 @@ AI charges are matched by merchant descriptor, not merchant category code. MCCs 
 - Each month's gifts go to one charity from a rotation (`server/src/charities.js`):
   October is the StormHacks 2026 cause (VGH & UBC Hospital Foundation), then charities
   whose work matches SDG 17 targets. The rotation is a proposal; each charity must agree.
-- `web/invoice.html?id=N`: gift invoice draft. Payable to the charity, no Tributary fee,
+- `web/invoice.html?id=N`: gift invoice draft. Payable to the charity, no Pledge fee,
   no GST/HST, and the next three charities in the rotation.
 - `web/receipt.html?id=N`: sample official donation receipt with every field the CRA
   requires, watermarked as a sample. The charity issues the real one.
@@ -63,11 +63,13 @@ stop the server and delete `server/data/`.
 
 Open the landing page and the giving page side by side in the same browser.
 
-1. **Landing hero.** The live "pledged so far this month" counter ticks and recent gifts
-   pass over the photo. Scroll to **The scale**: it walks from one team ($188 a month) to
-   Tributary today ($24,500 a month) to every company ($26.7 billion a year).
-2. **Giving page, Find.** Click **Try a sample company**. Watch the statement scan: each
-   transaction streams past, AI charges light up, and the AI spend total climbs.
+1. **Landing hero.** Every 14 seconds a recent gift passes over the photo and the
+   "pledged so far this month" total rolls up to include it. Scroll to **The scale**: it
+   steps from one team ($188 a month) to companies on Pledge ($24,500 a month) to every
+   company ($26.7 billion a year), about 7 seconds each, until you pick a step.
+2. **Giving page, Find.** Click **Try a sample company**, or drop in
+   `samples/harbourline-card-statement.csv`. Watch the statement scan: each transaction
+   streams past, AI charges light up, and the AI spend total climbs.
 3. **Choose.** "Northgate Freight spent $18,822 on AI in September, up 29% since July."
    Drag the dial, then set it back to 1%.
 4. **Give $188.22 for September.** The thank-you counts the gift up, then the community
@@ -77,6 +79,21 @@ Open the landing page and the giving page side by side in the same browser.
    Open the invoice; mark the gift received to show the tax receipt.
 
 Click **Start over** before each take.
+
+## Sample statement
+
+`samples/harbourline-card-statement.csv` is a card statement export for a fictional
+Vancouver studio, July 1 to October 2, 2026: 113 rows in a common bank layout
+(`Transaction Date, Posted Date, Description, Category, Amount`, MM/DD/YYYY dates, card
+payments as negative amounts). It has 10 AI tools mixed in with rent, cloud, travel and
+meals. September AI spend is $11,519.95, so the gift at 1% is $115.20, up 35% since July.
+Drop it on the Find step to show the upload path with a file that isn't built in.
+
+## Motion
+
+`web/assets/motion.js` holds the shared motion: scroll reveals (`data-reveal`,
+`data-reveal-group`, `data-inview`), number tweens, the "+$" chips and the heart burst.
+With `prefers-reduced-motion`, nothing is hidden and every number lands at once.
 
 ## Tests
 

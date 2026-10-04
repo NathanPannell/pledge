@@ -1,4 +1,4 @@
-# Tributary (StormHacks 2026)
+# Pledge (StormHacks 2026)
 
 A company finds its AI spend (card statement, Plaid, or provider cost reports), chooses a
 share on a dial, and gives once a month to a rotating charity. Gifts are invoices payable
@@ -20,13 +20,16 @@ to the charity and listed on a public record. UN SDG 17.
 - `web/` static frontend, no build step.
   - `index.html`, `assets/landing.js` landing page: live hero counter and gift stream,
     scale steps, charity rotation, gift record. Polls `/api/ledger` and listens on the
-    `tributary` BroadcastChannel for gifts made in another tab.
+    `pledge` BroadcastChannel for gifts made in another tab.
   - `app.html`, `assets/app.js` guided Find, Choose, Give flow for a new company (with
     the animated statement scan), then the company home.
   - `assets/statement.js` CSV parsing and AI matching in the browser.
   - `invoice.html`, `receipt.html` gift invoice and sample tax receipt.
-  - `assets/tributary.css` shared design system: light mode, Figtree, SDG 17 navy brand,
-    teal for money going to charity.
+  - `assets/pledge.css` shared design system: light mode, Figtree, SDG 17 navy brand,
+    teal for money going to charity. `assets/pledge-mark.svg` is the logo and favicon.
+  - `assets/motion.js` shared motion, loaded in `<head>`: scroll reveals, number tweens,
+    "+$" chips, heart burst.
+- `samples/` a card statement CSV for demoing the upload path. A web test pins its totals.
 
 ## Conventions
 
@@ -41,5 +44,9 @@ to the charity and listed on a public record. UN SDG 17.
   Choose step and the home dial agree.
 - `COMMUNITY_SAMPLE=off` turns off the 45-company sample. The sample is not real giving;
   never present it as real traction.
+- Motion respects `prefers-reduced-motion`. Styles that hide content until it is revealed
+  only apply under `html.motion`, which motion.js sets when motion is allowed.
+- The landing total stays still between gifts and rolls up over one second as each lands;
+  it never ticks by the cent.
 - Tests: `npm --prefix server test` (mock upstream for Plaid, Anthropic, OpenAI, Stripe),
   `npm --prefix web test`.
