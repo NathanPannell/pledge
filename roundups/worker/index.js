@@ -180,6 +180,23 @@ async function api(request,env){
     }
     await env.DB.batch(statements);return reply(await ledger.state(userId));
   }
+  // Sandbox testing: tops pending round-ups up to C$5 so Stripe checkout can be
+  // tried at once. A round-up is 15 to 99 cents (or 101 to 114), so the gap is
+  // split into even test round-ups of at most 99 cents, each the real round-up
+  // of a made-up CAD total.
+  if(path==='/api/demo/fill'&&method==='POST'){
+    const b=await body(request);if(!/^[a-f0-9-]{36}$/.test(b.run_id||''))fail('Invalid demo request.');
+    const state=await ledger.state(userId),gap=Math.max(15,500-state.pending_cents);
+    if(state.pending_cents>=500)return reply(state);
+    const n=Math.ceil(gap/99),statements=[],t=now();
+    for(let i=0;i<n;i++){
+      const gift=Math.floor(gap/n)+(i<gap%n?1:0),cad=10000-gift,id=`demo:${b.run_id}:fill${i}`;
+      if(roundUp(cad)!==gift)fail('Invalid demo request.');
+      statements.push(ledger.stmt("INSERT INTO quotes(id,user_id,purchase_key,provider,source,cad_cents,gift_cents,fx_label,created_at,expires_at) VALUES(?,?,?,'Demo','entered',?,?,'Test fill to C$5',?,?) ON CONFLICT DO NOTHING",id,userId,id,cad,gift,t,t+1800));
+      statements.push(ledger.stmt('INSERT INTO pledges(id,quote_id,user_id,gift_cents,created_at) VALUES(?,?,?,?,?) ON CONFLICT DO NOTHING',id,id,userId,gift,t));
+    }
+    await env.DB.batch(statements);return reply(await ledger.state(userId));
+  }
   fail('Not found.',404);
 }
 async function webhook(request,env){
