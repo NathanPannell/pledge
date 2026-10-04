@@ -19,7 +19,7 @@ export function createStripe({ secretKey, baseUrl }, fetchImpl = fetch) {
       body: form(params),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error?.message || `Stripe request failed (${res.status})`);
+    if (!res.ok) throw new Error((json?.error?.message || `Stripe request failed (${res.status})`).replace(/\b(?:rk|sk)_(?:test|live)_[^\s'"]+/g, '[redacted key]'));
     return json;
   }
 

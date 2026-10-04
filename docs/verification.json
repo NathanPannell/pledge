@@ -1,0 +1,62 @@
+{
+  "scope": "combined server; isolated local data; live OpenRouter with no provider purchase; Stripe sandbox only",
+  "automated_tests": 55,
+  "frontend_files_changed": 0,
+  "reports": [
+    {
+      "origin": "http://localhost:5185",
+      "company_mutations": true,
+      "checks": [
+        "Original landing page and company CTA load with no extension UI added",
+        "CSV upload, original share dial, Give, thank-you, company home, and landing ledger agree on $115.20",
+        "Original invoice document, manual Mark received, and sample receipt remain functional",
+        "Direct extension installation and one-time pairing UI work without changing the landing page",
+        "Landing and extension setup fit a 390px phone viewport",
+        "No first-party JavaScript page errors"
+      ]
+    },
+    {
+      "origin": "http://localhost:5185",
+      "sandbox_only": true,
+      "checks": [
+        "Concurrent Yes saves one unfunded pledge and reaches CAD5.36",
+        "Stripe cancellation preserves all pending pledges and releases the reservation",
+        "Stripe sandbox verifies CAD5.36 at the new return route; reload does not settle twice"
+      ],
+      "payment": {
+        "currency": "CAD",
+        "amount_cents": 536,
+        "pending_after": 0,
+        "verified": true
+      }
+    },
+    {
+      "provider": "OpenRouter",
+      "live_provider": true,
+      "provider_purchase_submitted": false,
+      "backend": "http://localhost:5185",
+      "extension": "actual MV3 extension; localhost endpoint for isolated E2E",
+      "checks": [
+        "One-time pairing connects the real Chrome extension to the database account",
+        "No round-up appears for the account balance",
+        "Visible final merchant Total due triggers a CAD estimate automatically",
+        "Changing credits updates the final quote including service fees, not just the credit amount",
+        "Native CAD correction honors the 15-cent minimum: C$29.99 rounds to C$31.00",
+        "A whole CAD total removes the unapproved offer",
+        "Yes records only the CAD pledge and immediately offers checkout at C$5",
+        "Spare opens a separate Stripe sandbox tab; OpenRouter Purchase is never pressed",
+        "Stripe verifies the CAD sandbox payment and clears that reserved balance"
+      ],
+      "observed_total": "Total due $10.80",
+      "offer": "spare.\n\u00d7\nAround C$16.00?\n\nAdd C$0.23 to your pending\nround-ups for VGH Foundation.\n\nNothing charged now. Donate when you reach C$5.\nSandbox prototype \u00b7 no real donations.\n\nYes, add C$0.23No thanks\nEstimated CAD \u00b7 change total",
+      "pending_after_yes": 508,
+      "stripe_checkout_opened": true,
+      "final_ledger": {
+        "pending_cents": 0,
+        "paid_cents": 508,
+        "currency": "CAD"
+      },
+      "stripe_test_paid": true
+    }
+  ]
+}

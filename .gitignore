@@ -1,4 +1,16 @@
 node_modules/
 *.log
-.env
+.env*
+!.env.example
+!**/.env.example
 server/data/
+**/.local/
+**/test-results/
+**/dist/
+**/*.sqlite*
+**/*.db*
+roundups/worker/assets.generated.js
+roundups/public/extension.zip
+*.tar.gz
+__pycache__/
+*.pyc

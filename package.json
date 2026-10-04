@@ -1,0 +1,17 @@
+{
+  "name": "pledge",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "devDependencies": { "playwright": "1.63.0" },
+  "scripts": {
+    "build": "node roundups/scripts/build.mjs",
+    "prestart": "npm run build",
+    "start": "node --disable-warning=ExperimentalWarning server/src/main.js",
+    "pretest": "npm run build",
+    "test": "npm --prefix server test && npm --prefix web test && npm --prefix roundups test",
+    "test:browser": "node scripts/browser-e2e.mjs",
+    "test:openrouter": "node scripts/live-openrouter-e2e.mjs",
+    "validate": "node scripts/validate.mjs"
+  }
+}

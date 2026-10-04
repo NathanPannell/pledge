@@ -1,0 +1,19 @@
+{
+  "started": "2026-10-04T02:42:48.927Z",
+  "checks": [
+    "C$29.99 produces C$1.01; one Yes records an unfunded pledge",
+    "Pledges survive reload",
+    "390px mobile layout fits and the C$0.15 boundary works",
+    "C$5.36 threshold opens actual Stripe-hosted sandbox Checkout",
+    "Stripe confirms test payment; server clears exactly C$5.36",
+    "Payment completion survives reload without double settlement"
+  ],
+  "stripe": {
+    "paid": true,
+    "currency": "CAD",
+    "amount_cents": 536,
+    "pending_after": 0,
+    "paid_after": 536
+  },
+  "browser_errors": []
+}

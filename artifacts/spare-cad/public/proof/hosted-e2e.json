@@ -1,0 +1,18 @@
+{
+  "backend": "https://pledge.pauravhp.com",
+  "storage": "isolated service; durable SQLite WAL with synchronous FULL",
+  "checks": [
+    "Public phone UI and hosted account storage respond",
+    "Hosted FX estimate matches the live merchant quote",
+    "Concurrent Yes requests create one hosted pledge",
+    "Actual service restart preserves all pending pledges",
+    "Repeated hosted checkout requests reuse one reservation and Stripe session",
+    "Cancellation return expires the Stripe session and preserves every unpaid pledge",
+    "Public server verifies CAD5.36 sandbox payment; replay cannot double-clear",
+    "Reload preserves the verified paid balance",
+    "Another browser account cannot read this checkout or balance"
+  ],
+  "stripe_test_paid": true,
+  "amount_cents": 536,
+  "currency": "CAD"
+}
