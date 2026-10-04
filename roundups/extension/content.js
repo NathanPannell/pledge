@@ -1,6 +1,7 @@
 (async()=>{
   const send=async(message)=>{const r=await chrome.runtime.sendMessage(message);if(!r?.ok)throw new Error(r?.error||'Pledge is unavailable.');return r.data;};
   const money=c=>`C$${(c/100).toFixed(2)}`;
+  const cents=text=>Math.round(Number(String(text).replace(/[^0-9.]/g,''))*100)||0;
   const GOAL=500; // round-ups are given once they reach C$5
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let context=await send({action:'context',provider:SpareDetector.providerFor(location.href)}).catch(()=>null),detected=null,shown=null,observerTimer=null,host=null,phase=null,offerRevision=0;
@@ -30,7 +31,12 @@
 h2{margin:0;font-size:22px;line-height:1.15;font-weight:750;letter-spacing:-.02em;color:#1d2126}
 .amounts{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .was{color:#868b91;text-decoration:line-through;text-decoration-color:#cfcbc3;font-variant-numeric:tabular-nums}
-.now{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1;color:#0b5e54;font-variant-numeric:tabular-nums}
+.now{display:inline-block;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1;color:#0b5e54;font-variant-numeric:tabular-nums}
+.amounts.tick .now,.amounts.tick .chip{animation:tick .45s ${SPRING}}
+@keyframes tick{40%{transform:scale(1.07)}}
+.fx{font-size:12.5px;color:#868b91;font-variant-numeric:tabular-nums}
+.test{border:0;background:none;padding:0;margin-left:2px;font:inherit;font-size:11.5px;color:#868b91;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
+.test:hover{color:#19486a}
 .chip{padding:2px 9px;border-radius:999px;background:#e3f2ef;color:#0b5e54;font-weight:750;font-size:12.5px;animation:pop .6s .7s ${SPRING} backwards}
 @keyframes pop{from{opacity:0;transform:scale(.5)}}
 p{margin:0;color:#555b62;font-size:13.5px;line-height:1.5}
@@ -95,10 +101,13 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
   function error(e){const p=document.createElement('p');p.className='error';p.setAttribute('role','alert');p.textContent=e.message;panel().querySelector('.body').append(p);}
 
   // Rolls a money figure from one value to another.
+  // A newer tween on the same element takes over from an older one.
+  const tweens=new WeakMap();
   function tween(el,from,to,ms,delay=0){
+    const token={};tweens.set(el,token);const mine=()=>tweens.get(el)===token;
     el.textContent=money(from);
     if(reduce||from===to){el.textContent=money(to);return;}
-    setTimeout(()=>{const start=performance.now();const step=now=>{const p=Math.min(1,(now-start)/ms);el.textContent=money(Math.round(from+(to-from)*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step);};requestAnimationFrame(step);setTimeout(()=>{el.textContent=money(to);},ms+150);},delay);
+    setTimeout(()=>{if(!mine())return;const start=performance.now();const step=now=>{if(!mine())return;const p=Math.min(1,(now-start)/ms);el.textContent=money(Math.round(from+(to-from)*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step);};requestAnimationFrame(step);setTimeout(()=>{if(mine())el.textContent=money(to);},ms+150);},delay);
   }
   function fill(bar,from,to){
     bar.style.setProperty('--p',String(Math.min(1,from/GOAL)));
@@ -127,20 +136,49 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
     }
   }
 
+  // A subtle sandbox-only control that tops round-ups up to C$5, to try Stripe.
+  const TEST='<button class="test" type="button">Test: fill to C$5</button>';
+  function wireTest(){
+    const b=panel().querySelector('.test');if(!b)return;
+    b.onclick=async()=>{b.disabled=true;try{const x=await send({action:'fill'});ready(x.pending_cents,Math.max(0,x.pending_cents-x.before_cents));}catch(e){b.disabled=false;error(e);}};
+  }
+
+  // The offer follows the checkout: when its total changes, the amounts update
+  // in place rather than the panel starting over.
   async function offer(purchase){
-    const revision=++offerRevision;phase='offer';if(host)panel().querySelector('.yes')?.setAttribute('disabled','');
+    const revision=++offerRevision,live=phase==='offer'&&!!host&&!!panel().querySelector('.now');
+    phase='offer';if(host)panel().querySelector('.yes')?.setAttribute('disabled','');
     let q;try{q=await send({action:'quote',purchase});}catch(e){if(/connect once/.test(e.message))return;throw e;}
     if(revision!==offerRevision)return;
     if(!q.gift_cents){close();return;}
     const estimated=q.source==='estimated';
-    shell(`<span class="eyebrow">Round up for VGH Foundation</span>
-      <div class="amounts"><span class="was">${money(q.cad_cents)}</span><span class="now">${money(q.cad_cents)}</span><span class="chip">+${money(q.gift_cents)}</span></div>
-      <p>${estimated?'Around':'Make it'} ${money(q.total_cents)}? Add <strong>${money(q.gift_cents)}</strong> to your pending round-ups. Nothing is charged now; you give once they reach C$5.</p>
-      <button class="yes">Yes, add ${money(q.gift_cents)}</button>
-      <button class="no">No thanks</button>
-      <details><summary>${estimated?'Estimated CAD · change total':'Change CAD total'}</summary><div class="fix"><p>${money(q.cad_cents)} ${estimated?'estimated':'entered'} total. ${estimated?'Assumes a 2.5% card FX fee; your actual bank charge can differ.':''}</p><label>Actual CAD total<input inputmode="decimal" value="${(q.cad_cents/100).toFixed(2)}"></label><button class="update">Update amount</button></div></details>
-      <p class="small">Sandbox prototype · no real donations.</p>`);
-    tween(panel().querySelector('.now'),q.cad_cents,q.total_cents,800,300);
+    if(!live){
+      shell(`<span class="eyebrow">Round up for VGH Foundation</span>
+        <div class="amounts"><span class="was"></span><span class="now">${money(q.cad_cents)}</span><span class="chip"></span></div>
+        <p class="fx"></p>
+        <p class="ask"></p>
+        <button class="yes"></button>
+        <button class="no">No thanks</button>
+        <details><summary></summary><div class="fix"><p class="fixnote"></p><label>Actual CAD total<input inputmode="decimal"></label><button class="update">Update amount</button></div></details>
+        <p class="small">Sandbox prototype · no real donations. ${TEST}</p>`);
+      tween(panel().querySelector('.now'),q.cad_cents,q.total_cents,800,300);
+      wireTest();
+    }else{
+      const now=panel().querySelector('.now'),amounts=panel().querySelector('.amounts');
+      tween(now,cents(now.textContent),q.total_cents,450);
+      amounts.classList.remove('tick');void amounts.offsetWidth;amounts.classList.add('tick');
+    }
+    const p=panel();
+    p.querySelector('.was').textContent=money(q.cad_cents);
+    p.querySelector('.chip').textContent='+'+money(q.gift_cents);
+    p.querySelector('.fx').textContent=purchase.usd_total?`US$${purchase.usd_total} total due ≈ ${money(q.cad_cents)}`:'';
+    p.querySelector('.fx').hidden=!purchase.usd_total;
+    p.querySelector('.ask').innerHTML=`${estimated?'Around':'Make it'} ${money(q.total_cents)}? Add <strong>${money(q.gift_cents)}</strong> to your pending round-ups. Nothing is charged now; you give once they reach C$5.`;
+    p.querySelector('.yes').textContent=`Yes, add ${money(q.gift_cents)}`;
+    p.querySelector('.yes').disabled=false;
+    p.querySelector('summary').textContent=estimated?'Estimated CAD · change total':'Change CAD total';
+    p.querySelector('.fixnote').textContent=`${money(q.cad_cents)} ${estimated?'estimated':'entered'} total. ${estimated?`${q.fx_label}; your actual bank charge can differ.`:''}`;
+    if(document.activeElement!==host)p.querySelector('.fix input').value=(q.cad_cents/100).toFixed(2);
     panel().querySelector('.no').onclick=close;
     panel().querySelector('.update').onclick=async()=>{try{await offer({provider:purchase.provider,cad_total:panel().querySelector('input').value});}catch(e){error(e);}};
     panel().querySelector('.yes').onclick=async()=>{
@@ -158,7 +196,9 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
       <p><strong>+${money(gift)}</strong> added. Nothing taken yet.</p>
       <div class="jar"><span>Round-ups</span><span><strong class="jar-amt">${money(before)}</strong> of ${money(GOAL)}</span></div>
       <div class="bar"><i></i></div>
-      <button class="yes">Done</button>`);
+      <button class="yes">Done</button>
+      <p class="small">${TEST}</p>`);
+    wireTest();
     fill(panel().querySelector('.bar'),before,before);
     deposit(piggy(84).fill(before/GOAL,0),'saved',before,pending,panel().querySelector('.jar-amt'));
     panel().querySelector('.yes').onclick=close;
@@ -187,5 +227,7 @@ input:focus{outline:none;border-color:#19486a;box-shadow:0 0 0 3px rgba(25,72,10
     try{await offer(purchase);}catch(e){if(host)error(e);}
   }
   await scan();
-  new MutationObserver(()=>{clearTimeout(observerTimer);observerTimer=setTimeout(scan,350);}).observe(document.body,{subtree:true,childList:true,characterData:true});
+  // Checkout windows open and close by being added or by their open/closed
+  // attributes changing, and their totals change as the amount is typed.
+  new MutationObserver(()=>{clearTimeout(observerTimer);observerTimer=setTimeout(scan,350);}).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','open','aria-hidden','data-state','data-open','data-closed','data-ending-style']});
 })();

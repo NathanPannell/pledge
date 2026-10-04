@@ -13,6 +13,12 @@
     const n=Number(value);if(!Number.isFinite(n)||n<=0||n>1000000)return null;
     return{currency,total:n.toFixed(2)};
   }
+  // OpenRouter's credits page shows a "Total available" balance, so only its
+  // open Purchase Credits window counts as a checkout. A window that is
+  // animating closed (data-closed, data-ending-style) no longer counts.
+  function openCheckout(doc){
+    return [...doc.querySelectorAll('[role="dialog"], dialog')].find(d=>d.getClientRects().length&&!d.hasAttribute('data-closed')&&!d.hasAttribute('data-ending-style')&&d.ownerDocument.defaultView.getComputedStyle(d).visibility!=='hidden'&&/total due/i.test(d.textContent||''))||null;
+  }
   function detect(doc,url,context=null){
     let provider=providerFor(url);const host=new URL(url).hostname;
     if(host==='checkout.stripe.com'){
@@ -22,11 +28,14 @@
       provider=context.provider;
     }
     if(!provider)return null;
+    const scope=host==='openrouter.ai'?openCheckout(doc):doc;
+    if(!scope)return null;
     // Only a visible, explicitly labelled final total. Never read payment/card inputs.
-    for(const el of doc.querySelectorAll('[data-testid="total-amount"], [data-testid="checkout-total"], .OrderSummary-total, [role="row"], dt, label, p, span, div')){
+    for(const el of scope.querySelectorAll('[data-testid="total-amount"], [data-testid="checkout-total"], .OrderSummary-total, [role="row"], dt, label, p, span, div')){
       if(!el.getClientRects().length||el.closest('#spare-extension-root'))continue;
       const text=(el.innerText||'').trim();
-      if(text.length>180||! /^(?:total(?: due| amount)?|amount due|payment total|you(?:’|')?ll pay)\b/i.test(text))continue;
+      // The label alone, then the amount: "Total due $10.80", never "Total available $6.67".
+      if(text.length>180||! /^(?:total(?: due| amount)?|amount due|payment total|you(?:’|')?ll pay)(?![ \t]*[a-z])/i.test(text))continue;
       // OpenRouter's own credits are USD-denominated; a final Total due on that
       // verified merchant route is USD even when the symbol is printed as '$'.
       const candidate=parseTotal(text,host==='openrouter.ai');
@@ -36,5 +45,5 @@
     }
     return null;
   }
-  root.SpareDetector={providerFor,parseTotal,detect};
+  root.SpareDetector={providerFor,parseTotal,detect,openCheckout};
 })(globalThis);
