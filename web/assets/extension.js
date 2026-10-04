@@ -184,7 +184,7 @@
           <div class="xt-no">No thanks</div>
         </div>
         <div class="xt-state xt-saved">
-          <span class="xt-check"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6 12.5l4 4L18 8"/></svg></span>
+          <span class="xt-pig"></span>
           <h5>Saved. Ready to give.</h5>
           <div class="xt-jar">
             <div class="xt-jar-row"><span>Round-ups</span><span><b class="xt-pending">${cad(DEMO.before)}</b> of ${cad(DEMO.goal)}</span></div>
@@ -197,19 +197,42 @@
     const pending = root.querySelector(".xt-pending");
     const bar = root.querySelector(".xt-bar");
     const fill = (cents) => bar.style.setProperty("--p", String(cents / DEMO.goal));
+    const pig = window.PledgePiggy?.create(72);
+    if (pig) root.querySelector(".xt-pig").append(pig.el);
     const timers = [];
     const at = (ms, fn) => timers.push(setTimeout(fn, ms));
     let running = false;
+    let round = 0; // each loop's number, so a stopped loop's coins don't carry on
 
     function frame(state) {
       root.classList.remove("offer", "press", "saved", "leave");
       if (state) root.classList.add(...state.split(" "));
     }
 
+    // The round-up's coins drop into the piggy bank, then the total and bar
+    // reach C$5.
+    async function deposit() {
+      const mine = round;
+      const after = DEMO.before + DEMO.gift;
+      if (pig) await pig.add(after / DEMO.goal, 3);
+      if (mine !== round || !running) return;
+      fill(after);
+      M.tween(pending, DEMO.before, after, 900, cad);
+      at(1000, () => {
+        bar.classList.add("full");
+        const panel = root.querySelector(".xt-panel");
+        const box = (pig?.el || bar).getBoundingClientRect();
+        const base = panel.getBoundingClientRect();
+        M.burst(panel, box.left - base.left + box.width / 2, box.top - base.top + box.height / 2, 14);
+      });
+    }
+
     function loop() {
+      round++;
       timers.splice(0).forEach(clearTimeout);
       bar.classList.remove("full");
       fill(DEMO.before);
+      pig?.fill(DEMO.before / DEMO.goal, 0);
       M.set(pending, DEMO.before, cad);
       M.set(now, DEMO.was, cad);
       frame("");
@@ -218,18 +241,10 @@
         M.tween(now, DEMO.was, DEMO.now, 900, cad);
       });
       at(3300, () => frame("offer press"));
-      at(3800, () => {
-        frame("saved");
-        requestAnimationFrame(() => fill(DEMO.before + DEMO.gift));
-        M.tween(pending, DEMO.before, DEMO.before + DEMO.gift, 1000, cad);
-        at(1100, () => {
-          bar.classList.add("full");
-          const panel = root.querySelector(".xt-panel");
-          M.burst(panel, panel.clientWidth - 40, 30, 14);
-        });
-      });
-      at(7600, () => frame("saved leave"));
-      at(8400, () => { if (running) loop(); });
+      at(3800, () => frame("saved"));
+      at(4200, deposit);
+      at(8200, () => frame("saved leave"));
+      at(9000, () => { if (running) loop(); });
     }
 
     // With reduced motion, show the offer as a still picture.
@@ -246,6 +261,7 @@
       },
       stop() {
         running = false;
+        round++;
         timers.splice(0).forEach(clearTimeout);
         frame("");
       },

@@ -7,6 +7,7 @@ const money = (cents) => `C$${(cents / 100).toFixed(2)}`;
 const GOAL = 500; // round-ups are given once they reach C$5
 let checkoutId;
 let shown = null; // the balance on screen, so changes roll from it
+let pig = null; // the piggy bank holding it
 
 async function api(path, data) {
   const response = await fetch('/roundups/api' + path, {
@@ -28,14 +29,29 @@ async function run(button, work) {
 }
 
 // The pending total rolls to its new value and the bar fills toward C$5.
+// When it grows, coins drop into the piggy bank first.
 function balance(state) {
   const cents = state.pending_cents;
-  if (shown === null) M.tween($('#balance'), 0, cents, 1200, money);
-  else M.to($('#balance'), cents, 900, money);
+  const level = Math.min(1, cents / GOAL);
+  const before = shown;
   shown = cents;
+  if (!pig) {
+    pig = window.PledgePiggy.create(104);
+    $('#balance-pig').append(pig.el);
+  }
   const bar = $('#balance-bar');
-  requestAnimationFrame(() => bar.style.setProperty('--p', String(Math.min(1, cents / GOAL))));
-  bar.classList.toggle('full', cents >= GOAL);
+  const roll = () => {
+    if (before === null) M.tween($('#balance'), 0, cents, 1200, money);
+    else M.to($('#balance'), cents, 900, money);
+    requestAnimationFrame(() => bar.style.setProperty('--p', String(level)));
+    bar.classList.toggle('full', cents >= GOAL);
+  };
+  if (before !== null && cents > before) {
+    pig.add(level, 3).then(() => { if (shown === cents) roll(); });
+  } else {
+    pig.fill(level, before === null ? 1300 : 900);
+    roll();
+  }
   $('#balance-note').textContent = cents >= GOAL
     ? 'Ready to give. Continue to Stripe to confirm one payment.'
     : `${money(GOAL - cents)} to go. Nothing is charged until you confirm.`;

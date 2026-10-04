@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/assets/extension.css">
 <link rel="stylesheet" href="./setup.css">
 <script src="/assets/motion.js"></script>
+<script src="/assets/piggy.js" defer></script>
 <script src="/assets/extension.js" defer></script>
 <script type="module" src="./setup.js"></script>
 </head>
@@ -43,7 +44,7 @@
 
     <section class="su-balance" aria-live="polite" data-reveal>
       <div class="su-bal-top"><span class="eyebrow">Your round-ups</span><span class="su-goal">Goal C$5.00</span></div>
-      <strong id="balance" class="su-big">C$0.00</strong>
+      <div class="su-bank"><strong id="balance" class="su-big">C$0.00</strong><span id="balance-pig" class="su-pig"></span></div>
       <div class="xt-bar su-bar" id="balance-bar"><i></i></div>
       <p id="balance-note" class="su-note">Nothing is charged until you confirm.</p>
       <button id="pay" class="btn btn-flow btn-lg" type="button" hidden>Continue to Stripe</button>

@@ -44,10 +44,9 @@
 .motion .xt-demo.saved .xt-saved > * { animation: rise 0.55s var(--ease-out) backwards; }
 .motion .xt-demo.saved .xt-saved > :nth-child(2) { animation-delay: 0.08s; }
 .motion .xt-demo.saved .xt-saved > :nth-child(3) { animation-delay: 0.16s; }
-.xt-check { width: 40px; height: 40px; border-radius: 50%; background: var(--flow); display: grid; place-items: center; }
-.xt-check svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
-.motion .xt-demo.saved .xt-check { animation: xt-pop 0.55s var(--ease-spring) backwards; }
-.motion .xt-demo.saved .xt-check svg { animation: draw 0.5s 0.25s var(--ease-out) backwards; }
+/* The piggy bank the round-up's coins drop into (piggy.js draws it). */
+.xt-pig { display: inline-flex; justify-self: start; padding-top: 10px; }
+.motion .xt-demo.saved .xt-pig { animation: xt-pop 0.55s var(--ease-spring) backwards; }
 .xt-saved h5 { margin: 0; font-size: 1.15rem; font-weight: 750; }
 
 /* Pending round-ups filling toward C$5. */
