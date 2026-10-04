@@ -70,3 +70,23 @@ test("date and amount helpers", () => {
   assert.equal(toIsoDate("2026-9-5"), "2026-09-05");
   assert.equal(toAmount("(42.10)"), -42.1);
 });
+
+test("reads the sample statement in samples/ with the server's vendor list", async () => {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const { AI_VENDORS } = await import("../../server/src/vendors.js");
+  const vendors = AI_VENDORS.map((v) => ({ name: v.name, source: v.pattern.source, flags: v.pattern.flags }));
+  const text = readFileSync(join(__dirname, "../../samples/harbourline-card-statement.csv"), "utf8");
+  const out = readStatement(text, vendors);
+  assert.equal(out.error, undefined);
+  assert.equal(out.totalRows, 113);
+  // Card payments are credits, so they are dropped; every other row is a charge.
+  assert.equal(out.all.length, 110);
+  assert.equal(out.byVendor.length, 10);
+  assert.ok(!out.rows.some((r) => /WORKSPACE|WEWORK|AMAZON/.test(r.description)));
+  const s = summarize(out.rows, new Date(Date.UTC(2026, 9, 3)));
+  assert.equal(s.lastFull.month, "2026-09");
+  assert.equal(Math.round(s.lastFull.total * 100), 1151995);
+  assert.equal(s.growthFrom, "2026-07");
+  assert.equal(Math.round(s.growth * 100), 35);
+});
