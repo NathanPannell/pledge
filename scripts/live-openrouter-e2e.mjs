@@ -21,7 +21,7 @@ try{
  const q=await api.post(origin+'/roundups/api/quote',{headers:{Origin:origin},data:{provider:'Demo',cad_total:'29.84',purchase_key:crypto.randomUUID()}}).then(r=>r.json());
  await api.post(origin+'/roundups/api/pledge',{headers:{Origin:origin},data:{quote_id:q.id}});
  const code=await api.post(origin+'/roundups/api/pair/code',{headers:{Origin:origin},data:{}}).then(r=>r.json());
- const popup=await c.newPage();await popup.goto(`chrome-extension://${id}/popup.html`);await popup.locator('#code').fill(code.code);await popup.getByRole('button',{name:'Connect Spare',exact:true}).click();await popup.waitForTimeout(1500);console.log(JSON.stringify({popupStage:await popup.locator('main').innerText(),popupError:await popup.locator('#error').innerText(),sender:await worker.evaluate(()=>globalThis.lastSender)}));await popup.getByText('A little good,',{exact:false}).waitFor();report.checks.push('One-time pairing connects the real Chrome extension to the database account');await popup.close();
+ const popup=await c.newPage();await popup.goto(`chrome-extension://${id}/popup.html`);await popup.locator('#code').fill(code.code);await popup.getByRole('button',{name:'Connect Pledge',exact:true}).click();await popup.locator('#pending').waitFor();report.checks.push('One-time pairing connects the real Chrome extension to the database account');await popup.close();
  const p=await c.newPage();await p.goto('https://openrouter.ai/settings/credits');await p.getByRole('button',{name:'Add Credits',exact:true}).waitFor();await p.waitForTimeout(1000);
  assert.equal(await p.locator('#spare-extension-root').count(),0);report.checks.push('No round-up appears for the account balance');
  await p.getByRole('button',{name:'Add Credits',exact:true}).click();await p.getByText('Total due',{exact:true}).waitFor();await p.locator('#spare-extension-root').waitFor({timeout:15000});
@@ -30,26 +30,30 @@ try{
    const {root}=await inspector.send('DOM.getDocument',{depth:-1,pierce:true});
    const flatten=n=>[n,...[...(n.children||[]),...(n.shadowRoots||[])].flatMap(flatten)];
    const nodes=flatten(root),host=nodes.find(n=>(n.attributes||[]).includes('spare-extension-root'));
-   if(!host)return null;const inside=flatten(host);const panel=inside.find(n=>(n.attributes||[]).includes('panel')),yes=inside.find(n=>(n.attributes||[]).includes('yes'));
+   if(!host)return null;const inside=flatten(host);const panel=inside.find(n=>(n.attributes||[]).includes('panel')),yes=inside.find(n=>(n.attributes||[]).some(a=>a.split(' ').includes('yes')));
    if(!panel||!yes)return null;
    const {object}=await inspector.send('DOM.resolveNode',{nodeId:panel.nodeId});
    const {result}=await inspector.send('Runtime.callFunctionOn',{objectId:object.objectId,functionDeclaration:'function(){return this.innerText}',returnByValue:true});
-   return{text:result.value,yes:yes.nodeId,summary:inside.find(n=>n.nodeName==='SUMMARY')?.nodeId,input:inside.find(n=>n.nodeName==='INPUT')?.nodeId,update:inside.find(n=>(n.attributes||[]).some(a=>a.includes('quiet update')))?.nodeId};
+   return{text:result.value,yes:yes.nodeId,summary:inside.find(n=>n.nodeName==='SUMMARY')?.nodeId,input:inside.find(n=>n.nodeName==='INPUT')?.nodeId,update:inside.find(n=>(n.attributes||[]).some(a=>a.split(' ').includes('update')))?.nodeId};
  }
  async function waitPanel(needle){for(let i=0;i<60;i++){const n=await panelNodes();if(n?.text.includes(needle))return n;await p.waitForTimeout(250);}throw new Error('Extension panel did not show '+needle);}
  async function clickNode(nodeId){const {model}=await inspector.send('DOM.getBoxModel',{nodeId});const b=model.border;await p.mouse.click((b[0]+b[4])/2,(b[1]+b[5])/2);}
  async function clickYes(){await clickNode((await panelNodes()).yes);}
+ async function openCorrection(){const n=await panelNodes();const {object}=await inspector.send('DOM.resolveNode',{nodeId:n.summary});const {result}=await inspector.send('Runtime.callFunctionOn',{objectId:object.objectId,functionDeclaration:'function(){return this.parentElement.open}',returnByValue:true});if(!result.value)await clickNode(n.summary);}
  const nativeTotal=await p.getByText('Total due',{exact:true}).evaluate(e=>e.parentElement.innerText);report.observed_total=nativeTotal.replace(/\s+/g,' ').trim();
  const offer=(await waitPanel('Yes, add')).text;report.offer=offer;
  assert.match(offer,/Yes, add C\$/);assert.match(offer,/Around/);report.checks.push('Visible final merchant Total due triggers a CAD estimate automatically');
+ await p.getByText('Total due',{exact:true}).click();await p.keyboard.press('Escape');await p.getByText('Total due',{exact:true}).waitFor({state:'hidden'});await p.locator('#spare-extension-root').waitFor({state:'detached'});
+ report.checks.push('Closing Add Credits removes the unapproved offer');
+ await p.getByRole('button',{name:'Add Credits',exact:true}).click();await waitPanel('Yes, add');
  const credit=p.locator('input[name=creditAmount]');
  const q10=await api.post(origin+'/roundups/api/quote',{data:{provider:'OpenRouter',usd_total:'10.80',purchase_key:crypto.randomUUID()}}).then(r=>r.json());
  const q20=await api.post(origin+'/roundups/api/quote',{data:{provider:'OpenRouter',usd_total:'21.10',purchase_key:crypto.randomUUID()}}).then(r=>r.json());
  const label=q=>'Yes, add C$'+(q.gift_cents/100).toFixed(2);
  await credit.fill('20');await waitPanel(label(q20));assert.ok((await p.getByText('Total due',{exact:true}).evaluate(e=>e.parentElement.innerText)).includes('21.10'));report.checks.push('Changing credits updates the final quote including service fees, not just the credit amount');
  await credit.fill('10');await waitPanel(label(q10));
- await clickNode((await panelNodes()).summary);await clickNode((await panelNodes()).input);await p.keyboard.press('Control+A');await p.keyboard.type('29.99');await clickNode((await panelNodes()).update);const corrected=await waitPanel('Yes, add C$1.01');assert.ok(corrected.text.includes('Make it C$31.00'));report.checks.push('Native CAD correction honors the 15-cent minimum: C$29.99 rounds to C$31.00');
- await clickNode((await panelNodes()).summary);await clickNode((await panelNodes()).input);await p.keyboard.press('Control+A');await p.keyboard.type('30.00');await clickNode((await panelNodes()).update);await p.locator('#spare-extension-root').waitFor({state:'detached'});report.checks.push('A whole CAD total removes the unapproved offer');
+ await openCorrection();await clickNode((await panelNodes()).input);await p.keyboard.press('Control+A');await p.keyboard.type('29.99');await clickNode((await panelNodes()).update);const corrected=await waitPanel('Yes, add C$1.01');assert.ok(corrected.text.includes('Make it C$31.00'));report.checks.push('Native CAD correction honors the 15-cent minimum: C$29.99 rounds to C$31.00');
+ await openCorrection();await clickNode((await panelNodes()).input);await p.keyboard.press('Control+A');await p.keyboard.type('30.00');await clickNode((await panelNodes()).update);await p.locator('#spare-extension-root').waitFor({state:'detached'});report.checks.push('A whole CAD total removes the unapproved offer');
  await credit.fill('20');await waitPanel(label(q20));await credit.fill('10');await waitPanel(label(q10));
  const mask=[p.getByRole('button',{name:/VISA/i}),p.locator('p,span').filter({hasText:/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i})];
  await p.screenshot({path:'test-results/live-openrouter-offer.png',fullPage:true,mask});

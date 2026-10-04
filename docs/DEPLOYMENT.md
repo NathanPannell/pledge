@@ -82,7 +82,8 @@ Private preparation logs stay under the state directory. Do not print env files
 or credential-bearing logs while troubleshooting.
 
 Release preparation adds a commit-specific query parameter to local asset links
-in the archived HTML. The editable `web/` files and visible frontend stay unchanged;
+in the archived company and `/roundups/` HTML, including the setup page's local
+scripts and styles. The editable frontend files and visible UI stay unchanged;
 new releases fetch matching JavaScript and CSS even when Cloudflare still caches
 the previous unversioned URLs. This requires no cache-purge permission or changes
 to the shared zone. After activation, verify the public page and its versioned

@@ -37,15 +37,16 @@ def switch_link(link, target):
 
 def version_assets(root, sha):
     """Version static links in release HTML, leaving the editable frontend intact."""
-    pattern = re.compile(r'''(\b(?:src|href)\s*=\s*["'])(/?assets/[^"'?#]+)(["'])''')
+    pattern = re.compile(r'''(\b(?:src|href)\s*=\s*["'])(/?assets/[^"'?#]+|\./setup\.(?:css|js))(["'])''')
     web = root/'web'
     assets = (web/'assets').resolve()
+    setup = root/'roundups/public'
     def replace(match):
-        target = (web/match[2].lstrip('/')).resolve()
-        if not target.is_relative_to(assets) or not target.is_file():
+        target = ((web/match[2].lstrip('/')) if match[2].startswith('/assets/') else page.parent/match[2]).resolve()
+        if not (target.is_relative_to(assets) or target.parent == setup.resolve()) or not target.is_file():
             raise RuntimeError('Release HTML references a missing static asset')
         return match[1] + match[2] + '?v=' + sha[:12] + match[3]
-    for page in web.glob('*.html'):
+    for page in [*web.glob('*.html'), *setup.glob('*.html')]:
         page.write_text(pattern.sub(replace, page.read_text()))
 
 def smoke(origin, root):
