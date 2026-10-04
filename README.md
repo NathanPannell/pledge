@@ -1,5 +1,16 @@
 # Pledge
 
+This repository now serves Nathan's existing frontend/company demo and the
+OpenRouter round-up extension from **one Node backend**. His `web/` files remain
+unchanged by the integration; extension installation is directly accessible at
+`/roundups/`, with no new frontend links. Old previews remain in `artifacts/`.
+The hosted demo is https://pledge.pauravhp.com.
+
+Read [architecture and routes](docs/ARCHITECTURE.md),
+[local setup and safe deployment](docs/DEPLOYMENT.md), and
+[extension instructions](roundups/README.md) before changing startup or hosting.
+Pulling or pushing Git does not deploy; the owner requests each update manually.
+
 Aid budgets are shrinking. AI budgets aren't. Pledge finds what a company spends on AI,
 lets it choose a share (most give 1%), and turns that into one gift a month for a charity,
 with every gift on a public record. Built for UN SDG 17 (Partnerships for the Goals) at
@@ -35,26 +46,35 @@ AI charges are matched by merchant descriptor, not merchant category code. MCCs 
 
 ## Setup
 
-Requires Node 22.13 or later. No npm dependencies.
+Requires Node 22.13 or later and Python 3 for packaging the extension.
+Runtime APIs use Node built-ins; Playwright is a development dependency.
 
 ```bash
-cp server/.env.example server/.env
+cp .env.example .env
+npm ci
 ```
 
 | Variable | Where to get it | Needed for |
 |---|---|---|
 | `PLAID_CLIENT_ID`, `PLAID_SECRET` | dashboard.plaid.com, Developers > Keys (sandbox) | Connecting a card |
-| `STRIPE_SECRET_KEY` | dashboard.stripe.com, test mode API keys (`sk_test_...`) | Sending invoices through Stripe |
+| `STRIPE_API_KEY` or `STRIPE_SECRET_KEY` | Stripe sandbox API keys (`rk_test_...` or `sk_test_...`) | Extension sandbox Checkout; keep `COMPANY_STRIPE_MODE=local` for the original company demo |
 | `COMMUNITY_SAMPLE` | `on` or `off` | Sample giving from 45 other companies |
 
 ## Run
 
 ```bash
-npm --prefix server start
+npm start
 ```
 
 - http://localhost:5173/ landing page
 - http://localhost:5173/app.html giving flow and company home
+- http://localhost:5173/roundups/ extension installation, pairing and payment return
+
+`npm start` builds the extension for APP_ORIGIN and starts one server. Load
+`.local/extension/` in Chrome for localhost, or `roundups/extension/` to use the
+hosted backend. The root environment is ignored by Git; never put keys in web
+or extension files. Company invoices stay local by default in the root example;
+Stripe payments are sandbox-only and do not represent real charity donations.
 
 To reset, click **Start over** at the bottom of the company home (it asks once more), or
 stop the server and delete `server/data/`.
@@ -98,6 +118,16 @@ With `prefers-reduced-motion`, nothing is hidden and every number lands at once.
 ## Tests
 
 ```bash
-npm --prefix server test
-npm --prefix web test
+npm test
+npm run validate
 ```
+
+For browser tests, `npx playwright install chromium`, then run
+`PLEDGE_E2E_ORIGIN=http://localhost:5173 npm run test:browser`; its default is
+read-only for company data. On an **isolated localhost database only**, set
+`PLEDGE_E2E_ALLOW_COMPANY_RESET=1` to test the complete company flow.
+`node scripts/payments-e2e.mjs` exercises actual sandbox Checkout against a
+fresh browser account; set PLEDGE_E2E_ORIGIN to your running test server.
+`npm run test:openrouter` needs an already authenticated protected profile via
+PLEDGE_OPENROUTER_PROFILE; it reuses that session, never signs in to Claude, and
+never submits an OpenRouter purchase. Test outputs stay ignored in test-results/.

@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Spare \u00b7 CAD round-ups",
+  "version": "0.1.1",
+  "description": "A small CAD round-up prompt at OpenRouter credit checkout. Sandbox prototype; no automatic charges.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://pledge.pauravhp.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*.woff2"
+      ],
+      "matches": [
+        "https://openrouter.ai/*"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Spare"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://openrouter.ai/*"
+      ],
+      "js": [
+        "detector.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spare · Chrome setup</title><link rel="stylesheet" href="./setup.css"><script type="module" src="./setup.js"></script></head>
+<body><div class="brand">spare<span>.</span></div><main>
+<section id="payment" aria-live="polite" hidden><h1 id="payment-title">Checking your payment.</h1><p id="payment-description">We’re confirming with Stripe before clearing any round-ups.</p><button id="check" hidden>Check again</button></section>
+<section id="installation"><h1>Install Spare in Chrome.</h1><p>Connect once, then your round-up appears directly in OpenRouter’s Add Credits window.</p>
+<ol><li><a href="./extension.zip" download>Download the extension</a>, then unzip it.</li><li>Open <strong>chrome://extensions</strong>, enable Developer mode, choose <strong>Load unpacked</strong>, and select the unzipped folder.</li><li>Open Spare’s extension popup and paste the connection code below.</li><li><a href="https://openrouter.ai/settings/credits" target="_blank" rel="noopener">Open OpenRouter’s Credits page</a> and choose Add Credits.</li></ol>
+<button id="pair">Get a connection code</button><output id="pair-code" hidden></output><button id="copy-code" class="quiet" hidden>Copy code</button><p class="small">Codes expire after five minutes. Your card details are never shared with the extension.</p></section>
+<section aria-live="polite"><p><strong id="balance">C$0.00</strong> in pending round-ups.<br>No money taken.</p><button id="pay" hidden>Continue to Stripe</button></section>
+<p id="error" role="alert" hidden></p><p class="small">Desktop Chrome required. Sandbox prototype · no real donation or tax receipt.<br>Intended charity: VGH &amp; UBC Hospital Foundation; this prototype is not affiliated with the Foundation.</p>
+</main></body></html>

@@ -57,7 +57,7 @@ async function serveStatic(webRoot, pathname, res) {
   }
 }
 
-export function createApp({ service, webRoot }) {
+export function createApp({ service, webRoot, roundups }) {
   const routes = {
     "GET /api/state": (req, url) => service.state(defaultPeriod(url)),
     "GET /api/ledger": () => service.ledger(),
@@ -85,6 +85,7 @@ export function createApp({ service, webRoot }) {
   return createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     try {
+      if (roundups && await roundups.handle(req, res, url)) return;
       const del = url.pathname.match(/^\/api\/connections\/(\d+)$/);
       if (req.method === "DELETE" && del) {
         service.removeConnection(del[1]);
