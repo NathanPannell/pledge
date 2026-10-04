@@ -18,7 +18,9 @@ await writeFile(path.join(extension, 'config.js'),
 const manifest = JSON.parse(await readFile(path.join(extension, 'manifest.json'), 'utf8'));
 manifest.host_permissions = [origin + '/*'];
 await writeFile(path.join(extension, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-execFileSync('python3', ['-c',
+// Windows installs Python 3 as "python"; "python3" there is a Store shortcut.
+const python = process.platform === 'win32' ? 'python' : 'python3';
+execFileSync(python, ['-c',
   'import pathlib,zipfile,sys; root=pathlib.Path(sys.argv[1]); z=zipfile.ZipFile(sys.argv[2],"w",zipfile.ZIP_DEFLATED); [z.write(p,p.relative_to(root)) for p in sorted(root.rglob("*")) if p.is_file()]; z.close()',
   extension, path.join(publicRoot, 'extension.zip')]);
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.woff2': 'font/woff2', '.zip': 'application/zip' };
