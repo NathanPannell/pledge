@@ -81,6 +81,13 @@ app service, and check it; failed activation restores the previous code.
 Private preparation logs stay under the state directory. Do not print env files
 or credential-bearing logs while troubleshooting.
 
+Release preparation adds a commit-specific query parameter to local asset links
+in the archived HTML. The editable `web/` files and visible frontend stay unchanged;
+new releases fetch matching JavaScript and CSS even when Cloudflare still caches
+the previous unversioned URLs. This requires no cache-purge permission or changes
+to the shared zone. After activation, verify the public page and its versioned
+assets as well as the loopback checks; reload a tab opened before deployment.
+
 No task, watcher, frontend hot reload, Git hook, or CI job may restart the hosted
 service merely because someone edits/pushes code. Never run local `npm start`
 on port 4175, point development at hosted data paths, or use the public reset API

@@ -4,7 +4,7 @@
 No fetch, pull, key output, live payment, database reset, or tunnel change occurs.
 First-time service setup/import is documented separately in DEPLOYMENT.md.
 """
-import argparse, fcntl, hashlib, os, shutil, socket, sqlite3, subprocess
+import argparse, fcntl, hashlib, os, re, shutil, socket, sqlite3, subprocess
 import tempfile, time, urllib.request
 from pathlib import Path
 
@@ -34,6 +34,19 @@ def switch_link(link, target):
     temporary.unlink(missing_ok=True)
     temporary.symlink_to(target)
     temporary.replace(link)
+
+def version_assets(root, sha):
+    """Version static links in release HTML, leaving the editable frontend intact."""
+    pattern = re.compile(r'''(\b(?:src|href)\s*=\s*["'])(/?assets/[^"'?#]+)(["'])''')
+    web = root/'web'
+    assets = (web/'assets').resolve()
+    def replace(match):
+        target = (web/match[2].lstrip('/')).resolve()
+        if not target.is_relative_to(assets) or not target.is_file():
+            raise RuntimeError('Release HTML references a missing static asset')
+        return match[1] + match[2] + '?v=' + sha[:12] + match[3]
+    for page in web.glob('*.html'):
+        page.write_text(pattern.sub(replace, page.read_text()))
 
 def smoke(origin, root):
     for path in ['/', '/app.html', '/api/state', '/roundups/', '/roundups/api/health']:
@@ -96,6 +109,7 @@ def main():
                 archive = temporary/'source.tar'
                 subprocess.run(['git', 'archive', '--format=tar', '--output='+str(archive), sha], cwd=repo, check=True)
                 subprocess.run(['tar', '-xf', str(archive), '-C', str(release)], check=True)
+                version_assets(release, sha)
                 staging = {**environment, 'DATA_DIR': str(temporary/'company'), 'ROUNDUPS_DB': str(temporary/'roundups.sqlite')}
                 backup(live if live.exists() else args.import_source or live, temporary/'roundups.sqlite')
                 backup(company/'pledge.db', temporary/'company/pledge.db')
