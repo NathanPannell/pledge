@@ -263,46 +263,76 @@
     return el;
   }
 
+  // Whole cents per row, added up the way the server totals an invoice.
+  const centsOf = (r) => Math.round(r.amount * 100);
+  const SCAN_MS = 4200; // the scan streams for about four seconds, however long the month
+  const SCAN_ROWS = 26; // and draws at most this many rows, so each one can be read
+
+  // The rows the tape draws: every AI charge first, then other charges spread
+  // evenly through the month. Rows that aren't drawn are still counted.
+  function rowsToDraw(rows) {
+    if (rows.length <= SCAN_ROWS) return new Set(rows.map((_, i) => i));
+    const ai = rows.map((r, i) => (r.vendor ? i : -1)).filter((i) => i >= 0);
+    const other = rows.map((r, i) => (r.vendor ? -1 : i)).filter((i) => i >= 0);
+    const spread = (list, n) => Array.from({ length: Math.max(0, n) }, (_, k) => list[Math.floor((k * list.length) / n)]);
+    const shownAi = ai.length <= SCAN_ROWS ? ai : spread(ai, SCAN_ROWS);
+    return new Set([...shownAi, ...spread(other, SCAN_ROWS - shownAi.length)]);
+  }
+
   async function scan(f) {
-    found = { ...f, summary: window.Statement.summarize(f.result.rows, new Date()) };
+    const summary = window.Statement.summarize(f.result.rows, new Date());
+    const last = summary.lastFull;
+    // The scan reads the month the first gift is for, so the total it lands on
+    // is the figure the next step shows. With no full month yet, it reads it all.
+    const rows = [...f.result.all]
+      .filter((r) => !last || r.date.startsWith(last.month))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const monthCents = rows.filter((r) => r.vendor).reduce((sum, r) => sum + centsOf(r), 0);
+    found = { ...f, summary, monthCents };
     statementSent = false;
     $("step-scan").classList.remove("done");
     showFlow("scan");
     $("scan-file").textContent = f.filename;
+    $("scan-month-wrap").hidden = !last;
+    if (last) $("scan-month").textContent = monthLong(last.month);
+    $("found-label").textContent = last ? `AI spend in ${monthLong(last.month)}` : "AI spend found";
     const tape = $("tape");
     tape.innerHTML = "";
     $("found-tools").innerHTML = "";
     M.set($("found-total"), 0, money);
-    const rows = [...f.result.all].sort((a, b) => a.date.localeCompare(b.date));
-    const seen = [];
+
+    const drawn = rowsToDraw(rows);
+    const step = M.reduce ? 0 : Math.max(16, SCAN_MS / Math.max(1, drawn.size));
+    const caught = [];
     let total = 0;
-    let aiCount = 0;
     let lastDelta = 0;
-    // About four seconds end to end, however long the statement is.
-    const step = M.reduce ? 0 : Math.max(16, Math.min(70, 4200 / rows.length));
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      seen.push(r);
       if (r.vendor) {
-        total += r.amount;
-        aiCount++;
+        caught.push(r);
+        total += centsOf(r);
       }
-      if (!M.reduce || i === rows.length - 1) {
-        tape.prepend(tapeRow(r));
-        while (tape.children.length > 14) tape.lastChild.remove();
-        M.to($("found-total"), total * 100, 320, money);
-        $("found-count").textContent = `${aiCount} AI charges · ${i + 1} of ${rows.length} transactions read`;
-        if (r.vendor || i === rows.length - 1) liveBars($("found-tools"), tallyVendors(seen));
-        // Larger catches float up beside the total, a few at a time.
-        if (r.vendor && r.amount >= 400 && performance.now() - lastDelta > 450) {
-          lastDelta = performance.now();
-          M.floatDelta($("found-total"), "+" + money(r.amount * 100));
-        }
+      if (!drawn.has(i) || M.reduce) continue;
+      tape.prepend(tapeRow(r));
+      while (tape.children.length > 12) tape.lastChild.remove();
+      M.to($("found-total"), total, 420, money);
+      $("found-count").textContent = `${caught.length} AI charges · ${i + 1} of ${rows.length} transactions read`;
+      if (r.vendor) liveBars($("found-tools"), tallyVendors(caught));
+      // Larger catches float up beside the total, a few at a time.
+      if (r.vendor && r.amount >= 400 && performance.now() - lastDelta > 600) {
+        lastDelta = performance.now();
+        M.floatDelta($("found-total"), "+" + money(centsOf(r)));
       }
-      if (step) await new Promise((res) => setTimeout(res, step));
+      await new Promise((res) => setTimeout(res, step));
     }
-    $("found-count").textContent = `${aiCount} AI charges in ${rows.length} transactions. ${rows.length - aiCount} others stay on this device.`;
-    await wait(350);
+    // With reduced motion nothing streamed, so show the month's last few rows at once.
+    if (M.reduce) [...drawn].sort((a, b) => a - b).slice(-12).forEach((i) => tape.prepend(tapeRow(rows[i])));
+    // Land exactly on the month's total, whichever rows were drawn.
+    M.to($("found-total"), monthCents, 420, money);
+    liveBars($("found-tools"), tallyVendors(caught));
+    const others = f.result.totalRows - f.result.rows.length;
+    $("found-count").textContent = `${caught.length} AI charges${last ? ` in ${monthLong(last.month)}` : ""}. The other ${others} transactions stay on this device.`;
+    await wait(450);
     $("step-scan").classList.add("done");
     await wait(1200);
     showChoose();
@@ -310,9 +340,9 @@
 
   // ---- 2. Choose -----------------------------------------------------------------
 
+  // The same whole-cent total the scan landed on.
   function firstGiftBasisCents() {
-    const last = found.summary.lastFull;
-    return last ? Math.round(last.total * 100) : 0;
+    return found.summary.lastFull ? found.monthCents : 0;
   }
 
   function showChoose() {
@@ -326,7 +356,7 @@
     $("reveal-title").innerHTML = last
       ? `${esc(who)} spent ${spent} on AI in ${monthLong(last.month)}`
       : `${esc(who)} has spent ${spent} on AI so far this month`;
-    M.tween($("reveal-amt"), 0, Math.round((last ? last.total : result.total) * 100), 1300, money);
+    M.tween($("reveal-amt"), 0, found.monthCents, 1300, money);
     const growth = summary.growth;
     $("reveal-growth").hidden = !(growth && growth > 0.05);
     if (growth && growth > 0.05) $("reveal-growth").innerHTML = `${ARROW_UP}Up ${Math.round(growth * 100)}% since ${monthLong(summary.growthFrom)}`;
@@ -343,7 +373,7 @@
   function updateChoose(ms = 280) {
     const rate = Number($("first-rate").value) / 100;
     const last = found.summary.lastFull;
-    const basis = last ? firstGiftBasisCents() : Math.round(found.result.total * 100);
+    const basis = found.monthCents;
     const monthly = Math.round(basis * rate);
     paintRange($("first-rate"));
     $("first-rate-out").textContent = pctText(rate);
