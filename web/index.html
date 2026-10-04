@@ -56,15 +56,11 @@
   .live-for b { color: var(--ink); font-weight: 650; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1fa392; box-shadow: 0 0 0 0 rgba(31, 163, 146, 0.6); animation: live 1.6s infinite; }
   @keyframes live { 70% { box-shadow: 0 0 0 8px rgba(31, 163, 146, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 163, 146, 0); } }
-  /* The total on the left; each gift pops up in a chip at the right of the same row. */
-  .live-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
-  .gift-chip { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 64%; padding: 6px 12px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-size: 0.88rem; font-weight: 600; white-space: nowrap; opacity: 0; transform: translateY(6px) scale(0.85); transform-origin: right center; transition: opacity 0.35s, transform 0.55s var(--ease-spring); }
-  .gift-chip.show { opacity: 1; transform: none; }
-  .gift-chip .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
-  .gift-chip b { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .gift-chip svg { width: 15px; height: 15px; flex: none; }
-  .gift-chip.fresh { background: #0b5e54; color: #fff; }
-  .motion .gift-chip.show svg { animation: heart-pop 0.7s 0.15s var(--ease-spring) backwards; }
+  /* Each gift passes by in a small chip beside the total (assets/landing.js). */
+  .live-row { position: relative; }
+  .delta.gift-pass { font-weight: 600; }
+  .delta.gift-pass .who, .delta.gift-pass b { font-weight: 800; }
+  .delta.gift-pass.fresh { background: #0b5e54; color: #fff; }
   .live-big { display: inline-block; font-size: 2.3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: #0b5e54; font-variant-numeric: tabular-nums; transform-origin: left center; }
   .live-big.bump { animation: bump 1s var(--ease-out); }
   @keyframes bump { 20% { transform: scale(1.06); color: #12a08f; } 80% { color: #12a08f; } }
@@ -113,7 +109,7 @@
   /* The crossing: a guide rises from the axis, rings spread, the callout springs in. */
   .cc-cross { opacity: 0; transition: opacity 0.3s; }
   .cc.crossed .cc-cross { opacity: 1; }
-  .cc-cross .guide { stroke: var(--flow); stroke-width: 2; stroke-dasharray: 4 4; }
+  .cc-cross .guide { stroke: var(--flow); stroke-width: 2; stroke-dasharray: 4 4; transform-box: fill-box; transform-origin: bottom; }
   .cc-cross .dot { fill: var(--flow); stroke: #fff; stroke-width: 3; }
   .cc-cross .ring { fill: none; stroke: var(--flow); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
   .motion .cc.crossed .cc-cross .guide { animation: guide-up 0.6s var(--ease-out); }
@@ -125,12 +121,13 @@
   @keyframes guide-up { from { stroke-dashoffset: 0; opacity: 0; transform: scaleY(0); } }
   @keyframes dot-pop { 0% { transform: scale(0); } 60% { transform: scale(1.5); } }
   @keyframes ring { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(4); } }
-  .cc-callout { position: absolute; z-index: 3; transform: translate(-100%, -100%); width: max-content; max-width: min(280px, 56vw); padding: 12px 16px; border-radius: 12px; background: var(--flow); color: #fff; box-shadow: var(--shadow-lg); display: grid; gap: 2px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .cc-callout { position: absolute; z-index: 3; transform: translate(-100%, -100%); width: max-content; max-width: min(250px, 56vw); padding: 12px 16px; border-radius: 12px; background: var(--flow); color: #fff; box-shadow: var(--shadow-lg); display: grid; gap: 2px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .cc-callout { border-bottom-right-radius: 3px; }
   .cc-callout b { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
   .cc-callout span { font-size: 0.98rem; line-height: 1.35; color: #dff5f1; }
   .cc.crossed .cc-callout { opacity: 1; }
   .motion .cc.crossed .cc-callout { animation: callout-in 0.7s var(--ease-spring); }
-  @keyframes callout-in { from { opacity: 0; transform: translate(-100%, -100%) translate(14px, 14px) scale(0.6); } }
+  @keyframes callout-in { from { opacity: 0; transform: translate(-100%, -100%) translate(0, 24px) scale(0.6); } }
   .cc-end { position: absolute; z-index: 1; display: grid; line-height: 1.25; transform: translateY(-0.8em); font-size: 0.95rem; color: var(--ink-2); opacity: 0; transition: opacity 0.5s; padding-left: 14px; white-space: nowrap; }
   .cc-end::before { content: ""; position: absolute; left: 0; top: 0.42em; width: 8px; height: 8px; border-radius: 50%; }
   .cc-end.ai::before { background: #2f6fd0; }
@@ -283,9 +280,7 @@
     .cc-callout b { font-size: 1.35rem; }
     .cc-callout span { font-size: 0.88rem; }
     .live-big { font-size: 2rem; }
-    /* Too narrow for both on one row: the chip takes its own line, still right-aligned. */
-    .live-row { flex-wrap: wrap; row-gap: 8px; }
-    .gift-chip { order: -1; margin-left: auto; max-width: 100%; font-size: 0.8rem; padding: 5px 10px; }
+    .delta.gift-pass { font-size: 0.82rem; }
     .hero-photo { padding-bottom: 0; }
     .live-card { position: relative; margin-top: -40px; margin-inline: 12px; left: auto; right: auto; }
     .mini { grid-template-columns: 1fr 1fr; }
@@ -355,7 +350,8 @@
           <img src="https://images.unsplash.com/photo-1687422809654-579d81c29d32?auto=format&fit=crop&w=1400&q=80" alt="A smiling shopkeeper at her counter holding a phone" aria-hidden="true">
         </figure>
         <div class="live-card" aria-label="Giving this month" data-reveal style="--d:480ms">
-          <div class="live-row"><span class="live-big" id="h-live">$0</span><span class="gift-chip" id="gift-chip" aria-live="off"></span></div>
+          <div class="live-row"><span class="live-big" id="h-live">$0</span></div>
+          <span class="visually-hidden" id="gift-say" aria-live="polite"></span>
           <div class="live-for-row">
             <p class="live-for">pledged for <b class="charity-now">VGH &amp; UBC Hospital Foundation</b> this month</p>
             <span class="live-tag"><span class="live-dot" aria-hidden="true"></span>Live</span>

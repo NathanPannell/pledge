@@ -12,8 +12,8 @@
 
   // Shown until the ledger loads, and if it can't.
   const SAMPLE = { companies: 45, monthlyCents: 2450000, totalCents: 14680000 };
-  const TOAST_EVERY = 13800; // a gift passes over the photo every 13.8 seconds
-  const TOAST_SHOW = 6500;
+  const TOAST_EVERY = 13800; // a gift passes by every 13.8 seconds
+  const GIFT_MS = 2550; // and stays in view half again as long as a "+$" chip
   const COUNT_MS = 1000; // the total rolls up to each new gift over one second
 
   let data = null;
@@ -52,23 +52,45 @@
   M.set($("h-companies"), 0, count);
   M.set($("h-total"), 0, money);
 
-  // ---- Gift stream: each gift pops up beside the total as it rolls up ------------
+  // ---- Gift stream: each gift passes by beside the total as it rolls up ---------
 
   let toastIndex = 0;
   let holdUntil = 0;
-  let hideTimer;
+  let passing = null;
 
+  // A small chip that pops in just right of the total, drifts up and fades:
+  // a passing notification, not a card.
   function showGift(company, cents, fresh) {
-    const el = $("gift-chip");
-    el.classList.remove("show");
-    void el.offsetWidth;
+    if (passing) passing.remove();
     // Only a gift made just now is read out to screen readers; the rest is ambient.
-    el.setAttribute("aria-live", fresh ? "polite" : "off");
-    el.innerHTML = `${HEART}<span class="who">${esc(company)}</span><span>${fresh ? "just gave" : "gave"}</span><b>${money(cents)}</b>`;
-    el.classList.toggle("fresh", Boolean(fresh));
-    el.classList.add("show");
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => el.classList.remove("show"), fresh ? 8000 : TOAST_SHOW);
+    if (fresh) $("gift-say").textContent = `${company} just gave ${money(cents)}`;
+    const row = live.parentElement;
+    const chip = document.createElement("span");
+    chip.className = "delta gift-pass" + (fresh ? " fresh" : "");
+    chip.setAttribute("aria-hidden", "true");
+    chip.innerHTML = `<span class="who">${esc(company)}</span> ${fresh ? "just gave" : "gave"} <b>${money(cents)}</b>`;
+    row.appendChild(chip);
+    passing = chip;
+    // Beside the number when it fits; on a narrow card, just above it at the right.
+    if (chip.offsetWidth <= row.clientWidth - live.offsetWidth - 12) {
+      chip.style.left = live.offsetLeft + live.offsetWidth + 12 + "px";
+      chip.style.top = live.offsetTop + "px";
+    } else {
+      chip.style.right = "0";
+      chip.style.top = live.offsetTop - chip.offsetHeight - 4 + "px";
+    }
+    const done = () => {
+      chip.remove();
+      if (passing === chip) passing = null;
+    };
+    setTimeout(done, GIFT_MS + 400);
+    if (M.reduce) return;
+    chip.animate([
+      { opacity: 0, transform: "translateY(10px) scale(0.9)" },
+      { opacity: 1, transform: "translateY(0) scale(1)", offset: 0.18 },
+      { opacity: 1, transform: "translateY(-10px)", offset: 0.7 },
+      { opacity: 0, transform: "translateY(-26px)" },
+    ], { duration: GIFT_MS, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }).onfinish = done;
   }
 
   function cycleToast() {

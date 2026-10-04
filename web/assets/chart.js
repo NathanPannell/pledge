@@ -126,9 +126,11 @@
   function draw() {
     const w = plot.clientWidth;
     if (!w) return;
-    const small = w < 560;
+    // Three widths: phone, tablet and full width.
+    const small = w < 460;
+    const medium = !small && w < 760;
     const h = small ? 320 : 430;
-    const m = { top: 32, right: small ? 84 : 186, bottom: 34, left: small ? 46 : 60 };
+    const m = { top: 32, right: small ? 84 : medium ? 148 : 186, bottom: 34, left: small ? 46 : 60 };
     const x = (t) => m.left + ((t - T0) / (T1 - T0)) * (w - m.left - m.right);
     const y = (v) => m.top + (1 - v / Y_MAX) * (h - m.top - m.bottom);
     const path = (from, to, fn) => {
@@ -178,14 +180,19 @@
     const cx = x(CROSS);
     const cy = y(aidAt(CROSS));
     const cross = el("g", { class: "cc-cross" }, svg);
-    el("line", { class: "guide", x1: cx, x2: cx, y1: h - m.bottom, y2: cy }, cross);
+    const guide = el("line", { class: "guide", x1: cx, x2: cx, y1: h - m.bottom, y2: cy }, cross);
     el("circle", { class: "ring", cx, cy, r: 9 }, cross);
     el("circle", { class: "ring two", cx, cy, r: 9 }, cross);
     el("circle", { class: "dot", cx, cy, r: 7 }, cross);
     const callout = div("cc-callout", `<b>${quarter(CROSS)}</b><span>OpenAI and Anthropic take in more than all foreign aid</span>`, plot);
     // Up and to the left of the crossing, but never past the chart's left edge.
-    callout.style.left = Math.max(cx - 16, callout.offsetWidth + 4) + "px";
-    callout.style.top = cy - 22 + "px";
+    // The callout sits up and to the left, its corner on the guide, which rises
+    // from the axis through the crossing to meet it. On a narrow chart it floats
+    // higher, above both lines, so it never covers the start of the aid line.
+    const calloutBottom = small || medium ? Math.min(cy - 22, y(250)) : cy - 22;
+    callout.style.left = Math.max(cx, callout.offsetWidth + 4) + "px";
+    callout.style.top = calloutBottom + "px";
+    guide.setAttribute("y2", calloutBottom);
 
     // Moving tips while the lines draw, then labels at the end of each line.
     const tipAid = el("circle", { class: "cc-tip aid", r: 5 }, svg);
@@ -193,7 +200,7 @@
     const readAid = div("cc-read aid", "", plot);
     const readAi = div("cc-read ai", "", plot);
     const range = small ? "" : `<span class="range">${billions(SCENARIOS.low)} to ${billions(SCENARIOS.high)}</span>`;
-    const endAi = div("cc-end ai", `<b>${billions(SCENARIOS.central)}</b><span>${small ? "AI labs" : "OpenAI + Anthropic"}</span>${range}`, plot);
+    const endAi = div("cc-end ai", `<b>${billions(SCENARIOS.central)}</b><span>${small || medium ? "AI labs" : "OpenAI + Anthropic"}</span>${range}`, plot);
     endAi.style.left = x(T1) + 12 + "px";
     endAi.style.top = y(SCENARIOS.central) + "px";
     const endAid = div("cc-end aid", `<b>${billions(AID[AID.length - 1].value)}</b><span>${small ? "Aid" : "All foreign aid"}</span>`, plot);
