@@ -11,8 +11,9 @@ describes Nathan's original flow; its frontend and product behavior were retaine
   affect the round-up ledger. Preserve CAD/15-cent/C$5 behavior and sandbox-only
   payments. Never submit a real AI credit purchase during E2E.
 - Preserve device Bearer compatibility routes and Stripe return redirects.
-- `artifacts/` is not a static root. Adding installation UI to `web/` is separate
-  frontend work; this integration intentionally makes no such changes.
+- `artifacts/` is not a static root. The landing page links Pledge for Chrome
+  (Start giving → For individuals); keep `/roundups/` free of inline styles and
+  cross-origin assets, since its content security policy blocks them.
 - Never commit `.env`, SQLite/WAL/SHM, browser profiles, vault tokens, Stripe
   credentials, or deployment backups. Keep hosted data and secrets outside releases.
 - The running service uses an immutable release, not this editable checkout.

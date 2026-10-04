@@ -21,11 +21,17 @@ to the charity and listed on a public record. UN SDG 17.
   - `index.html`, `assets/landing.js` landing page: hero that rotates through the
     charities, live monthly total and gift stream, scale steps, gift record. Polls
     `/api/ledger` and listens on the `pledge` BroadcastChannel for gifts made in another tab.
+    The Start giving menu opens For enterprise (`app.html`) or For individuals (a dialog
+    about Pledge for Chrome).
+  - `assets/extension.js`, `assets/extension.css` Pledge for Chrome install steps,
+    connection codes and the round-up demo; shared with `/roundups/`.
+  - `assets/fonts/` self-hosted Figtree (OFL), for pages whose security policy blocks
+    Google Fonts.
   - `assets/chart.js` the scale chart: OpenAI + Anthropic annualized revenue against all
     foreign aid, with the projected crossing. Data and its derivation are at the top of
     the file; sources are notes 3 to 5 on the landing page.
   - `app.html`, `assets/app.js` guided Find, Choose, Give flow for a new company (with
-    the animated statement scan), then the company home.
+    the animated statement scan of the gift month), then the company home.
   - `assets/statement.js` CSV parsing and AI matching in the browser.
   - `invoice.html`, `receipt.html` gift invoice and sample tax receipt.
   - `assets/pledge.css` shared design system: light mode, Figtree, SDG 17 navy brand,
@@ -33,6 +39,8 @@ to the charity and listed on a public record. UN SDG 17.
   - `assets/motion.js` shared motion, loaded in `<head>`: scroll reveals, number tweens,
     "+$" chips, heart burst.
 - `samples/` a card statement CSV for demoing the upload path. A web test pins its totals.
+- `roundups/` Pledge for Chrome (extension, `/roundups/` page, ledger), merged from a
+  teammate. See its README and `docs/ARCHITECTURE.md`.
 
 ## Conventions
 
@@ -43,6 +51,8 @@ to the charity and listed on a public record. UN SDG 17.
 - Statement uploads send only AI rows; the server re-checks every row.
 - Stripe invoices are finalized, never emailed by the server.
 - Disclaimers and sources go in the notes at the bottom of each page, never inline.
+- The statement scan reads only the month the first gift is for and sums whole cents, so
+  its total equals the Choose step's figure and the invoice.
 - "Each month" figures use last full month's spend everywhere, so the first gift, the
   Choose step and the home dial agree.
 - `COMMUNITY_SAMPLE=off` turns off the 45-company sample. The sample is not real giving;

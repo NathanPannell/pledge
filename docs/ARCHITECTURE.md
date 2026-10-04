@@ -9,7 +9,7 @@ packaging) are required; runtime APIs use Node built-ins.
 | --- | --- |
 | `/`, `/app.html`, `/invoice.html`, `/receipt.html`, `/assets/*` | Nathan's existing frontend, unchanged in this integration |
 | `/api/*` | Nathan's company/statement/Plaid/provider/monthly invoice API |
-| `/roundups/` | Direct extension install, pairing, pending balance, payment return; no link added to Nathan's UI |
+| `/roundups/` | Extension install, pairing, pending balance, payment return; also reached from the landing page's Start giving → For individuals screen |
 | `/roundups/api/*` | Existing extension quote/pledge/pairing/Checkout API |
 | `/roundups/extension.zip`, `/extension.zip` | Generated standalone MV3 package |
 | `/artifacts/*` | Not served; retained source only |
@@ -23,9 +23,10 @@ with a correctly shaped device Bearer token go to the round-up handler, and
 legacy `/api/pair/redeem`, `/api/health`, `/api/webhook` are retained. Cookie-only
 company `/api/state` and `/api/pledge` calls always go to Nathan's API, even if
 the browser also has a `spare_session` cookie. Old Stripe root return URLs
-redirect to `/roundups/`; new sessions return there directly. The popup and
-OpenRouter overlay are unchanged; only endpoint configuration and the extension
-version change. Existing device tokens and sessions survive database import.
+redirect to `/roundups/`; new sessions return there directly. The popup,
+OpenRouter overlay and `/roundups/` were later restyled in Pledge's design
+system; their messages, API calls and money rules are unchanged. Existing device
+tokens and sessions survive database import.
 
 ## Data boundaries
 
@@ -72,8 +73,10 @@ startup is `SPARE_DROP_VAULT_TOKEN=1 python3 roundups/scripts/with-vault.py npm 
 
 ## Frontend work
 
-Nathan can edit `web/` normally and optionally link a button/dropdown to
-`/roundups/` or reuse installation content from `roundups/public/` and
-`artifacts/spare-cad/public/`. Nothing is wired into his UI in this integration.
-Preserve API namespaces and payment-return handling, and run both test suites
-before deployment. Pushing GitHub changes does not automatically deploy them.
+The landing page's Start giving menu links the two products. Its For individuals
+screen and `/roundups/` share `web/assets/extension.js` and `extension.css` (install
+steps, connection codes, the round-up demo). `/roundups/` loads them, `pledge.css`,
+`motion.js` and the self-hosted Figtree font from `/assets/`, because its content
+security policy allows only same-origin scripts, styles and fonts and no inline
+style attributes. Preserve API namespaces and payment-return handling, and run both
+test suites before deployment. Pushing GitHub changes does not automatically deploy them.

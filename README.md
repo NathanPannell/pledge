@@ -1,10 +1,11 @@
 # Pledge
 
-This repository now serves Nathan's existing frontend/company demo and the
-OpenRouter round-up extension from **one Node backend**. His `web/` files remain
-unchanged by the integration; extension installation is directly accessible at
-`/roundups/`, with no new frontend links. Old previews remain in `artifacts/`.
-The hosted demo is https://pledge.pauravhp.com.
+This repository serves the company giving demo and the OpenRouter round-up
+extension, **Pledge for Chrome**, from **one Node backend**. The landing page's
+**Start giving** button opens into **For enterprise** (the company flow) and
+**For individuals** (a screen that explains the extension, installs it and issues a
+connection code). `/roundups/` is the extension's own setup and payment-return page.
+Old previews remain in `artifacts/`. The hosted demo is https://pledge.pauravhp.com.
 
 Read [architecture and routes](docs/ARCHITECTURE.md),
 [local setup and safe deployment](docs/DEPLOYMENT.md), and
@@ -91,9 +92,10 @@ Open the landing page and the giving page side by side in the same browser.
    against all foreign aid and marks Q4 2026, where the lines cross. It draws again each
    time you scroll back to it. Below it, the 1% steps go from one team ($188 a month) to
    companies on Pledge ($24,500 a month) to every company ($26.7 billion a year).
-2. **Giving page, Find.** Click **Try a sample company**, or drop in
-   `samples/harbourline-card-statement.csv`. Watch the statement scan: each transaction
-   streams past, AI charges light up, and the AI spend total climbs.
+2. **Giving page, Find.** Click **Start giving**, then **For enterprise**, then **Try a
+   sample company** (or drop in `samples/harbourline-card-statement.csv`). The scan reads
+   the month the gift is for: its transactions stream past, AI charges light up, and the
+   total climbs to exactly the figure the next step shows.
 3. **Choose.** "Northgate Freight spent $18,822 on AI in September, up 29% since July."
    Drag the dial, then set it back to 1%.
 4. **Give $188.22 for September.** The thank-you counts the gift up, then the community

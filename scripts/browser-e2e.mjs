@@ -12,9 +12,18 @@ try {
   const errors = [];
   context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
   const landing = await context.newPage(); await landing.goto(origin);
-  await landing.getByRole('link', { name: 'See your AI spend', exact: true }).first().waitFor();
-  assert.equal(await landing.getByRole('link', { name: /extension/i }).count(), 0);
-  report.checks.push('Original landing page and company CTA load with no extension UI added');
+  // Start giving opens into the company flow and Pledge for Chrome.
+  await landing.locator('.hero .cta-btn').click();
+  const enterprise = landing.locator('.hero').getByRole('menuitem', { name: /For enterprise/ });
+  assert.equal(await enterprise.getAttribute('href'), 'app.html');
+  await landing.locator('.hero').getByRole('menuitem', { name: /For individuals/ }).click();
+  await landing.locator('#individuals').getByRole('heading', { name: /Round up your AI credits/ }).waitFor();
+  assert.equal(await landing.locator('#individuals a[href="/roundups/extension.zip"]').count() > 0, true);
+  await landing.locator('#individuals').getByRole('button', { name: 'Get a connection code', exact: true }).click();
+  await landing.locator('#individuals #pair-code').waitFor({ state: 'visible' });
+  assert.match(await landing.locator('#individuals #pair-code').textContent(), /^[a-f0-9]{64}$/);
+  await landing.locator('#individuals .ind-close').click();
+  report.checks.push('Landing CTA opens enterprise and individual paths; the Chrome screen issues a connection code');
   const page = await context.newPage(); await page.goto(origin + '/app.html');
   if (full) {
     await page.evaluate(() => fetch('/api/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }));
@@ -52,11 +61,11 @@ try {
   await setup.getByRole('button', { name: 'Get a connection code', exact: true }).click();
   await setup.locator('#pair-code').waitFor({ state: 'visible' });
   assert.match(await setup.locator('#pair-code').textContent(), /^[a-f0-9]{64}$/);
-  report.checks.push('Direct extension installation and one-time pairing UI work without changing the landing page');
+  report.checks.push('Direct extension installation and one-time pairing work on /roundups/');
   await setup.close();
   const phoneContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
   const phone = await phoneContext.newPage(); await phone.goto(origin);
-  await phone.getByRole('link', { name: 'See your AI spend', exact: true }).first().waitFor();
+  await phone.getByRole('button', { name: /Start giving/ }).first().waitFor();
   assert.equal(await phone.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await phone.screenshot({ path: 'test-results/landing-phone.png', fullPage: true });
   await phone.goto(origin + '/roundups/'); await phone.locator('#pair').waitFor();
