@@ -404,6 +404,122 @@
     }, { threshold: 0.4 }).observe(panel);
   }
 
+  // ---- Start giving: one button that opens into the two ways to give -----------
+
+  const ctas = [...document.querySelectorAll("[data-cta]")];
+
+  // The menu grows out of the button: it starts clipped to the button's own
+  // size, at the corner nearest the button, then opens to full size.
+  function clipFrom(cta) {
+    const b = cta.querySelector(".cta-btn");
+    const w = `calc(100% - ${b.offsetWidth}px)`;
+    const h = `calc(100% - ${b.offsetHeight}px)`;
+    if (cta.classList.contains("up") || cta.classList.contains("flip")) return `inset(${h} ${w} 0 0 round 12px)`;
+    if (cta.classList.contains("right")) return `inset(0 0 ${h} ${w} round 12px)`;
+    return `inset(0 ${w} ${h} 0 round 12px)`;
+  }
+
+  function setMenu(cta, open, focus) {
+    const button = cta.querySelector(".cta-btn");
+    const menu = cta.querySelector(".cta-menu");
+    if (open === cta.classList.contains("open")) return;
+    button.setAttribute("aria-expanded", String(open));
+    if (open) {
+      ctas.forEach((c) => c !== cta && setMenu(c, false));
+      cta.classList.remove("closing", "flip");
+      menu.hidden = false;
+      // Open upward when the menu wouldn't fit below the button on screen.
+      const box = button.getBoundingClientRect();
+      if (box.bottom + menu.offsetHeight + 16 > innerHeight && box.top - menu.offsetHeight - 16 > 0) cta.classList.add("flip");
+      menu.style.setProperty("--from", clipFrom(cta));
+      cta.classList.add("open");
+      if (focus) menu.querySelector('[role="menuitem"]').focus();
+      return;
+    }
+    cta.classList.remove("open");
+    cta.classList.add("closing");
+    setTimeout(() => {
+      if (cta.classList.contains("open")) return;
+      cta.classList.remove("closing");
+      menu.hidden = true;
+    }, M.reduce ? 0 : 180);
+  }
+
+  ctas.forEach((cta) => {
+    const button = cta.querySelector(".cta-btn");
+    const items = () => [...cta.querySelectorAll('[role="menuitem"]')];
+    button.addEventListener("click", () => setMenu(cta, !cta.classList.contains("open")));
+    button.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowDown") return;
+      e.preventDefault();
+      setMenu(cta, true, true);
+    });
+    cta.querySelector(".cta-menu").addEventListener("keydown", (e) => {
+      const list = items();
+      const at = list.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        list[(at + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length].focus();
+      } else if (e.key === "Escape") {
+        setMenu(cta, false);
+        button.focus();
+      }
+    });
+    cta.addEventListener("focusout", (e) => {
+      if (!cta.contains(e.relatedTarget)) setMenu(cta, false);
+    });
+  });
+  document.addEventListener("click", (e) => {
+    ctas.forEach((cta) => !cta.contains(e.target) && setMenu(cta, false));
+  });
+
+  // ---- For individuals: Pledge for Chrome ----------------------------------------
+
+  const ind = $("individuals");
+  const X = window.PledgeExtension;
+  const demo = X.mountDemo($("ind-demo"));
+  X.mountInstall($("ind-steps"));
+
+  function openIndividuals() {
+    ctas.forEach((c) => setMenu(c, false));
+    if (ind.open) return;
+    ind.showModal();
+    ind.querySelector(".ind-scroll").scrollTop = 0;
+    M.replay(ind);
+    demo.play();
+  }
+
+  function closeIndividuals() {
+    if (!ind.open || ind.classList.contains("closing")) return;
+    if (M.reduce) return ind.close();
+    ind.classList.add("closing");
+    setTimeout(() => {
+      ind.classList.remove("closing");
+      ind.close();
+    }, 220);
+  }
+
+  document.querySelectorAll("[data-individuals]").forEach((b) => b.addEventListener("click", openIndividuals));
+  ind.querySelector(".ind-close").addEventListener("click", closeIndividuals);
+  ind.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    closeIndividuals();
+  });
+  // A click on the dimmed page around the screen closes it.
+  ind.addEventListener("click", (e) => {
+    if (e.target === ind) closeIndividuals();
+  });
+  ind.addEventListener("close", () => {
+    demo.stop();
+    if (location.hash === "#individuals") history.replaceState(null, "", location.pathname + location.search);
+  });
+  ind.querySelector("[data-scroll]").addEventListener("click", (e) => {
+    e.preventDefault();
+    $("ind-install").scrollIntoView({ behavior: M.reduce ? "auto" : "smooth", block: "start" });
+  });
+  // A shared link straight to the Chrome screen.
+  if (location.hash === "#individuals") openIndividuals();
+
   // ---- Start ----------------------------------------------------------------------
 
   loadLedger().then((ok) => {
