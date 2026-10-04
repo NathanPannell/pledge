@@ -72,7 +72,7 @@
   main { overflow-x: clip; }
   /* ---- Crossing chart: two AI labs' revenue against all foreign aid ---- */
   .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-  .cc { position: relative; margin: 0 0 56px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px 28px 18px; box-shadow: var(--shadow); }
+  .cc { position: relative; margin: 0 0 56px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px 28px 18px; }
   .cc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
   .cc-head h3 { font-size: clamp(1.3rem, 2.4vw, 1.6rem); }
   .cc-sub { color: var(--ink-3); font-size: 1rem; }
@@ -111,16 +111,14 @@
   .cc.crossed .cc-cross { opacity: 1; }
   .cc-cross .guide { stroke: var(--flow); stroke-width: 2; stroke-dasharray: 4 4; transform-box: fill-box; transform-origin: bottom; }
   .cc-cross .dot { fill: var(--flow); stroke: #fff; stroke-width: 3; }
-  .cc-cross .ring { fill: none; stroke: var(--flow); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .cc-cross .ring { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; }
   .motion .cc.crossed .cc-cross .guide { animation: guide-up 0.6s var(--ease-out); }
   .motion .cc.crossed .cc-cross .dot { animation: dot-pop 0.7s var(--ease-spring); transform-box: fill-box; transform-origin: center; }
-  .motion .cc.crossed .cc-cross .ring { animation: ring 1.6s ease-out; }
-  .motion .cc.crossed .cc-cross .ring.two { animation-delay: 0.35s; }
-  .motion .cc.done .cc-cross .ring { animation: ring 2.4s ease-out 1.2s infinite; }
-  .motion .cc.done .cc-cross .ring.two { animation-delay: 1.8s; }
+  .motion .cc.crossed .cc-cross .ring { animation: ring 1.2s ease-out; }
+  .motion .cc.crossed .cc-cross .ring.two { animation-delay: 0.3s; }
   @keyframes guide-up { from { stroke-dashoffset: 0; opacity: 0; transform: scaleY(0); } }
   @keyframes dot-pop { 0% { transform: scale(0); } 60% { transform: scale(1.5); } }
-  @keyframes ring { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(4); } }
+  @keyframes ring { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(2.2); } }
   .cc-callout { position: absolute; z-index: 3; transform: translate(-100%, -100%); width: max-content; max-width: min(250px, 56vw); padding: 12px 16px; border-radius: 12px; background: var(--flow); color: #fff; box-shadow: var(--shadow-lg); display: grid; gap: 2px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   .cc-callout { border-bottom-right-radius: 3px; }
   .cc-callout b { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
@@ -201,8 +199,8 @@
 
   /* ---- How it works ---- */
   .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; list-style: none; margin: 0; padding: 0; }
-  .step { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; display: grid; gap: 12px; align-content: start; transition: transform 0.35s var(--ease-out), box-shadow 0.35s; }
-  .step:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .step { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; display: grid; gap: 12px; align-content: start; transition: transform 0.35s var(--ease-out), border-color 0.35s; }
+  .step:hover { transform: translateY(-4px); border-color: var(--line-strong); }
   .step .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); }
   .step:last-child .ic { background: var(--flow-soft); color: var(--flow); }
   .step .ic svg { width: 24px; height: 24px; overflow: visible; }
@@ -222,8 +220,8 @@
 
   /* ---- Gift record ---- */
   .gifts { display: grid; gap: 10px; }
-  .gift { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); transition: transform 0.3s var(--ease-out), box-shadow 0.3s; }
-  .gift:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .gift { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); transition: transform 0.3s var(--ease-out), border-color 0.3s; }
+  .gift:hover { transform: translateY(-2px); border-color: var(--line-strong); }
   .gift.new { animation: arrive 2s var(--ease-out); }
   @keyframes arrive { 0% { background: var(--flow-soft); transform: translateY(-14px) scale(0.98); opacity: 0; } 20% { opacity: 1; transform: none; } 60% { background: var(--flow-soft); } 100% { background: #fff; } }
   .gift.new .mark { animation: heart-pop 0.7s 0.25s var(--ease-spring) backwards; }
@@ -235,8 +233,8 @@
   .gift .amt b { font-size: 1.2rem; font-weight: 760; font-variant-numeric: tabular-nums; }
 
   .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
-  .faq details { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; background: #fff; transition: border-color 0.3s, box-shadow 0.3s; }
-  .faq details[open] { border-color: var(--line-strong); box-shadow: var(--shadow); }
+  .faq details { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; background: #fff; transition: border-color 0.3s; }
+  .faq details[open] { border-color: var(--line-strong); }
   .faq summary { cursor: pointer; font-weight: 650; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
   .faq summary::-webkit-details-marker { display: none; }
   .faq summary::after { content: "+"; flex: none; color: var(--ink-3); font-size: 1.4rem; line-height: 1; transition: transform 0.35s var(--ease-spring), color 0.3s; }
@@ -252,7 +250,7 @@
   .closing h2 { color: #fff; }
   .closing p { color: rgba(255, 255, 255, 0.86); font-size: 1.15rem; }
   .btn-light { background: #fff; color: var(--ink); }
-  .btn-light:hover { background: #f1f1f1; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3); }
+  .btn-light:hover { background: #f1f1f1; }
 
   .footer { padding-block: 32px 40px; }
   .footer .wrap { display: grid; gap: 18px; }
