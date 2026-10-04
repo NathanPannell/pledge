@@ -72,6 +72,14 @@ export function createApp({ service, webRoot }) {
       return { ok: true };
     },
     "POST /api/invoices": async (req, url, body) => ({ invoice: await service.issueInvoice(body) }),
+    "POST /api/demo": () => {
+      service.seedDemo();
+      return { ok: true };
+    },
+    "POST /api/reset": () => {
+      service.reset();
+      return { ok: true };
+    },
   };
 
   return createServer(async (req, res) => {

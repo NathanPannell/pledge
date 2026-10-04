@@ -1,4 +1,4 @@
-// Tributary dashboard. Talks to the local API; secrets never reach the browser.
+// Tributary giving page. Talks to the local API; secrets never reach the browser.
 (function () {
   const $ = (id) => document.getElementById(id);
   let state = null;
@@ -7,23 +7,32 @@
   const money = (cents) => "$" + Math.round(cents / 100).toLocaleString("en-US");
   const moneyExact = (cents) => "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const fmtDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const fmtMonth = (m) => new Date(m + "-01T00:00:00").toLocaleDateString("en-US", { month: "short" });
   const iso = (d) => d.toISOString().slice(0, 10);
+  const monthLong = (m) => new Date(m + "-01T00:00:00").toLocaleDateString("en-US", { month: "long" });
+  const monthYear = (m) => new Date(m + "-01T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const shortDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const pctText = (rate) => {
+    const p = Math.round(rate * 10000) / 100;
+    return (Number.isInteger(p) ? p : p.toFixed(2)) + "%";
+  };
 
-  function period() {
-    const days = Number($("period").value);
-    const end = new Date();
-    const start = new Date(Date.now() - (days - 1) * 86400000);
-    return { days, start: iso(start), end: iso(end) };
+  function monthBounds(month) {
+    const [y, m] = month.split("-").map(Number);
+    return { start: iso(new Date(Date.UTC(y, m - 1, 1))), end: iso(new Date(Date.UTC(y, m, 0))) };
+  }
+
+  function thisMonth() {
+    return iso(new Date()).slice(0, 7);
+  }
+
+  // Five full months plus this one, enough to show history and an average.
+  function range() {
+    const now = new Date();
+    return { start: iso(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5, 1))), end: iso(now) };
   }
 
   async function api(method, path, body) {
-    const res = await fetch(path, {
-      method,
-      headers: { "content-type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const res = await fetch(path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json.error || "Something went wrong.");
     return json;
@@ -36,7 +45,7 @@
     el.classList.toggle("err", Boolean(isError));
     el.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.hidden = true; }, isError ? 7000 : 4000);
+    toastTimer = setTimeout(() => { el.hidden = true; }, isError ? 7000 : 3500);
   }
 
   async function busy(button, label, work) {
@@ -52,219 +61,203 @@
   }
 
   async function load() {
-    const p = period();
-    state = await api("GET", `/api/state?start=${p.start}&end=${p.end}`);
+    const r = range();
+    state = await api("GET", `/api/state?start=${r.start}&end=${r.end}`);
     render();
   }
 
-  // ---- Rendering -----------------------------------------------------------
+  // ---- Derived numbers -------------------------------------------------------
+
+  function rate() {
+    return Number($("rate").value) / 100;
+  }
+
+  function basisOf(m, basis) {
+    if (basis === "card") return m.cardCents;
+    if (basis === "provider") return m.providerCents;
+    return Math.max(m.cardCents, m.providerCents);
+  }
+
+  function fullMonths() {
+    return state.spend.months.filter((m) => m.month < thisMonth());
+  }
+
+  function lastGiftEnd() {
+    return state.invoices.reduce((max, i) => (i.period_end > max ? i.period_end : max), "");
+  }
+
+  // The most recent finished month that hasn't been given for yet.
+  function readyMonth() {
+    const after = lastGiftEnd();
+    const candidates = fullMonths().filter((m) => monthBounds(m.month).end > after && basisOf(m, $("basis").value) > 0);
+    return candidates.length ? candidates[candidates.length - 1] : null;
+  }
+
+  function averageMonthlyBasis() {
+    const basis = $("basis").value;
+    const recent = fullMonths().slice(-3);
+    if (recent.length) return recent.reduce((s, m) => s + basisOf(m, basis), 0) / recent.length;
+    const current = state.spend.months.find((m) => m.month === thisMonth());
+    if (!current) return 0;
+    const day = new Date().getUTCDate();
+    return (basisOf(current, basis) / day) * 30;
+  }
+
+  // ---- Rendering -------------------------------------------------------------
 
   function render() {
+    document.querySelectorAll(".charity-name").forEach((el) => { el.textContent = state.charity.name; });
     const hasOrg = Boolean(state.org);
-    $("onboard").hidden = hasOrg;
-    $("dash").hidden = !hasOrg;
-    $("org-chip").hidden = !hasOrg;
+    $("welcome").hidden = hasOrg;
+    $("home").hidden = !hasOrg;
     if (!hasOrg) return;
-    $("org-chip").textContent = state.org.name;
-    $("period-label").textContent = $("period").selectedOptions[0].textContent;
-    renderConnections();
-    renderKpis();
-    renderChart();
-    renderVendors();
-    renderTransactions();
-    renderInvoices();
-    renderDial(true);
+    $("rate").value = String(Math.round(state.org.pledgeRate * 10000) / 100);
+    $("basis").value = state.org.basis;
+    renderImpact();
+    renderReady();
+    renderDial();
+    renderGifts();
+    renderSpend();
+    $("org-email-out").textContent = state.org.billingEmail ? `Invoices go to ${state.org.billingEmail}` : "";
   }
 
-  function renderConnections() {
-    $("plaid-banner").hidden = state.plaid.configured;
+  function givenCents() {
+    return state.invoices.reduce((s, i) => s + i.amount_cents, 0);
+  }
+
+  function renderImpact() {
+    const given = givenCents();
+    const gifts = state.invoices.length;
+    $("given-amt").textContent = moneyExact(given);
+    $("org-name-out").textContent = state.org.name;
+    $("s-gifts").textContent = String(gifts);
+    const first = state.invoices.reduce((min, i) => (!min || i.period_start < min ? i.period_start : min), "");
+    $("s-since").textContent = first ? monthLong(first.slice(0, 7)) : "This month";
+    $("s-rate").textContent = pctText(state.org.pledgeRate);
+
+    const goal = state.goal;
+    const others = Math.max(0, goal.raisedCents - given);
+    $("goal-label").textContent = goal.label;
+    $("goal-text").textContent = `${money(goal.raisedCents)} of ${money(goal.cents)}`;
+    requestAnimationFrame(() => {
+      $("goal-others").style.width = Math.min(100, (others / goal.cents) * 100) + "%";
+      $("goal-mine").style.width = Math.min(100, (given / goal.cents) * 100) + "%";
+    });
+    $("goal-share").textContent = given > 0 && goal.raisedCents > given
+      ? `${state.org.name} has given ${Math.round((given / goal.raisedCents) * 100)}% of everything raised so far.`
+      : "";
+  }
+
+  function renderReady() {
+    const m = readyMonth();
+    $("ready").hidden = !m;
+    $("next").hidden = Boolean(m);
+    const r = rate();
+    if (m) {
+      const basis = basisOf(m, $("basis").value);
+      const amount = Math.round(basis * r);
+      $("ready-title").textContent = `${monthLong(m.month)}’s gift is ready`;
+      $("ready-month").textContent = monthLong(m.month);
+      $("ready-basis").textContent = money(basis);
+      $("ready-rate").textContent = pctText(r);
+      $("ready-amt-inline").textContent = moneyExact(amount);
+      $("give").textContent = `Give ${moneyExact(amount)}`;
+      $("give").disabled = amount < 100;
+      $("give").dataset.month = m.month;
+      $("give-note").textContent = state.stripe.configured
+        ? `One invoice to ${state.org.billingEmail || "your finance team"}${state.stripe.testMode ? " (Stripe test mode)" : ""}.`
+        : `Recorded as a gift to ${state.charity.shortName || state.charity.name}.`;
+      return;
+    }
+    const now = new Date();
+    const nextFirst = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    $("next-title").textContent = nextFirst.toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
+    const current = state.spend.months.find((x) => x.month === thisMonth());
+    const soFar = current ? basisOf(current, $("basis").value) : 0;
+    $("next-text").textContent = soFar
+      ? `${monthLong(thisMonth())} so far: ${money(soFar)} of AI spend, ${moneyExact(Math.round(soFar * r))} at ${pctText(r)}.`
+      : "Connect a card to see this month's AI spend.";
+  }
+
+  function renderDial() {
+    const r = rate();
+    const monthly = averageMonthlyBasis() * r;
+    $("rate-out").textContent = pctText(r);
+    $("o-month").textContent = money(monthly);
+    $("o-year").textContent = money(monthly * 12);
+    $("o-ten").textContent = money(monthly * 120);
+  }
+
+  const HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+
+  function renderGifts() {
+    const rows = state.invoices;
+    $("gifts").innerHTML = rows.length
+      ? rows.map((i) => `
+        <div class="g">
+          <span class="mark">${HEART}</span>
+          <div><div class="t">${esc(monthYear(i.period_end.slice(0, 7)))}</div>
+            <div class="s num">${pctText(i.rate)} of ${money(i.basis_cents)} AI spend &middot; ${esc(i.number)}</div></div>
+          <div class="r"><b class="num">${moneyExact(i.amount_cents)}</b>
+            ${i.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Received</span>' : `<span class="pill warn"><span class="dot"></span>On its way</span>`}
+            ${i.stripe_url ? `<a href="${esc(i.stripe_url)}" target="_blank" rel="noopener">Invoice</a>` : ""}
+            ${i.status !== "paid" ? `<button class="linkish" type="button" data-paid="${i.id}">Mark received</button>` : ""}
+          </div>
+        </div>`).join("")
+      : '<p class="muted">No gifts yet. Your first one will appear here.</p>';
+  }
+
+  function renderSpend() {
+    const s = state.spend;
+    $("plaid-banner").hidden = state.plaid.configured || state.connections.length > 0;
     $("connect-plaid").disabled = !state.plaid.configured;
     $("connect-sandbox").hidden = !(state.plaid.configured && state.plaid.env === "sandbox");
-    for (const kind of ["plaid", "anthropic", "openai"]) {
-      const items = state.connections.filter((c) => c.kind === kind);
-      $("items-" + kind).innerHTML = items.map((c) => `
-        <div class="conn-item">
-          <div style="display:grid;gap:2px;min-width:0;">
-            <span style="font-weight:600;">${esc(c.label)}</span>
-            ${c.status === "error"
-              ? `<span class="pill err" title="${esc(c.error)}"><span class="dot"></span>Sync failed</span>`
-              : `<code>${esc(c.hint || "")}</code>`}
-          </div>
-          <button class="btn btn-ghost btn-sm" type="button" data-remove="${c.id}" aria-label="Remove ${esc(c.label)}">Remove</button>
-        </div>`).join("");
-    }
-  }
-
-  function renderKpis() {
-    const s = state.spend;
-    const cardConns = state.connections.filter((c) => c.kind === "plaid").length;
-    const provConns = state.connections.filter((c) => c.kind !== "plaid").length;
-    $("k-card").textContent = money(s.cardCents);
-    $("k-card-s").textContent = cardConns ? `${s.vendors.reduce((n, v) => n + v.count, 0)} AI charges` : "No card connected";
-    $("k-usage").textContent = money(s.providerCents);
-    $("k-usage-s").textContent = provConns ? s.providers.map((p) => p.vendor).join(" and ") : "No providers connected";
-    $("k-share").textContent = s.allCardCents ? Math.round((s.cardCents / s.allCardCents) * 100) + "%" : "0%";
-    $("k-vendors").textContent = String(s.vendors.length);
-  }
-
-  function niceMax(v) {
-    if (v <= 0) return 100;
-    const pow = Math.pow(10, Math.floor(Math.log10(v)));
-    const n = v / pow;
-    const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
-    return step * pow;
-  }
-
-  function renderChart() {
-    const months = state.spend.months;
-    const el = $("chart");
-    if (!months.length) {
-      el.innerHTML = '<div class="empty">Connect a card or a provider to see monthly AI spend.</div>';
-      return;
-    }
-    const W = 640, H = 240, L = 52, B = 26, T = 8;
-    const max = niceMax(Math.max(...months.map((m) => Math.max(m.cardCents, m.providerCents))) / 100);
-    const y = (dollars) => T + (H - T - B) * (1 - dollars / max);
-    const band = (W - L) / months.length;
-    const barW = Math.min(36, (band - 24) / 2);
-    let svg = "";
-    for (let i = 0; i <= 4; i++) {
-      const v = (max / 4) * i;
-      svg += `<line class="grid-line" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`;
-      svg += `<text class="tick" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">$${v >= 1000 ? (v / 1000).toLocaleString("en-US") + "k" : v}</text>`;
-    }
-    months.forEach((m, i) => {
-      const cx = L + band * i + band / 2;
-      const bars = [
-        { cents: m.cardCents, color: "var(--series-card)", label: "Card charges", x: cx - barW - 1 },
-        { cents: m.providerCents, color: "var(--series-usage)", label: "Provider usage", x: cx + 1 },
-      ];
-      for (const b of bars) {
-        const top = y(b.cents / 100);
-        const h = Math.max(0, H - B - top);
-        if (h > 0) {
-          const r = Math.min(4, h, barW / 2);
-          // Rounded top, square base anchored to the axis.
-          svg += `<path class="bar" fill="${b.color}" data-tip="${esc(fmtMonth(m.month))} · ${b.label}: ${money(b.cents)}" d="M${b.x},${H - B} V${top + r} q0,-${r} ${r},-${r} h${barW - 2 * r} q${r},0 ${r},${r} V${H - B} Z"/>`;
-        }
-      }
-      svg += `<text class="tick" x="${cx}" y="${H - 6}" text-anchor="middle">${esc(fmtMonth(m.month))}</text>`;
-    });
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Monthly AI spend, card charges and provider usage">${svg}</svg><div class="tip" hidden></div>`;
-    const tip = el.querySelector(".tip");
-    el.querySelectorAll(".bar").forEach((bar) => {
-      bar.addEventListener("mouseenter", () => {
-        const box = bar.getBoundingClientRect();
-        const host = el.getBoundingClientRect();
-        tip.textContent = bar.dataset.tip;
-        tip.style.left = box.left - host.left + box.width / 2 + "px";
-        tip.style.top = box.top - host.top + "px";
-        tip.hidden = false;
-      });
-      bar.addEventListener("mouseleave", () => { tip.hidden = true; });
-    });
-  }
-
-  function renderVendors() {
-    const rows = [
-      ...state.spend.vendors.map((v) => ({ ...v, kind: "card" })),
-      ...state.spend.providers.map((v) => ({ ...v, kind: "usage" })),
-    ];
-    if (!rows.length) {
-      $("vendors").innerHTML = '<div class="empty">No AI vendors found yet.</div>';
-      $("vendor-note").textContent = "";
-      return;
-    }
-    const max = Math.max(...rows.map((r) => r.cents));
-    $("vendor-note").textContent = state.spend.providers.length ? "Card charges in blue, provider usage in teal" : "";
-    $("vendors").innerHTML = rows.map((r) => `
-      <div class="vrow ${r.kind === "usage" ? "usage" : ""}">
-        <span>${esc(r.vendor)}${r.kind === "usage" ? ' <span class="faint small">usage</span>' : ""}</span>
+    $("spend-period").textContent = s.months.length ? `Since ${monthLong(s.months[0].month)}` : "";
+    $("sources").innerHTML = state.connections.map((c) => `
+      <span class="source ${c.status === "error" ? "err" : ""}" title="${esc(c.error || "")}">
+        ${esc(c.kind === "anthropic" || c.kind === "openai" ? c.label + " usage" : c.label)}
+        <button class="x" type="button" data-remove="${c.id}" aria-label="Remove ${esc(c.label)}">&times;</button>
+      </span>`).join("") || '<span class="muted small">Nothing connected yet.</span>';
+    const rows = [...s.vendors.map((v) => ({ ...v, usage: false })), ...s.providers.map((v) => ({ ...v, usage: true }))]
+      .sort((a, b) => b.cents - a.cents).slice(0, 7);
+    const max = Math.max(1, ...rows.map((r) => r.cents));
+    $("tools").innerHTML = rows.map((r) => `
+      <div class="tool ${r.usage ? "usage" : ""}">
+        <span>${esc(r.vendor)}${r.usage ? ' <span class="faint small">usage</span>' : ""}</span>
         <span class="track"><i style="width:${Math.max(2, (r.cents / max) * 100)}%"></i></span>
         <span class="num">${money(r.cents)}</span>
       </div>`).join("");
+    $("txns").innerHTML = state.transactions.map((t) => `
+      <tr class="${t.vendor ? "" : "not-ai"}"><td class="num">${shortDate(t.date)}</td><td>${esc(t.description)}</td>
+      <td>${t.vendor ? `<span class="pill ai">${esc(t.vendor)}</span>` : "&mdash;"}</td><td class="r num">${moneyExact(t.amount_cents)}</td></tr>`).join("")
+      || '<tr><td colspan="4" class="faint">No card transactions yet.</td></tr>';
   }
 
-  function renderTransactions() {
-    const rows = state.transactions;
-    $("txns").innerHTML = rows.length
-      ? rows.map((t) => `
-        <tr class="${t.vendor ? "" : "not-ai"}">
-          <td class="num">${fmtDate(t.date)}</td>
-          <td>${esc(t.description)}</td>
-          <td>${t.vendor ? `<span class="pill ai">${esc(t.vendor)}</span>` : '<span class="faint small">Not AI</span>'}</td>
-          <td class="r num">${moneyExact(t.amount_cents)}</td>
-        </tr>`).join("")
-      : '<tr><td colspan="4" class="faint">Connect a card to see transactions.</td></tr>';
-  }
-
-  function renderInvoices() {
-    const rows = state.invoices;
-    $("invoices").innerHTML = rows.length
-      ? rows.map((i) => `
-        <tr>
-          <td><code>${esc(i.number)}</code></td>
-          <td class="num">${fmtDate(i.period_start)} – ${fmtDate(i.period_end)}</td>
-          <td class="r num">${money(i.basis_cents)} × ${(i.rate * 100).toFixed(2)}%</td>
-          <td class="r num"><strong>${moneyExact(i.amount_cents)}</strong></td>
-          <td>${i.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Paid</span>' : '<span class="pill warn"><span class="dot"></span>Invoiced</span>'}</td>
-          <td class="r" style="white-space:nowrap;">
-            ${i.stripe_url ? `<a class="btn btn-ghost btn-sm" href="${esc(i.stripe_url)}" target="_blank" rel="noopener">Open in Stripe</a>` : ""}
-            ${i.status !== "paid" ? `<button class="btn btn-ghost btn-sm" type="button" data-paid="${i.id}">Mark paid</button>` : ""}
-          </td>
-        </tr>`).join("")
-      : '<tr><td colspan="6" class="faint">No invoices yet. Set the dial and issue the first one.</td></tr>';
-  }
-
-  function currentBasis() {
-    return document.querySelector('input[name="basis"]:checked').value;
-  }
-
-  function basisCents(basis) {
-    const s = state.spend;
-    if (basis === "card") return s.cardCents;
-    if (basis === "provider") return s.providerCents;
-    return Math.max(s.cardCents, s.providerCents);
-  }
-
-  function renderDial(fromState) {
-    if (fromState) {
-      $("rate").value = String(Math.round(state.org.pledgeRate * 10000) / 100);
-      const b = document.querySelector(`input[name="basis"][value="${state.org.basis}"]`);
-      if (b) b.checked = true;
-    }
-    const pct = Number($("rate").value);
-    const basis = basisCents(currentBasis());
-    const pledge = Math.round(basis * (pct / 100));
-    const days = period().days;
-    $("rate-out").textContent = pct.toFixed(2) + "%";
-    $("pledge-amt").textContent = moneyExact(pledge);
-    $("pledge-to").textContent = "to " + state.charity.name;
-    $("pledge-period").textContent = $("period").selectedOptions[0].textContent;
-    $("pledge-basis").textContent = money(basis);
-    $("pledge-year").textContent = money(Math.round((pledge * 365) / days));
-    $("issue").disabled = pledge < 100;
-    $("issue-note").textContent = state.stripe.configured
-      ? `Creates a Stripe invoice${state.stripe.testMode ? " (test mode)" : ""} and lists it on the public ledger.`
-      : "Creates an invoice and lists it on the public ledger. Add a Stripe key to send it through Stripe.";
-  }
+  // ---- Actions ---------------------------------------------------------------
 
   function savePledgeSoon() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(async () => {
-      try {
-        const out = await api("POST", "/api/pledge", { rate: Number($("rate").value) / 100, basis: currentBasis() });
-        state.org.pledgeRate = out.org.pledge_rate;
-        state.org.basis = out.org.basis;
-      } catch (err) {
-        toast(err.message, true);
-      }
-    }, 400);
+    saveTimer = setTimeout(() => {
+      api("POST", "/api/pledge", { rate: rate(), basis: $("basis").value })
+        .then((out) => { state.org.pledgeRate = out.org.pledge_rate; state.org.basis = out.org.basis; renderImpact(); })
+        .catch((err) => toast(err.message, true));
+    }, 350);
   }
 
-  // ---- Actions -------------------------------------------------------------
+  $("rate").addEventListener("input", () => { renderDial(); renderReady(); savePledgeSoon(); });
+  $("basis").addEventListener("change", () => { renderDial(); renderReady(); savePledgeSoon(); });
 
-  $("org-form").addEventListener("submit", async (e) => {
+  $("try-demo").addEventListener("click", (e) => busy(e.currentTarget, "Setting up", async () => {
+    try {
+      await api("POST", "/api/demo");
+      await load();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  }));
+
+  $("show-setup").addEventListener("click", () => { $("setup").hidden = false; $("org-name").focus(); });
+  $("setup").addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
       await api("POST", "/api/org", { name: $("org-name").value, billingEmail: $("org-email").value });
@@ -274,22 +267,48 @@
     }
   });
 
-  $("period").addEventListener("change", () => load().catch((err) => toast(err.message, true)));
-
-  $("refresh").addEventListener("click", (e) => busy(e.currentTarget, "Refreshing", async () => {
+  $("give").addEventListener("click", () => busy($("give"), "Giving", async () => {
+    clearTimeout(saveTimer);
+    const month = $("give").dataset.month;
     try {
-      await api("POST", "/api/refresh");
+      await api("POST", "/api/pledge", { rate: rate(), basis: $("basis").value });
+      const { start, end } = monthBounds(month);
+      const { invoice } = await api("POST", "/api/invoices", { start, end });
       await load();
-      toast("Up to date.");
+      $("t-amt").textContent = moneyExact(invoice.amount_cents);
+      $("t-text").textContent = `is on its way to the ${state.charity.name}. That brings ${state.org.name} to ${moneyExact(givenCents())} given.`;
+      $("t-invoice").hidden = !invoice.stripe_url;
+      if (invoice.stripe_url) $("t-invoice").href = invoice.stripe_url;
+      $("thanks").showModal();
     } catch (err) {
       toast(err.message, true);
     }
   }));
+  $("t-done").addEventListener("click", () => $("thanks").close());
+
+  // Wipes every company, connection and gift, so it asks once more in place.
+  let resetArmed = false;
+  $("reset").addEventListener("click", async () => {
+    if (!resetArmed) {
+      resetArmed = true;
+      $("reset").textContent = "Delete everything and start over?";
+      setTimeout(() => { resetArmed = false; $("reset").textContent = "Start over"; }, 4000);
+      return;
+    }
+    resetArmed = false;
+    $("reset").textContent = "Start over";
+    try {
+      await api("POST", "/api/reset");
+      await load();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
 
   $("connect-plaid").addEventListener("click", (e) => busy(e.currentTarget, "Opening", async () => {
     try {
       const { linkToken } = await api("POST", "/api/plaid/link-token");
-      const handler = window.Plaid.create({
+      window.Plaid.create({
         token: linkToken,
         onSuccess: async (publicToken) => {
           try {
@@ -300,8 +319,7 @@
             toast(err.message, true);
           }
         },
-      });
-      handler.open();
+      }).open();
     } catch (err) {
       toast(err.message, true);
     }
@@ -311,15 +329,15 @@
     try {
       await api("POST", "/api/plaid/sandbox");
       await load();
-      toast("Demo card connected.");
+      toast("Sandbox card connected.");
     } catch (err) {
       toast(err.message, true);
     }
   }));
 
   const PROVIDERS = {
-    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings. Individual accounts can't create admin keys. We only call the cost report endpoint." },
-    openai: { title: "Add OpenAI admin key", help: "Create an admin key in your organization's settings. We only call the costs endpoint." },
+    anthropic: { title: "Add Anthropic admin key", help: "Create an admin key in your organization's console settings (individual accounts can't). Tributary only reads the cost report." },
+    openai: { title: "Add OpenAI admin key", help: "Create an admin key in your organization's settings. Tributary only reads the costs report." },
   };
   let providerKind = null;
 
@@ -349,7 +367,6 @@
       try {
         await api("POST", `/api/invoices/${paid.dataset.paid}/paid`);
         await load();
-        toast("Marked paid. The ledger is updated.");
       } catch (err) {
         toast(err.message, true);
       }
@@ -364,29 +381,13 @@
         await api("POST", `/api/providers/${providerKind}`, { key: $("key-input").value });
         $("key-dialog").close();
         await load();
-        toast("Provider connected.");
+        toast("Connected.");
       } catch (err) {
         $("key-error").textContent = err.message;
         $("key-error").hidden = false;
       }
     });
   });
-
-  $("rate").addEventListener("input", () => { renderDial(false); savePledgeSoon(); });
-  document.querySelectorAll('input[name="basis"]').forEach((r) => r.addEventListener("change", () => { renderDial(false); savePledgeSoon(); }));
-
-  $("issue").addEventListener("click", (e) => busy(e.currentTarget, "Issuing", async () => {
-    clearTimeout(saveTimer);
-    try {
-      await api("POST", "/api/pledge", { rate: Number($("rate").value) / 100, basis: currentBasis() });
-      const p = period();
-      const { invoice } = await api("POST", "/api/invoices", { start: p.start, end: p.end });
-      await load();
-      toast(`Invoice ${invoice.number} issued for ${moneyExact(invoice.amount_cents)}.`);
-    } catch (err) {
-      toast(err.message, true);
-    }
-  }));
 
   load().catch((err) => toast(err.message, true));
 })();

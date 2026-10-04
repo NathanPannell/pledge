@@ -138,7 +138,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
   }
 
   async function refresh() {
-    for (const conn of q("select * from connection").all()) {
+    for (const conn of q("select * from connection where kind != 'demo'").all()) {
       try {
         if (conn.kind === "plaid") await syncPlaid(conn);
         else await syncProvider(conn);
@@ -150,6 +150,40 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
 
   function removeConnection(id) {
     q("delete from connection where id = ?").run(Number(id));
+  }
+
+  // ---- Demo ---------------------------------------------------------------
+
+  function reset() {
+    db.exec("delete from invoice; delete from provider_cost; delete from card_txn; delete from connection; delete from org;");
+  }
+
+  // A ready-made company for the happy path: a card with four months of
+  // charges and gifts already made for the months before last. Last month's
+  // gift is left ready to give. Works without Plaid or Stripe keys.
+  function seedDemo(today = new Date()) {
+    reset();
+    q(`insert into org (id, name, billing_email, pledge_rate, basis, created_at)
+       values (1, 'Northgate Freight', 'ap@northgate.example', 0.01, 'card', ?)`).run(now());
+    const { lastInsertRowid: connId } = q(`insert into connection (kind, label, secret, hint, synced_at, created_at)
+      values ('demo', 'Business Visa ending 4821', ?, 'Read-only', ?, ?)`).run(seal(key, "demo"), now(), now());
+    const txns = buildCustomUser(today).override_accounts[0].transactions;
+    storeCardTxns(Number(connId), txns.map((t, i) => ({
+      transaction_id: `demo-${i}`, date: t.date_posted, name: t.description, amount: t.amount, merchant_name: null,
+    })), []);
+
+    const lastMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
+    for (let back = 3; back >= 2; back--) {
+      const first = new Date(Date.UTC(lastMonth.getUTCFullYear(), lastMonth.getUTCMonth() - (back - 1), 1));
+      const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0));
+      const start = first.toISOString().slice(0, 10);
+      const end = last.toISOString().slice(0, 10);
+      const basis = spend(start, end).cardCents;
+      const issued = new Date(last.getTime() + 2 * 86400000).toISOString();
+      q(`insert into invoice (number, period_start, period_end, basis, basis_cents, rate, amount_cents, charity, status, created_at)
+         values (?, ?, ?, 'card', ?, 0.01, ?, ?, 'paid', ?)`)
+        .run(nextInvoiceNumber(end), start, end, basis, pledgeCents(basis, 0.01), config.charity.name, issued);
+    }
   }
 
   // ---- Spend and pledges --------------------------------------------------
@@ -242,6 +276,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     return {
       org: o && { name: o.name, billingEmail: o.billing_email, pledgeRate: o.pledge_rate, basis: o.basis },
       charity: config.charity,
+      goal: { ...config.goal, raisedCents: totalRaised() },
       plaid: { configured: plaid.configured, env: config.plaid.env },
       stripe: { configured: stripe.configured, testMode: stripe.testMode },
       connections: q("select id, kind, label, hint, status, error, synced_at from connection order by id").all(),
@@ -249,6 +284,10 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
       transactions: recentTransactions(),
       invoices: invoices(),
     };
+  }
+
+  function totalRaised() {
+    return q("select coalesce(sum(amount_cents), 0) c from invoice").get().c;
   }
 
   function ledger() {
@@ -259,6 +298,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
       coalesce(sum(case when status = 'paid' then amount_cents else 0 end), 0) paid, count(*) n from invoice`).get();
     return {
       charity: config.charity,
+      goal: { ...config.goal, raisedCents: totals.pledged },
       totals,
       entries: rows.map((r) => ({ ...r, company: o?.name || "" })),
       months: q(`select substr(created_at, 1, 7) month, sum(amount_cents) cents from invoice group by month order by month`).all(),
@@ -267,6 +307,6 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
 
   return {
     org, saveOrg, setPledge, linkToken, connectPlaid, connectSandboxCard, connectProvider,
-    refresh, removeConnection, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
+    refresh, removeConnection, reset, seedDemo, spend, issueInvoice, markPaid, invoices, state, ledger, monthKey,
   };
 }

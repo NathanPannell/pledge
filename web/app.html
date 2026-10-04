@@ -3,119 +3,124 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tributary Dashboard</title>
+<title>Tributary Giving</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/tributary.css">
 <style>
   body { background: var(--surface); }
-  .nav { background: rgba(255, 255, 255, 0.95); }
-  .org-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 600; font-size: 0.9rem; }
-  main { padding-block: 32px 72px; }
+  .nav { background: rgba(255, 255, 255, 0.96); }
+  .for { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 0.9rem; font-weight: 550; }
+  .for svg { width: 16px; height: 16px; color: var(--flow); }
+  main { padding-block: 32px 72px; display: grid; gap: 20px; max-width: 980px; }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; display: grid; gap: 18px; min-width: 0; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .big-money { font-size: clamp(2.4rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
 
-  .onboard { max-width: 520px; margin: 48px auto; padding: 32px; display: grid; gap: 20px; box-shadow: var(--shadow); }
-  .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-  .page-head .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  select.input { width: auto; padding-block: 8px; }
+  /* Welcome */
+  .welcome { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 0; overflow: hidden; }
+  .welcome figure { margin: 0; min-height: 360px; background: var(--surface-2); }
+  .welcome img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .welcome .body { padding: 40px; display: grid; gap: 18px; align-content: center; }
+  .welcome .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-  .banner { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); margin-bottom: 20px; font-weight: 550; }
-  .banner code { font-family: var(--mono); font-size: 0.88em; }
-  .toast { position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: 420px; padding: 14px 16px; border-radius: var(--r); background: var(--ink); color: #fff; box-shadow: var(--shadow-lg); font-weight: 550; }
-  .toast.err { background: var(--danger); }
+  /* Impact so far */
+  .impact { grid-template-columns: 220px minmax(0, 1fr); padding: 0; overflow: hidden; gap: 0; }
+  .impact figure { margin: 0; background: var(--surface-2); }
+  .impact img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .impact .body { padding: 28px; display: grid; gap: 14px; }
+  .impact .to { color: var(--ink-2); font-size: 1.05rem; }
+  .impact .to b { color: var(--ink); }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; color: var(--ink-2); font-size: 0.95rem; }
+  .stats b { display: block; color: var(--ink); font-size: 1.2rem; font-weight: 720; }
+  .goal-line { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .goal-line .row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.92rem; color: var(--ink-2); flex-wrap: wrap; }
+  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; display: flex; }
+  .bar i { display: block; height: 100%; background: var(--flow); transition: width 0.8s ease; }
+  .bar i.mine { background: #12a08f; }
 
-  .conns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
-  .conn { padding: 20px; display: grid; gap: 12px; align-content: start; }
-  .conn-head { display: flex; align-items: center; gap: 12px; }
-  .logo { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 0.95rem; flex: none; }
-  .logo.card { background: var(--brand-soft); color: var(--brand); }
-  .logo.anthropic { background: #f6ece6; color: #8a4a2f; }
-  .logo.openai { background: #e9eef0; color: #1f3a40; }
-  .logo svg { width: 22px; height: 22px; }
-  .conn-items { display: grid; gap: 8px; }
-  .conn-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface); font-size: 0.9rem; }
-  .conn-item code { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-3); }
-  .conn-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* Ready to give */
+  .ready { border: 2px solid var(--flow); background: linear-gradient(180deg, var(--flow-soft), #fff 70%); }
+  .ready .math { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 1.05rem; color: var(--ink-2); }
+  .ready .math b { color: var(--ink); }
+  .ready .math .eq { color: var(--ink-3); }
+  .ready .cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .ready .cta .btn { font-size: 1.1rem; padding: 15px 26px; }
+  .next { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
 
-  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
-  .kpi { padding: 18px 20px; display: grid; gap: 4px; }
-  .kpi .v { font-size: 1.85rem; font-weight: 760; letter-spacing: -0.02em; line-height: 1.15; }
-  .kpi .l { color: var(--ink-2); font-size: 0.9rem; font-weight: 550; }
-  .kpi .s { color: var(--ink-3); font-size: 0.82rem; }
-
-  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
-  .col { display: grid; gap: 20px; min-width: 0; }
-  .panel { padding: 22px 24px; display: grid; gap: 16px; min-width: 0; }
-  .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-
-  .legend { display: flex; gap: 16px; font-size: 0.86rem; color: var(--ink-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend i { width: 10px; height: 10px; border-radius: 3px; }
-  .chart { position: relative; }
-  .chart svg { display: block; width: 100%; height: 240px; overflow: visible; }
-  .chart .tick { font-size: 11px; fill: var(--ink-3); font-family: var(--f); }
-  .chart .grid-line { stroke: var(--line); stroke-width: 1; }
-  .chart .bar { cursor: default; }
-  .chart .bar:hover { opacity: 0.85; }
-  .tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 0.82rem; line-height: 1.4; transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; box-shadow: var(--shadow); }
-  .empty { padding: 28px; text-align: center; color: var(--ink-3); border: 1px dashed var(--line-strong); border-radius: var(--r); }
-
-  .vendors { display: grid; gap: 10px; }
-  .vrow { display: grid; grid-template-columns: 140px minmax(0, 1fr) 96px; gap: 14px; align-items: center; font-size: 0.93rem; }
-  .vrow .track { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
-  .vrow .track i { display: block; height: 100%; border-radius: 999px; background: var(--series-card); }
-  .vrow.usage .track i { background: var(--series-usage); }
-  .vrow span:last-child { text-align: right; font-weight: 600; }
-
-  /* The dial */
-  .dial { padding: 24px; display: grid; gap: 18px; position: sticky; top: 88px; box-shadow: var(--shadow); }
-  .dial-rate { display: flex; align-items: baseline; justify-content: space-between; }
-  .dial-rate output { font-size: 2.2rem; font-weight: 780; letter-spacing: -0.02em; }
+  /* Dial */
+  .dial-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 20px; align-items: center; }
+  .dial-row output { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; min-width: 92px; text-align: right; }
   input[type="range"] { width: 100%; accent-color: var(--flow); height: 28px; cursor: pointer; }
-  .range-scale { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--ink-3); margin-top: -6px; }
-  .seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
-  .seg label { position: relative; }
-  .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg span { display: block; text-align: center; padding: 7px 6px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; color: var(--ink-2); cursor: pointer; }
-  .seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(15, 34, 53, 0.12); }
-  .seg input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent); }
-  .pledge-out { border-radius: var(--r); background: var(--flow-soft); padding: 18px; display: grid; gap: 6px; }
-  .pledge-out .amt { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; color: #0b5e54; line-height: 1.05; }
-  .pledge-out .to { color: #0b5e54; font-weight: 600; }
-  .pledge-rows { display: grid; gap: 6px; font-size: 0.9rem; }
-  .pledge-rows div { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-2); }
-  .pledge-rows b { color: var(--ink); font-weight: 650; }
+  .scale { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--ink-3); margin-top: -6px; grid-column: 1 / -1; }
+  .outcomes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .outcome { border-radius: var(--r); background: var(--surface); padding: 16px 18px; display: grid; gap: 2px; }
+  .outcome b { font-size: 1.55rem; font-weight: 780; letter-spacing: -0.02em; }
+  .outcome span { color: var(--ink-2); font-size: 0.9rem; }
+  .outcome.hl { background: var(--flow-soft); }
+  .outcome.hl b { color: #0b5e54; }
+  .basis-line { font-size: 0.88rem; color: var(--ink-3); }
+  .basis-line select { border: 0; background: transparent; color: var(--ink-2); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
-  .tbl-wrap { overflow-x: auto; margin-inline: -24px; }
-  table.tbl { width: 100%; border-collapse: collapse; min-width: 560px; }
-  .tbl th { text-align: left; font-size: 0.8rem; font-weight: 650; color: var(--ink-3); padding: 10px 24px; border-bottom: 1px solid var(--line); }
-  .tbl td { padding: 12px 24px; border-bottom: 1px solid var(--line); font-size: 0.93rem; }
-  .tbl tr:last-child td { border-bottom: 0; }
+  /* Gifts */
+  .gift-list { display: grid; gap: 0; }
+  .g { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding-block: 14px; border-top: 1px solid var(--line); }
+  .g:first-child { border-top: 0; padding-top: 0; }
+  .g .mark { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); }
+  .g .mark svg { width: 20px; height: 20px; }
+  .g .t { font-weight: 650; }
+  .g .s { font-size: 0.88rem; color: var(--ink-3); }
+  .g .r { display: grid; justify-items: end; gap: 4px; }
+  .g .r b { font-size: 1.1rem; font-weight: 740; }
+  .g .r a { font-size: 0.85rem; }
+
+  /* AI spend */
+  .sources { display: flex; gap: 8px; flex-wrap: wrap; }
+  .source { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 0.88rem; font-weight: 550; }
+  .source .x { border: 0; background: none; color: var(--ink-3); cursor: pointer; padding: 0 0 0 4px; font-size: 1rem; line-height: 1; }
+  .source.err { background: var(--danger-soft); border-color: transparent; color: var(--danger); }
+  .tools { display: grid; gap: 10px; }
+  .tool { display: grid; grid-template-columns: 130px minmax(0, 1fr) 84px; gap: 14px; align-items: center; font-size: 0.93rem; }
+  .tool .track { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .tool .track i { display: block; height: 100%; border-radius: 999px; background: var(--series-card); }
+  .tool.usage .track i { background: var(--series-usage); }
+  .tool span:last-child { text-align: right; font-weight: 600; }
+  .connect-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  details.txns summary { cursor: pointer; color: var(--brand); font-weight: 600; font-size: 0.92rem; }
+  .tbl-wrap { overflow-x: auto; margin-top: 12px; }
+  table.tbl { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 0.9rem; }
+  .tbl th { text-align: left; font-weight: 600; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--line); }
   .tbl .r { text-align: right; }
   .tbl tr.not-ai td { color: var(--ink-3); }
-  .tbl code { font-family: var(--mono); font-size: 0.84rem; }
 
-  dialog { border: 0; border-radius: var(--r-lg); padding: 0; width: min(480px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); }
-  dialog::backdrop { background: rgba(15, 34, 53, 0.4); }
+  .foot-actions { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--ink-3); font-size: 0.88rem; }
+  .linkish { border: 0; background: none; color: var(--ink-3); text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.88rem; }
+
+  dialog { border: 0; border-radius: var(--r-lg); padding: 0; width: min(520px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); overflow: hidden; }
+  dialog::backdrop { background: rgba(20, 22, 25, 0.5); }
   .dlg { padding: 26px; display: grid; gap: 16px; }
-  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+  .thanks figure { margin: 0; height: 200px; background: var(--surface-2); }
+  .thanks img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thanks .big-money { color: #0b5e54; }
 
-  .spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  .banner { padding: 12px 16px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); font-size: 0.9rem; font-weight: 550; }
+  .banner code { font-family: var(--mono); }
+  .toast { position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: 420px; padding: 14px 16px; border-radius: var(--r); background: var(--ink); color: #fff; box-shadow: var(--shadow-lg); font-weight: 550; }
+  .toast.err { background: var(--danger); }
+  .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  @media (max-width: 1080px) {
-    .grid { grid-template-columns: 1fr; }
-    .dial { position: static; }
-  }
-  @media (max-width: 860px) {
-    .conns { grid-template-columns: 1fr; }
-    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 520px) {
-    .vrow { grid-template-columns: 96px minmax(0, 1fr) 80px; }
-    .kpi .v { font-size: 1.5rem; }
-    .panel, .dial { padding: 18px; }
-    .tbl-wrap { margin-inline: -18px; }
+  @media (max-width: 760px) {
+    .welcome, .impact { grid-template-columns: 1fr; }
+    .welcome figure { min-height: 200px; }
+    .impact figure { height: 160px; }
+    .welcome .body, .panel, .impact .body { padding: 22px; }
+    .outcomes { grid-template-columns: 1fr; }
+    .tool { grid-template-columns: 96px minmax(0, 1fr) 72px; }
+    .for span { display: none; }
   }
 </style>
 </head>
@@ -127,153 +132,132 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
       Tributary
     </a>
-    <nav class="nav-links" aria-label="Main">
-      <a href="index.html#ledger">Public ledger</a>
-      <span class="org-chip" id="org-chip" hidden></span>
-    </nav>
+    <span class="for"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Raising for</span>&nbsp;<b class="charity-name">VGH &amp; UBC Hospital Foundation</b></span>
   </div>
 </header>
 
 <main class="wrap">
-  <!-- First run -->
-  <section class="card onboard" id="onboard" hidden>
-    <div style="display:grid;gap:8px;">
-      <span class="eyebrow">Get started</span>
-      <h2 style="font-size:1.8rem;">Set up your company</h2>
-      <p class="muted">This name appears on your invoices and the public ledger.</p>
+  <!-- First visit -->
+  <section class="panel welcome" id="welcome" hidden>
+    <figure><img src="https://images.unsplash.com/photo-1765896387398-1e1ae8d2eb85?auto=format&fit=crop&w=1000&q=80" alt="A caregiver in scrubs talking with an older patient"></figure>
+    <div class="body">
+      <span class="eyebrow">Welcome</span>
+      <h1 style="font-size:2.1rem;">See the good your team&rsquo;s AI spend could do</h1>
+      <p class="muted">Connect your company card, choose a share, and give once a month to the <b class="charity-name">VGH &amp; UBC Hospital Foundation</b>.</p>
+      <div class="actions">
+        <button class="btn btn-primary btn-lg" type="button" id="try-demo">Try with a demo company</button>
+        <button class="btn btn-secondary btn-lg" type="button" id="show-setup">Set up my company</button>
+      </div>
+      <form id="setup" hidden style="display:grid;gap:12px;">
+        <div class="field"><label for="org-name">Company name</label><input class="input" id="org-name" required autocomplete="organization" placeholder="Northgate Freight"></div>
+        <div class="field"><label for="org-email">Billing email</label><input class="input" id="org-email" type="email" autocomplete="email" placeholder="ap@company.com"></div>
+        <button class="btn btn-primary" type="submit">Continue</button>
+      </form>
     </div>
-    <form id="org-form" style="display:grid;gap:14px;">
-      <div class="field"><label for="org-name">Company name</label><input class="input" id="org-name" required autocomplete="organization" placeholder="Northgate Freight"></div>
-      <div class="field"><label for="org-email">Billing email</label><input class="input" id="org-email" type="email" autocomplete="email" placeholder="ap@company.com"><span class="hint">Where invoices are sent.</span></div>
-      <button class="btn btn-primary btn-lg" type="submit">Continue</button>
-    </form>
   </section>
 
-  <!-- Dashboard -->
-  <div id="dash" hidden>
-    <div class="page-head">
-      <div style="display:grid;gap:4px;">
-        <h1 style="font-size:2rem;">AI spend</h1>
-        <p class="muted" id="period-label">Last 90 days</p>
+  <div id="home" hidden style="display:grid;gap:20px;">
+    <!-- 1. Impact so far -->
+    <section class="panel impact" aria-labelledby="given-amt">
+      <figure><img src="https://images.unsplash.com/photo-1765896387387-0538bc9f997e?auto=format&fit=crop&w=600&q=80" alt="A nurse smiling with an elderly patient"></figure>
+      <div class="body">
+        <span class="eyebrow">Your impact so far</span>
+        <div><span class="big-money num" id="given-amt">$0</span></div>
+        <p class="to"><b id="org-name-out">Your company</b> has given to the <b class="charity-name">VGH &amp; UBC Hospital Foundation</b>.</p>
+        <div class="stats">
+          <div><b class="num" id="s-gifts">0</b>monthly gifts</div>
+          <div><b class="num" id="s-since">&mdash;</b>giving since</div>
+          <div><b class="num" id="s-rate">1%</b>of AI spend</div>
+        </div>
+        <div class="goal-line">
+          <div class="row"><span id="goal-label">StormHacks 2026 goal</span><span class="num" id="goal-text">$0 of $10,000</span></div>
+          <div class="bar" aria-hidden="true"><i id="goal-others" style="width:0%"></i><i class="mine" id="goal-mine" style="width:0%"></i></div>
+          <span class="faint small" id="goal-share"></span>
+        </div>
       </div>
-      <div class="controls">
-        <label class="sr-only" for="period" hidden>Period</label>
-        <select class="input" id="period" aria-label="Period">
-          <option value="30">Last 30 days</option>
-          <option value="90" selected>Last 90 days</option>
-          <option value="180">Last 180 days</option>
-        </select>
-        <button class="btn btn-secondary" type="button" id="refresh">Refresh</button>
+    </section>
+
+    <!-- 2. Ready to give -->
+    <section class="panel ready" id="ready" hidden aria-labelledby="ready-title">
+      <span class="eyebrow">Ready to give</span>
+      <h2 id="ready-title" style="font-size:1.7rem;">September&rsquo;s gift is ready</h2>
+      <div class="math"><span>AI spend in <span id="ready-month">September</span> <b class="num" id="ready-basis">$0</b></span><span class="eq">&times;</span><b class="num" id="ready-rate">1%</b><span class="eq">=</span><b class="num" id="ready-amt-inline">$0</b></div>
+      <div class="cta">
+        <button class="btn btn-flow" type="button" id="give">Give $0</button>
+        <span class="faint small" id="give-note">One invoice, sent to your finance team.</span>
       </div>
-    </div>
+    </section>
+    <section class="panel next" id="next" hidden>
+      <div style="display:grid;gap:4px;"><span class="eyebrow">Next gift</span><h3 id="next-title">November 1</h3></div>
+      <p class="muted" id="next-text"></p>
+    </section>
 
-    <div class="banner" id="plaid-banner" hidden>
-      <span>Card connections need Plaid keys. Add <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> to <code>server/.env</code> and restart the server.</span>
-    </div>
-
-    <div class="conns">
-      <article class="card conn">
-        <div class="conn-head"><span class="logo card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><div><h4>Business card</h4><span class="faint small">Through Plaid</span></div></div>
-        <div class="conn-items" id="items-plaid"></div>
-        <div class="conn-actions">
-          <button class="btn btn-primary btn-sm" type="button" id="connect-plaid">Connect card</button>
-          <button class="btn btn-secondary btn-sm" type="button" id="connect-sandbox" hidden>Use demo card</button>
-        </div>
-      </article>
-      <article class="card conn">
-        <div class="conn-head"><span class="logo anthropic">A</span><div><h4>Anthropic</h4><span class="faint small">Cost report, admin key</span></div></div>
-        <div class="conn-items" id="items-anthropic"></div>
-        <div class="conn-actions"><button class="btn btn-secondary btn-sm" type="button" data-provider="anthropic">Add admin key</button></div>
-      </article>
-      <article class="card conn">
-        <div class="conn-head"><span class="logo openai">O</span><div><h4>OpenAI</h4><span class="faint small">Cost report, admin key</span></div></div>
-        <div class="conn-items" id="items-openai"></div>
-        <div class="conn-actions"><button class="btn btn-secondary btn-sm" type="button" data-provider="openai">Add admin key</button></div>
-      </article>
-    </div>
-
-    <div class="kpis">
-      <div class="card kpi"><span class="l">AI on the card</span><span class="v num" id="k-card">$0</span><span class="s" id="k-card-s">No card connected</span></div>
-      <div class="card kpi"><span class="l">Provider usage</span><span class="v num" id="k-usage">$0</span><span class="s" id="k-usage-s">No providers connected</span></div>
-      <div class="card kpi"><span class="l">Share of card spend</span><span class="v num" id="k-share">0%</span><span class="s">AI charges vs. all charges</span></div>
-      <div class="card kpi"><span class="l">AI vendors found</span><span class="v num" id="k-vendors">0</span><span class="s" id="k-vendors-s">On card statements</span></div>
-    </div>
-
-    <div class="grid">
-      <div class="col">
-        <section class="card panel">
-          <div class="panel-head">
-            <h3>AI spend by month</h3>
-            <div class="legend"><span><i style="background:var(--series-card)"></i>Card charges</span><span><i style="background:var(--series-usage)"></i>Provider usage</span></div>
-          </div>
-          <div class="chart" id="chart"></div>
-        </section>
-
-        <section class="card panel">
-          <div class="panel-head"><h3>By vendor</h3><span class="faint small" id="vendor-note"></span></div>
-          <div class="vendors" id="vendors"></div>
-        </section>
-
-        <section class="card panel">
-          <div class="panel-head"><h3>Card transactions</h3><span class="faint small">AI charges are tagged</span></div>
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>Date</th><th>Description</th><th>Vendor</th><th class="r">Amount</th></tr></thead>
-              <tbody id="txns"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="card panel">
-          <div class="panel-head"><h3>Invoices</h3><a class="small" href="index.html#ledger">View public ledger</a></div>
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>Invoice</th><th>Period</th><th class="r">Basis</th><th class="r">Pledge</th><th>Status</th><th></th></tr></thead>
-              <tbody id="invoices"></tbody>
-            </table>
-          </div>
-        </section>
+    <!-- 3. The impact you can make -->
+    <section class="panel" aria-labelledby="dial-title">
+      <div class="panel-head"><h3 id="dial-title">The impact you can make</h3><span class="basis-line">Based on <select id="basis" aria-label="What the share is calculated on"><option value="card">card charges</option><option value="provider">provider usage</option><option value="auto">the larger of the two</option></select></span></div>
+      <div class="dial-row">
+        <label for="rate" class="muted" style="font-weight:600;">Share of AI spend you give</label>
+        <output id="rate-out" for="rate" class="num">1.00%</output>
+        <input type="range" id="rate" min="0.25" max="5" step="0.25" value="1" style="grid-column:1 / -1;">
+        <div class="scale" aria-hidden="true"><span>0.25%</span><span>1%</span><span>2.5%</span><span>5%</span></div>
       </div>
+      <div class="outcomes">
+        <div class="outcome"><b class="num" id="o-month">$0</b><span>each month</span></div>
+        <div class="outcome hl"><b class="num" id="o-year">$0</b><span>each year</span></div>
+        <div class="outcome"><b class="num" id="o-ten">$0</b><span>a year if 10 companies like yours joined</span></div>
+      </div>
+    </section>
 
-      <aside class="card dial" aria-labelledby="dial-title">
-        <div style="display:grid;gap:4px;">
-          <h3 id="dial-title">Your pledge</h3>
-          <p class="muted small">Set the share of AI spend you give. You can change it any month.</p>
-        </div>
-        <div>
-          <div class="dial-rate"><label for="rate" class="muted" style="font-weight:600;">Pledge rate</label><output id="rate-out" for="rate" class="num">1.00%</output></div>
-          <input type="range" id="rate" min="0.25" max="5" step="0.25" value="1">
-          <div class="range-scale" aria-hidden="true"><span>0.25%</span><span>1%</span><span>2.5%</span><span>5%</span></div>
-        </div>
-        <div class="field">
-          <span style="font-weight:600;font-size:0.92rem;">Calculated on</span>
-          <div class="seg" role="radiogroup" aria-label="Pledge basis">
-            <label><input type="radio" name="basis" value="card" id="basis-card"><span>Card</span></label>
-            <label><input type="radio" name="basis" value="provider" id="basis-provider"><span>Usage</span></label>
-            <label><input type="radio" name="basis" value="auto" id="basis-auto" checked><span>Larger</span></label>
-          </div>
-        </div>
-        <div class="pledge-out" aria-live="polite">
-          <span class="small" style="color:#0b5e54;font-weight:600;" id="pledge-period">Last 90 days</span>
-          <span class="amt num" id="pledge-amt">$0.00</span>
-          <span class="to" id="pledge-to">to the charity</span>
-        </div>
-        <div class="pledge-rows">
-          <div><span>Basis</span><b class="num" id="pledge-basis">$0</b></div>
-          <div><span>At this pace, per year</span><b class="num" id="pledge-year">$0</b></div>
-        </div>
-        <button class="btn btn-flow btn-lg" type="button" id="issue">Issue invoice for this period</button>
-        <p class="faint small" id="issue-note">Creates an invoice for your finance team and lists it on the public ledger.</p>
-      </aside>
+    <!-- 4. Gifts -->
+    <section class="panel" aria-labelledby="gifts-title">
+      <div class="panel-head"><h3 id="gifts-title">Your gifts</h3><a class="small" href="index.html#gifts">See all gifts</a></div>
+      <div class="gift-list" id="gifts"></div>
+    </section>
+
+    <!-- 5. AI spend -->
+    <section class="panel" aria-labelledby="spend-title">
+      <div class="panel-head"><h3 id="spend-title">Where your AI spend goes</h3><span class="faint small" id="spend-period"></span></div>
+      <div class="sources" id="sources"></div>
+      <div class="banner" id="plaid-banner" hidden>To connect a real card, add <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> to <code>server/.env</code> and restart.</div>
+      <div class="tools" id="tools"></div>
+      <div class="connect-row">
+        <button class="btn btn-secondary btn-sm" type="button" id="connect-plaid">Connect a card</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="connect-sandbox" hidden>Use sandbox card</button>
+        <button class="btn btn-secondary btn-sm" type="button" data-provider="anthropic">Add Anthropic key</button>
+        <button class="btn btn-secondary btn-sm" type="button" data-provider="openai">Add OpenAI key</button>
+      </div>
+      <details class="txns">
+        <summary>Show card transactions</summary>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>AI tool</th><th class="r">Amount</th></tr></thead><tbody id="txns"></tbody></table></div>
+      </details>
+    </section>
+
+    <div class="foot-actions">
+      <span id="org-email-out"></span>
+      <button class="linkish" type="button" id="reset">Start over</button>
     </div>
   </div>
 </main>
 
+<dialog id="thanks" class="thanks">
+  <figure><img src="https://images.unsplash.com/photo-1765896387398-1e1ae8d2eb85?auto=format&fit=crop&w=1000&q=80" alt="A caregiver in scrubs smiling with an older patient"></figure>
+  <div class="dlg">
+    <span class="eyebrow">Thank you</span>
+    <span class="big-money num" id="t-amt">$0</span>
+    <p class="muted" id="t-text">is on its way to the foundation.</p>
+    <div class="dlg-actions">
+      <a class="btn btn-secondary" id="t-invoice" href="#" target="_blank" rel="noopener" hidden>View invoice</a>
+      <a class="btn btn-secondary" href="index.html#gifts">See it on the record</a>
+      <button class="btn btn-primary" type="button" id="t-done">Done</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="key-dialog">
-  <form class="dlg" id="key-form" method="dialog">
+  <form class="dlg" id="key-form">
     <div style="display:grid;gap:6px;">
       <h3 id="key-title">Add Anthropic admin key</h3>
-      <p class="muted small" id="key-help">Create a dedicated admin key in your organization's console settings. We only call the cost report endpoint.</p>
+      <p class="muted small" id="key-help"></p>
     </div>
     <div class="field"><label for="key-input">Admin API key</label><input class="input" id="key-input" type="password" autocomplete="off" spellcheck="false" required></div>
     <p class="error-text" id="key-error" hidden></p>

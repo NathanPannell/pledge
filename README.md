@@ -49,17 +49,21 @@ realistic charges (AI vendors plus ordinary expenses) without going through Plai
 **Connect card** opens real Plaid Link. Print the demo card's config for Plaid's Sandbox
 Studio with `npm --prefix server run sandbox-config`.
 
-To reset everything, stop the server and delete `server/data/`.
+To reset everything, click **Start over** at the bottom of the giving page (it asks once
+more), or stop the server and delete `server/data/`.
 
-## Demo script
+## Demo script (about 2 minutes, no keys needed)
 
-1. Landing page: the pitch, the charity partner, the empty public ledger.
-2. Dashboard: set up the company, click **Use demo card**. AI vendors appear among
-   ordinary expenses.
-3. Add an Anthropic or OpenAI admin key for provider usage (optional).
-4. Turn the dial. The pledge and the yearly estimate update live.
-5. **Issue invoice for this period.** Open it in Stripe, mark it paid.
-6. Back to the landing page: the pledge is on the public ledger.
+1. Landing page: the message, the StormHacks goal, where gifts go, the gift record.
+2. **Start giving**, then **Try with a demo company**. Northgate Freight appears with
+   $313.70 already given (July and August) and September's gift ready.
+3. **Give $188.22.** The thank-you shows the new total.
+4. Drag the dial: "the impact you can make" per month, per year, and if ten companies
+   like yours joined.
+5. Back to the landing page: the goal bar and the gift record include the new gift.
+
+With Plaid and Stripe keys set, **Connect a card** and **Add Anthropic key** use the real
+services, and gifts become Stripe test-mode invoices.
 
 ## Tests
 

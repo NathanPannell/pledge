@@ -4,96 +4,116 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tributary</title>
-<meta name="description" content="Tributary turns a share of your company's AI spend into donations. Connect your card and AI accounts, set the dial, get one invoice a month.">
+<meta name="description" content="Tributary sends a share of your company's AI spend to the VGH & UBC Hospital Foundation. One gift a month, every dollar on the record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/tributary.css">
 <style>
-  .hero { padding-block: 72px 56px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 56px; align-items: center; }
-  .hero-copy { display: grid; gap: 24px; min-width: 0; }
-  .badge-line { display: inline-flex; align-items: center; gap: 10px; width: fit-content; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-weight: 620; font-size: 0.9rem; }
-  .badge-line b { background: var(--brand); color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
-  .hero h1 em { font-style: normal; color: var(--flow); }
+  .nav .for { color: var(--ink-3); font-size: 0.9rem; font-weight: 550; }
+
+  /* Hero: the message beside a photo of care, with the shared goal on it. */
+  .hero { padding-block: 56px 72px; }
+  .hero-inner { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+  .hero-copy { display: grid; gap: 22px; min-width: 0; }
+  .hero .for-pill { display: inline-flex; align-items: center; gap: 8px; width: fit-content; padding: 6px 14px; border-radius: 999px; background: var(--flow-soft); color: #0b5e54; font-weight: 600; font-size: 0.9rem; }
+  .hero .for-pill svg { width: 16px; height: 16px; }
+  .hero h1 { font-size: clamp(2.3rem, 4.6vw, 3.5rem); }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
-  .trust { display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--ink-3); font-size: 0.92rem; font-weight: 550; }
-  .trust span { display: inline-flex; align-items: center; gap: 8px; }
-  .trust svg { width: 18px; height: 18px; color: var(--flow); }
+  .hero-photo { position: relative; min-width: 0; padding-bottom: 48px; }
+  .hero-photo figure { margin: 0; aspect-ratio: 5 / 4; border-radius: 24px; overflow: hidden; background: var(--surface-2); max-width: 100%; }
+  .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .hero-photo .goal { position: absolute; left: -28px; right: 48px; bottom: 0; }
+  .btn-light { background: #fff; color: var(--ink); }
+  .btn-light:hover { background: #f1f1f1; }
+  .goal { background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 22px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; box-shadow: var(--shadow-lg); }
+  .goal .big { font-size: 1.9rem; font-weight: 780; letter-spacing: -0.02em; }
+  .goal .of { color: var(--ink-2); font-weight: 550; }
+  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; grid-column: 1 / -1; }
+  .bar i { display: block; height: 100%; border-radius: 999px; background: var(--flow); transition: width 0.8s ease; }
+  .goal .side { text-align: right; color: var(--ink-2); font-size: 0.92rem; }
+  .goal .side b { display: block; color: var(--ink); font-size: 1.2rem; }
 
-  /* Product preview */
-  .preview { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow-lg); display: grid; gap: 14px; min-width: 0; }
-  .preview-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .pv-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; display: grid; gap: 12px; }
-  .pv-big { font-size: 2.1rem; font-weight: 760; letter-spacing: -0.02em; line-height: 1; }
-  .pv-rows { display: grid; gap: 9px; }
-  .pv-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 72px; gap: 12px; align-items: center; font-size: 0.9rem; }
-  .pv-row .track { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-  .pv-row .track i { display: block; height: 100%; border-radius: 999px; background: var(--series-card); }
-  .pv-row span:last-child { text-align: right; color: var(--ink-2); }
-  .pv-dial { display: grid; gap: 10px; }
-  .pv-dial .head { display: flex; justify-content: space-between; align-items: baseline; }
-  .pv-range { position: relative; height: 8px; border-radius: 999px; background: var(--surface-2); }
-  .pv-range i { position: absolute; inset: 0 auto 0 0; width: 18%; border-radius: 999px; background: var(--flow); }
-  .pv-range b { position: absolute; top: 50%; left: 18%; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--flow); transform: translate(-50%, -50%); box-shadow: var(--shadow); }
-  .pv-out { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: var(--flow-soft); color: #0b5e54; font-weight: 600; }
-  .pv-out strong { font-size: 1.25rem; font-weight: 760; color: #0b5e54; }
+  section.block { padding-block: 96px; }
+  section.tint { background: var(--surface); }
+  .block-head { display: grid; gap: 14px; max-width: 700px; margin-bottom: 44px; }
 
-  section.block { padding-block: 88px; }
-  section.tint { background: var(--surface); border-block: 1px solid var(--line); }
-  .block-head { display: grid; gap: 14px; max-width: 720px; margin-bottom: 44px; }
+  /* Where the gift goes */
+  .areas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .area { display: grid; gap: 16px; align-content: start; }
+  .area figure { margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-lg); overflow: hidden; background: var(--surface-2); max-width: 100%; }
+  .area img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .area .where { font-size: 0.85rem; font-weight: 650; color: var(--flow); }
+  .area p { color: var(--ink-2); }
 
-  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; list-style: none; margin: 0; padding: 0; }
-  .step { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 24px; display: grid; gap: 12px; align-content: start; }
-  .step .n { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); font-weight: 750; }
-  .step p { color: var(--ink-2); font-size: 0.97rem; }
+  /* How a gift is made */
+  .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; counter-reset: step; list-style: none; padding: 0; margin: 0; }
+  .flow li { position: relative; padding: 0 24px 0 0; display: grid; gap: 10px; align-content: start; }
+  .flow .ic { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); color: var(--brand); position: relative; z-index: 1; }
+  .flow .ic svg { width: 24px; height: 24px; }
+  .flow li:not(:last-child)::after { content: ""; position: absolute; top: 26px; left: 52px; right: 0; height: 2px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 12px); }
+  .flow li:last-child .ic { background: var(--flow); border-color: var(--flow); color: #fff; }
+  .flow p { color: var(--ink-2); font-size: 0.97rem; }
 
-  .why { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
-  .facts { display: grid; gap: 14px; }
-  .fact { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; align-items: start; padding: 20px; border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
-  .fact .ic { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); color: var(--brand); }
-  .fact .ic.flow { background: var(--flow-soft); color: var(--flow); }
-  .fact .ic svg { width: 24px; height: 24px; }
-  .fact p { color: var(--ink-2); }
-  .fact .src { font-size: 0.82rem; color: var(--ink-3); margin-top: 4px; }
+  /* Numbers */
+  .numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--line); }
+  .numbers div { padding: 28px 24px; display: grid; gap: 4px; }
+  .numbers div + div { border-left: 1px solid var(--line); }
+  .numbers b { font-size: 2.2rem; font-weight: 780; letter-spacing: -0.02em; line-height: 1.1; }
+  .numbers span { color: var(--ink-2); }
 
-  .partner { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 32px; align-items: center; padding: 36px; border-radius: var(--r-lg); background: var(--brand); color: #fff; }
-  .partner h2, .partner h3 { color: #fff; }
-  .partner p { color: #d3e1ec; }
-  .partner .eyebrow { color: #8fe0d3; }
-  .partner-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .partner-stats div { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--r); padding: 16px; display: grid; gap: 2px; }
-  .partner-stats b { font-size: 1.7rem; font-weight: 760; letter-spacing: -0.02em; }
-  .partner-stats span { color: #c3d4e2; font-size: 0.9rem; }
+  /* Gifts */
+  .gifts { display: grid; gap: 12px; }
+  .gift { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 20px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); }
+  .gift .mark { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--flow-soft); color: var(--flow); }
+  .gift .mark svg { width: 22px; height: 22px; }
+  .gift .who { font-weight: 650; }
+  .gift .when { color: var(--ink-3); font-size: 0.9rem; }
+  .gift .amt { text-align: right; display: grid; gap: 4px; justify-items: end; }
+  .gift .amt b { font-size: 1.25rem; font-weight: 760; }
+  .gifts-empty { padding: 36px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--r); color: var(--ink-2); }
 
-  .ledger-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
-  .ledger { width: 100%; border-collapse: collapse; min-width: 640px; }
-  .ledger th { text-align: left; font-size: 0.82rem; font-weight: 650; color: var(--ink-3); padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
-  .ledger td { padding: 15px 18px; border-bottom: 1px solid var(--line); }
-  .ledger tr:last-child td { border-bottom: 0; }
-  .ledger .r { text-align: right; }
-  .ledger code { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-2); }
-  .ledger-empty { padding: 40px 24px; text-align: center; display: grid; gap: 6px; justify-items: center; }
+  /* Local band */
+  .local { position: relative; color: #fff; overflow: hidden; background: #2b2f33; }
+  .local img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .local::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(14, 18, 22, 0.78), rgba(14, 18, 22, 0.35)); }
+  .local .wrap { position: relative; z-index: 1; padding-block: 120px 96px; display: grid; gap: 18px; max-width: 760px; margin-inline: auto; text-align: center; justify-items: center; }
+  .local h2 { color: #fff; }
+  .local p { color: rgba(255, 255, 255, 0.86); font-size: 1.15rem; }
 
-  .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .faq details { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; background: #fff; }
   .faq summary { cursor: pointer; font-weight: 650; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; color: var(--ink-3); font-weight: 500; font-size: 1.3rem; line-height: 1; }
+  .faq summary::after { content: "+"; color: var(--ink-3); font-size: 1.3rem; line-height: 1; }
   .faq details[open] summary::after { content: "–"; }
   .faq details p { margin-top: 10px; color: var(--ink-2); }
 
-  .cta { text-align: center; display: grid; gap: 20px; justify-items: center; padding-block: 96px; }
+  .footer small { display: block; margin-top: 6px; }
 
   @media (max-width: 960px) {
-    .hero, .why, .partner { grid-template-columns: 1fr; }
-    .hero { padding-block: 48px 40px; gap: 40px; }
-    .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hero-inner { grid-template-columns: 1fr; gap: 36px; }
+    .hero-photo .goal { left: 16px; right: 16px; }
+    .areas { grid-template-columns: 1fr; max-width: 560px; }
+    .flow { grid-template-columns: 1fr 1fr; gap: 32px 0; }
+    .flow li:nth-child(2)::after { display: none; }
+    .numbers { grid-template-columns: 1fr 1fr; }
+    .numbers div:nth-child(3) { border-left: 0; }
+    .numbers div:nth-child(n+3) { border-top: 1px solid var(--line); }
   }
   @media (max-width: 620px) {
-    .steps, .faq { grid-template-columns: 1fr; }
+    .hero { padding-block: 32px 48px; }
+    .hero-photo { padding-bottom: 0; }
+    .hero-photo .goal { position: static; margin-top: -40px; margin-inline: 12px; }
+    .goal { grid-template-columns: 1fr; }
+    .goal .side { text-align: left; }
+    .flow { grid-template-columns: 1fr; }
+    .flow li::after { display: none; }
+    .faq { grid-template-columns: 1fr; }
     section.block { padding-block: 64px; }
-    .partner { padding: 24px; }
-    .pv-row { grid-template-columns: 90px minmax(0, 1fr) 64px; }
+    .numbers b { font-size: 1.7rem; }
+    .gift { grid-template-columns: 40px minmax(0, 1fr); }
+    .gift .amt { grid-column: 2; justify-items: start; text-align: left; }
   }
 </style>
 </head>
@@ -106,158 +126,141 @@
       Tributary
     </a>
     <nav class="nav-links" aria-label="Main">
+      <a href="#impact">Where it goes</a>
       <a href="#how">How it works</a>
-      <a href="#ledger">Public ledger</a>
-      <a href="#faq">FAQ</a>
-      <a class="btn btn-primary btn-sm" href="app.html">Open dashboard</a>
+      <a href="#gifts">Gifts</a>
+      <a class="btn btn-primary btn-sm" href="app.html">Start giving</a>
     </nav>
   </div>
 </header>
 
 <main>
-  <div class="wrap">
-    <section class="hero">
+  <section class="hero">
+    <div class="wrap hero-inner">
       <div class="hero-copy">
-        <span class="badge-line"><b>SDG 17</b> Partnerships for the Goals</span>
-        <h1>Your AI bill keeps growing. <em>Give 1% of it.</em></h1>
-        <p class="lede">Tributary connects to your company card and AI provider accounts, measures what you spend on AI, and sends one invoice a month for the share you choose. Every dollar goes to charity and is published on a public ledger.</p>
+        <span class="for-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Raising for <span class="charity-name">VGH &amp; UBC Hospital Foundation</span></span>
+        <h1>Your team&rsquo;s AI spend can help someone get better care.</h1>
+        <p class="lede">Tributary sends a small share of what your company spends on AI to the VGH &amp; UBC Hospital Foundation. One gift a month, and every dollar on the record.</p>
         <div class="hero-cta">
-          <a class="btn btn-primary btn-lg" href="app.html">Connect your company</a>
-          <a class="btn btn-secondary btn-lg" href="#ledger">See the ledger</a>
-        </div>
-        <div class="trust">
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4 10-10"/></svg>Card connection through Plaid</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4 10-10"/></svg>Read-only cost reports</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4 10-10"/></svg>Invoices through Stripe</span>
+          <a class="btn btn-primary btn-lg" href="app.html">Start giving</a>
+          <a class="btn btn-secondary btn-lg" href="#impact">See where it goes</a>
         </div>
       </div>
+      <div class="hero-photo">
+      <figure><img src="https://images.unsplash.com/photo-1765896387387-0538bc9f997e?auto=format&fit=crop&w=1400&q=80" alt="A nurse smiling with an elderly patient" fetchpriority="high"></figure>
+      <div class="goal" aria-label="Fundraising goal">
+        <div><span class="big num" id="goal-raised">$0</span> <span class="of" id="goal-of">raised of $10,000</span></div>
+        <div class="side"><b class="num" id="goal-companies">0</b>companies giving</div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-bar"><i style="width:0%"></i></div>
+        <span class="faint small" id="goal-label">StormHacks 2026 goal</span>
+      </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="preview" aria-label="Dashboard preview">
-        <div class="preview-top">
-          <strong>Northgate Freight</strong>
-          <span class="pill ok"><span class="dot"></span>Card and 2 providers connected</span>
-        </div>
-        <div class="pv-card">
-          <div><span class="faint small">AI spend, last 90 days</span><div class="pv-big num">$48,212</div></div>
-          <div class="pv-rows">
-            <div class="pv-row"><span>Anthropic</span><span class="track"><i style="width:100%"></i></span><span class="num">$20,140</span></div>
-            <div class="pv-row"><span>OpenAI</span><span class="track"><i style="width:69%"></i></span><span class="num">$13,880</span></div>
-            <div class="pv-row"><span>Cursor</span><span class="track"><i style="width:28%"></i></span><span class="num">$5,630</span></div>
-            <div class="pv-row"><span>Copilot</span><span class="track"><i style="width:15%"></i></span><span class="num">$3,010</span></div>
-          </div>
-        </div>
-        <div class="pv-card pv-dial">
-          <div class="head"><strong>Pledge</strong><span class="num" style="font-weight:700;font-size:1.2rem;">1.00%</span></div>
-          <div class="pv-range" aria-hidden="true"><i></i><b></b></div>
-          <div class="pv-out"><span id="pv-charity">To VGH &amp; UBC Hospital Foundation</span><strong class="num">$482</strong></div>
-        </div>
+  <section class="block" id="impact">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="eyebrow">Where your gift goes</span>
+        <h2>Care, research and recovery across Vancouver</h2>
+        <p class="lede">The VGH &amp; UBC Hospital Foundation is Vancouver Coastal Health&rsquo;s main philanthropic partner. Gifts help fund equipment, research and programs at these places.</p>
       </div>
-    </section>
-  </div>
+      <div class="areas">
+        <article class="area">
+          <figure><img src="https://images.unsplash.com/photo-1765896387398-1e1ae8d2eb85?auto=format&fit=crop&w=900&q=80" alt="A caregiver in scrubs talking with an older patient" loading="lazy"></figure>
+          <span class="where">Vancouver General Hospital &middot; UBC Hospital</span>
+          <h3>Patient care</h3>
+          <p>Equipment and programs for patients and the teams who look after them, at two of BC&rsquo;s busiest hospitals.</p>
+        </article>
+        <article class="area">
+          <figure><img src="https://images.unsplash.com/photo-1579165466949-3180a3d056d5?auto=format&fit=crop&w=900&q=80" alt="A scientist using a pipette in a laboratory" loading="lazy"></figure>
+          <span class="where">Vancouver Coastal Health Research Institute</span>
+          <h3>Research</h3>
+          <p>Studies that turn into new treatments, from the lab to the bedside, for patients across the province.</p>
+        </article>
+        <article class="area">
+          <figure><img src="https://images.unsplash.com/photo-1631815590058-860e4f83c1e8?auto=format&fit=crop&w=900&q=80" alt="A health care worker checking a patient&rsquo;s blood pressure" loading="lazy"></figure>
+          <span class="where">G.F. Strong Rehabilitation Centre</span>
+          <h3>Recovery</h3>
+          <p>Rehabilitation for people relearning to walk, talk and live independently after injury or illness.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
   <section class="block tint" id="how">
     <div class="wrap">
       <div class="block-head">
-        <span class="eyebrow">How it works</span>
-        <h2>Four steps, then it runs itself</h2>
-        <p class="lede">Set it up once with your finance team. After that it&rsquo;s one invoice a month.</p>
+        <span class="eyebrow">How a gift is made</span>
+        <h2>From your AI bill to the hospital, once a month</h2>
       </div>
-      <ol class="steps">
-        <li class="step"><span class="n">1</span><h3>Connect your card</h3><p>Link your business card through Plaid. We read transactions and pick out AI charges from 16 vendors, from model APIs to coding tools.</p></li>
-        <li class="step"><span class="n">2</span><h3>Add provider keys</h3><p>Optionally add Anthropic and OpenAI admin keys to see usage-level cost reports. Keys are encrypted and only used to read costs.</p></li>
-        <li class="step"><span class="n">3</span><h3>Set the dial</h3><p>Choose a pledge from 0.25% to 5%, on card charges or on usage. We use one or the other, never both, so nothing is counted twice.</p></li>
-        <li class="step"><span class="n">4</span><h3>One invoice a month</h3><p>Pay it like any vendor invoice. The money goes to our charity partner and every invoice appears on the public ledger.</p></li>
+      <ol class="flow">
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/><circle cx="12" cy="12" r="3"/></svg></span><h4>Your team uses AI</h4><p>Model APIs, coding assistants and team plans, paid on the company card.</p></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><h4>We measure it</h4><p>A read-only card connection finds AI charges. Provider cost reports can add usage.</p></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12l4-3"/></svg></span><h4>You choose a share</h4><p>Most companies give 1%. Change it any month, or pause.</p></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><h4>One gift a month</h4><p>A single invoice, paid like any vendor. The gift goes to the foundation and is listed below.</p></li>
       </ol>
     </div>
   </section>
 
-  <section class="block" id="why">
-    <div class="wrap why">
-      <div class="block-head" style="margin-bottom:0;">
-        <span class="eyebrow">Why now</span>
-        <h2>Aid budgets are shrinking. AI budgets aren&rsquo;t.</h2>
-        <p class="lede">Companies are adding AI spend faster than almost any other line item. A small, fixed share of it, sent automatically, adds up to real money for organizations that are losing funding.</p>
+  <section class="block" id="gifts">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="eyebrow">Gifts so far</span>
+        <h2>Every gift, on the record</h2>
       </div>
-      <div class="facts">
-        <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l6 6 4-4 8 8M21 11v6h-6"/></svg></span><div><h4>Aid is falling</h4><p>Official development assistance fell in 2024, and several major donors announced deeper cuts for 2025.</p><p class="src">Source: OECD preliminary ODA data</p></div></div>
-        <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M21 13V7h-6"/></svg></span><div><h4>AI spend is rising</h4><p>Model APIs, coding assistants and team plans are now a standing line on most tech company cards.</p></div></div>
-        <div class="fact"><span class="ic flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><div><h4>Small rate, real money</h4><p>1% of a $500,000 annual AI budget is $5,000 a year, without a fundraising campaign.</p></div></div>
+      <div class="numbers" style="margin-bottom:40px;">
+        <div><b class="num" id="n-raised">$0</b><span>given to the foundation</span></div>
+        <div><b class="num" id="n-gifts">0</b><span>monthly gifts</span></div>
+        <div><b class="num" id="n-companies">0</b><span>companies giving</span></div>
+        <div><b class="num">1%</b><span>typical share of AI spend</span></div>
       </div>
+      <div class="gifts" id="gift-list"></div>
+      <div class="gifts-empty" id="gifts-empty">The first gifts are being made at StormHacks 2026.</div>
     </div>
   </section>
 
-  <div class="wrap">
-    <section class="partner" aria-labelledby="partner-name">
-      <div style="display:grid;gap:12px;">
-        <span class="eyebrow">Charity partner</span>
-        <h2 id="partner-name">VGH &amp; UBC Hospital Foundation</h2>
-        <p id="partner-desc">Supports Vancouver General Hospital and UBC Hospital.</p>
-      </div>
-      <div class="partner-stats">
-        <div><b class="num" id="p-pledged">$0</b><span>pledged through Tributary</span></div>
-        <div><b class="num" id="p-count">0</b><span>invoices issued</span></div>
-      </div>
-    </section>
-  </div>
-
-  <section class="block" id="ledger">
+  <section class="local" aria-labelledby="local-title">
+    <img src="https://images.unsplash.com/photo-1660143158587-bddffa026e06?auto=format&fit=crop&w=2000&q=80" alt="Vancouver with snow-covered mountains behind the city" loading="lazy">
     <div class="wrap">
-      <div class="block-head">
-        <span class="eyebrow">Public ledger</span>
-        <h2>Every pledge, on the record</h2>
-        <p class="lede">Each invoice is listed here when it&rsquo;s issued and marked paid when the money arrives.</p>
-      </div>
-      <div class="ledger-wrap">
-        <table class="ledger">
-          <thead><tr><th>Invoice</th><th>Company</th><th>Period</th><th class="r">Amount</th><th>Status</th></tr></thead>
-          <tbody id="ledger-body"></tbody>
-        </table>
-        <div class="ledger-empty" id="ledger-empty">
-          <h4>No pledges yet</h4>
-          <p class="muted">The first ones are being made at StormHacks 2026.</p>
-        </div>
-      </div>
+      <span class="eyebrow" style="color:#9fe3d8;">Made in Burnaby, given in Vancouver</span>
+      <h2 id="local-title">Tech companies and hospitals, working toward the same goal</h2>
+      <p>Built at StormHacks 2026 for UN Sustainable Development Goal 17: partnerships that bring new resources to the people and places doing the work.</p>
+      <a class="btn btn-light btn-lg" href="app.html">See the impact your team could make</a>
     </div>
   </section>
 
   <section class="block tint" id="faq">
     <div class="wrap">
-      <div class="block-head"><span class="eyebrow">Questions</span><h2>What finance teams ask us</h2></div>
+      <div class="block-head"><span class="eyebrow">Questions</span><h2>Before you start</h2></div>
       <div class="faq">
-        <details><summary>Is this a fee on our AI spend?</summary><p>No. It&rsquo;s a pledge you set and can change or pause any month. Your AI providers bill you exactly as before. Tributary sends a separate invoice for the share you chose.</p></details>
-        <details><summary>What can Tributary see?</summary><p>Card transactions, read-only, through Plaid, and daily cost totals from the provider reports. We store amounts, dates and descriptions. We never see card numbers, prompts or model outputs.</p></details>
-        <details><summary>Why do provider keys need admin access?</summary><p>Anthropic and OpenAI only publish cost reports to admin keys. We encrypt the key and call nothing but the cost endpoint. Create a dedicated key for Tributary and revoke it any time.</p></details>
-        <details><summary>Won&rsquo;t card and usage spend overlap?</summary><p>Yes, when your card pays the provider. That&rsquo;s why the pledge uses card charges, usage, or the larger of the two, never the sum.</p></details>
-        <details><summary>Why one monthly invoice?</summary><p>Card fees take a fixed cut of every charge. One invoice a month, paid by bank transfer, means almost all of the pledge reaches the charity.</p></details>
-        <details><summary>Which goal does this serve?</summary><p>UN Sustainable Development Goal 17, Partnerships for the Goals: mobilizing additional resources and building partnerships between companies and civil society.</p></details>
+        <details><summary>Is this a fee on our AI spend?</summary><p>No. It&rsquo;s a gift you choose and can change or pause any month. Your AI providers bill you exactly as before.</p></details>
+        <details><summary>What can Tributary see?</summary><p>Card transactions, read-only, and daily cost totals from provider reports. Never card numbers, prompts or model outputs.</p></details>
+        <details><summary>Why one gift a month?</summary><p>Card fees take a fixed cut of every charge. One monthly invoice, paid by bank transfer, means almost all of your gift reaches the foundation.</p></details>
+        <details><summary>Who receives the money?</summary><p>The VGH &amp; UBC Hospital Foundation, a registered Canadian charity (132173063RR0001).</p></details>
       </div>
     </div>
   </section>
-
-  <div class="wrap">
-    <section class="cta">
-      <h2>Set the dial for your company</h2>
-      <p class="lede">Connecting takes about five minutes. The first invoice goes out at the end of the month.</p>
-      <a class="btn btn-primary btn-lg" href="app.html">Open the dashboard</a>
-    </section>
-  </div>
 </main>
 
 <footer class="footer">
   <div class="wrap">
-    <a class="brand" href="index.html" style="font-size:1rem;">
-      <svg viewBox="0 0 32 32" aria-hidden="true" style="width:22px;height:22px;"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
-      Tributary
-    </a>
-    <span>Built at StormHacks 2026, Burnaby, BC</span>
+    <div>
+      <a class="brand" href="index.html" style="font-size:1rem;">
+        <svg viewBox="0 0 32 32" aria-hidden="true" style="width:22px;height:22px;"><rect width="32" height="32" rx="9" fill="#19486a"/><path d="M9 8c0 5 3 7.5 7 9M23 8c0 5-3 7.5-7 9M16 7.5V17" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M16 17v7.5" stroke="#5fd6c4" stroke-width="2.6" stroke-linecap="round"/></svg>
+        Tributary
+      </a>
+      <small>Built at StormHacks 2026, Burnaby, BC</small>
+    </div>
+    <span>Photos from <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>, illustrating areas of work. Not taken at the foundation&rsquo;s sites.</span>
   </div>
 </footer>
 
 <script>
   const money = (cents) => "$" + Math.round(cents / 100).toLocaleString("en-US");
   const moneyExact = (cents) => "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const fmtDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const monthName = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   async function loadLedger() {
     let data;
@@ -268,20 +271,29 @@
     } catch {
       return;
     }
-    document.getElementById("partner-name").textContent = data.charity.name;
-    document.getElementById("partner-desc").textContent = data.charity.description;
-    document.getElementById("pv-charity").textContent = "To " + data.charity.name;
-    document.getElementById("p-pledged").textContent = money(data.totals.pledged);
-    document.getElementById("p-count").textContent = data.totals.n.toLocaleString("en-US");
-    const rows = data.entries.map((e) => `<tr>
-      <td><code>${escapeHtml(e.number)}</code></td>
-      <td>${escapeHtml(e.company)}</td>
-      <td class="muted">${fmtDate(e.period_start)} – ${fmtDate(e.period_end)}</td>
-      <td class="r num"><strong>${moneyExact(e.amount_cents)}</strong></td>
-      <td>${e.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Paid</span>' : '<span class="pill warn"><span class="dot"></span>Invoiced</span>'}</td>
-    </tr>`);
-    document.getElementById("ledger-body").innerHTML = rows.join("");
-    document.getElementById("ledger-empty").hidden = rows.length > 0;
+    const companies = new Set(data.entries.map((e) => e.company)).size;
+    const pct = Math.min(100, (data.goal.raisedCents / data.goal.cents) * 100);
+    document.querySelectorAll(".charity-name").forEach((el) => { el.textContent = data.charity.name; });
+    document.getElementById("goal-raised").textContent = money(data.goal.raisedCents);
+    document.getElementById("goal-of").textContent = "raised of " + money(data.goal.cents);
+    document.getElementById("goal-label").textContent = data.goal.label;
+    document.getElementById("goal-companies").textContent = companies;
+    const bar = document.getElementById("goal-bar");
+    bar.setAttribute("aria-valuenow", String(Math.round(pct)));
+    requestAnimationFrame(() => { bar.querySelector("i").style.width = Math.max(pct, pct > 0 ? 1.5 : 0) + "%"; });
+
+    document.getElementById("n-raised").textContent = money(data.totals.pledged);
+    document.getElementById("n-gifts").textContent = data.totals.n;
+    document.getElementById("n-companies").textContent = companies;
+
+    const heart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+    document.getElementById("gift-list").innerHTML = data.entries.slice(0, 8).map((e) => `
+      <div class="gift">
+        <span class="mark">${heart}</span>
+        <div><div class="who">${esc(e.company)}</div><div class="when">Gift for ${monthName(e.period_end)} &middot; ${esc(e.number)}</div></div>
+        <div class="amt"><b class="num">${moneyExact(e.amount_cents)}</b>${e.status === "paid" ? '<span class="pill ok"><span class="dot"></span>Received</span>' : '<span class="pill warn"><span class="dot"></span>On its way</span>'}</div>
+      </div>`).join("");
+    document.getElementById("gifts-empty").hidden = data.entries.length > 0;
   }
 
   loadLedger();

@@ -1,21 +1,21 @@
-/* Layout concept: a calm, light product site for a giving tool. White
-   surfaces, cool blue-grey neutrals, SDG 17 navy as the brand, one teal for
-   money that flows to charity. Solid sans-serif weights, no hairlines. */
+/* Layout concept: an impact report, not a sales page. Photos of care carry
+   the warmth; the interface stays quiet: white and warm-grey surfaces, dark
+   ink, SDG 17 navy for actions, one teal for money that reached the charity. */
 :root {
   color-scheme: light;
   --bg: #ffffff;
-  --surface: #f5f7fa;
-  --surface-2: #eaeff5;
-  --line: #dfe5ec;
-  --line-strong: #c9d2dc;
-  --ink: #0f2235;
-  --ink-2: #4a5c6e;
-  --ink-3: #74859a;
+  --surface: #f6f5f2;
+  --surface-2: #ecebe7;
+  --line: #e4e1db;
+  --line-strong: #cfcbc3;
+  --ink: #1d2126;
+  --ink-2: #555b62;
+  --ink-3: #868b91;
   --brand: #19486a;
   --brand-hover: #12364f;
-  --brand-soft: #e6eef5;
-  --flow: #0f8f7f;
-  --flow-soft: #e2f4f1;
+  --brand-soft: #e8eef3;
+  --flow: #0e7f72;
+  --flow-soft: #e3f2ef;
   --series-card: #2f6fd0;
   --series-usage: #1fa392;
   --warn: #a15c07;

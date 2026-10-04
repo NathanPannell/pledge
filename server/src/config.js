@@ -34,7 +34,16 @@ export function readConfig(env = process.env) {
     openaiBaseUrl: env.OPENAI_BASE_URL || "https://api.openai.com",
     charity: {
       name: env.CHARITY_NAME || "VGH & UBC Hospital Foundation",
-      description: env.CHARITY_DESCRIPTION || "Supports Vancouver General Hospital and UBC Hospital.",
+      shortName: env.CHARITY_SHORT_NAME || "VGH Foundation",
+      description: env.CHARITY_DESCRIPTION ||
+        "Funds care and research at Vancouver General Hospital, UBC Hospital, G.F. Strong Rehabilitation Centre and Vancouver Coastal Health.",
+      url: env.CHARITY_URL || "https://vghfoundation.ca",
+      registration: env.CHARITY_REGISTRATION || "132173063RR0001",
+    },
+    // The shared fundraising goal shown on the landing page and dashboard.
+    goal: {
+      label: env.GOAL_LABEL || "StormHacks 2026 goal",
+      cents: Number(env.GOAL_CENTS || 1000000),
     },
   };
 }

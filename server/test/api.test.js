@@ -203,6 +203,27 @@ test("pledge rate is clamped to the dial's range", async () => {
   assert.equal(res.body.org.pledgeRate ?? res.body.org.pledge_rate, 0.05);
 });
 
+test("demo seed leaves two paid months and last month ready to give", async () => {
+  assert.equal((await api("POST", "/api/demo")).status, 200);
+  const { body } = await api("GET", "/api/state?start=2000-01-01&end=" + today);
+  assert.equal(body.org.name, "Northgate Freight");
+  assert.equal(body.connections[0].kind, "demo");
+  assert.equal(body.invoices.length, 2);
+  assert.ok(body.invoices.every((i) => i.status === "paid" && i.amount_cents > 0));
+  const lastMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
+  assert.ok(body.invoices.every((i) => i.period_end < lastMonth));
+  assert.equal(body.goal.raisedCents, body.invoices.reduce((s, i) => s + i.amount_cents, 0));
+  // Refresh skips the demo card instead of calling Plaid with it.
+  assert.equal((await api("POST", "/api/refresh")).status, 200);
+});
+
+test("reset clears everything", async () => {
+  await api("POST", "/api/reset");
+  const { body } = await api("GET", "/api/state");
+  assert.equal(body.org, null);
+  assert.equal(body.connections.length, 0);
+});
+
 test("serves the web app and keeps paths inside it", async () => {
   const ok = await fetch(base + "/");
   assert.equal(ok.status, 200);
