@@ -26,7 +26,7 @@ export function createPlaid({ clientId, secret, baseUrl }, fetchImpl = fetch) {
     async linkToken(userId) {
       const out = await call("/link/token/create", {
         user: { client_user_id: userId },
-        client_name: "Tributary",
+        client_name: "Pledge",
         products: ["transactions"],
         country_codes: ["CA", "US"],
         language: "en",

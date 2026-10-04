@@ -17,7 +17,7 @@ const service = createService({
 });
 
 createApp({ service, webRoot: WEB_ROOT }).listen(config.port, () => {
-  console.log(`Tributary on http://localhost:${config.port}`);
+  console.log(`Pledge on http://localhost:${config.port}`);
   console.log(`  Plaid:  ${config.plaid.clientId ? config.plaid.env : "not configured"}`);
   console.log(`  Stripe: ${config.stripe.secretKey ? "configured" : "not configured (invoices stay local)"}`);
   console.log(`  Charity: ${config.charity.name}`);

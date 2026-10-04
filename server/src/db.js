@@ -60,7 +60,7 @@ export function openDb(dataDir) {
   let path = ":memory:";
   if (dataDir !== ":memory:") {
     mkdirSync(dataDir, { recursive: true });
-    path = join(dataDir, "tributary.db");
+    path = join(dataDir, "pledge.db");
   }
   const db = new DatabaseSync(path);
   db.exec("pragma foreign_keys = on;");

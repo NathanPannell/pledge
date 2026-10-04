@@ -40,7 +40,7 @@ export function createStripe({ secretKey, baseUrl }, fetchImpl = fetch) {
         days_until_due: 30,
         currency: "usd",
         description: `AI pledge for ${charity}`,
-        metadata: { tributary_number: number },
+        metadata: { pledge_number: number },
       });
       await call("/v1/invoiceitems", {
         customer: customerId,

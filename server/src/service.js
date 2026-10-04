@@ -235,7 +235,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
   }
 
   function nextInvoiceNumber(date) {
-    const prefix = `TRB-${date.slice(0, 4)}${date.slice(5, 7)}-`;
+    const prefix = `PLG-${date.slice(0, 4)}${date.slice(5, 7)}-`;
     const row = q("select count(*) n from invoice where number like ?").get(prefix + "%");
     return prefix + String(row.n + 1).padStart(3, "0");
   }

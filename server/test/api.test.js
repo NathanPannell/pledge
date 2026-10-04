@@ -83,7 +83,7 @@ async function api(method, path, body) {
 }
 
 before(async () => {
-  tmp = mkdtempSync(join(tmpdir(), "tributary-"));
+  tmp = mkdtempSync(join(tmpdir(), "pledge-"));
   upstream = mockUpstream();
   const mock = `http://127.0.0.1:${await listen(upstream)}`;
   const config = readConfig({
@@ -184,7 +184,7 @@ test("issues a Stripe invoice for the pledge on the larger basis", async () => {
   assert.equal(inv.basis_cents, 489040);
   assert.equal(inv.amount_cents, 4890);
   assert.equal(inv.stripe_url, "https://invoice.example/in_1");
-  assert.match(inv.number, /^TRB-\d{6}-001$/);
+  assert.match(inv.number, /^PLG-\d{6}-001$/);
   const item = calls.find((c) => c.path === "/v1/invoiceitems");
   assert.match(item.raw, /amount=4890/);
 });

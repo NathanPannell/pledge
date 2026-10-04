@@ -1,8 +1,8 @@
 {
-  "name": "tributary-server",
+  "name": "pledge-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Tributary API: connects a business card and AI provider accounts, measures AI spend, and issues pledge invoices.",
+  "description": "Pledge API: connects a business card and AI provider accounts, measures AI spend, and issues pledge invoices.",
   "type": "module",
   "engines": { "node": ">=22.13" },
   "scripts": {

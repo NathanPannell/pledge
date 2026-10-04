@@ -1,8 +1,8 @@
 {
-  "name": "tributary-web",
+  "name": "pledge-web",
   "version": "0.1.0",
   "private": true,
-  "description": "Static pages for Tributary. No build step.",
+  "description": "Static pages for Pledge. No build step.",
   "scripts": {
     "test": "node --test \"test/*.test.cjs\""
   }

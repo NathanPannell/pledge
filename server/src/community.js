@@ -25,7 +25,7 @@ export function sampleGifts(today = new Date()) {
   const end = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
   const issued = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)).toISOString();
   return RECENT.map(([company, dollars], i) => ({
-    number: `TRB-${end.slice(0, 4)}${end.slice(5, 7)}-${String(101 + i).padStart(3, "0")}`,
+    number: `PLG-${end.slice(0, 4)}${end.slice(5, 7)}-${String(101 + i).padStart(3, "0")}`,
     company,
     period_start: start,
     period_end: end,

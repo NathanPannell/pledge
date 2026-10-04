@@ -33,7 +33,7 @@ export async function anthropicCosts({ baseUrl, key, start, end }, fetchImpl = f
     const json = await getJson(fetchImpl, url, {
       "x-api-key": key,
       "anthropic-version": "2023-06-01",
-      "user-agent": "Tributary/0.1",
+      "user-agent": "Pledge/0.1",
     });
     for (const bucket of json.data || []) {
       const cents = (bucket.results || []).reduce((sum, r) => sum + Number(r.amount || 0), 0);
