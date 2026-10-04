@@ -15,7 +15,7 @@ folder for localhost testing or a new domain. Do not commit device tokens.
 
 Detection, CAD rounding rules, and separate Stripe confirmation retain the previous
 behavior. The popup, the OpenRouter panel and `/roundups/` use Pledge's design system
-(the Figtree font is bundled in `extension/assets/`, with its licence). Already whole CAD totals do not prompt; otherwise round to
+(the Figtree font is bundled in `extension/assets/`, with its licence). Pending round-ups sit in a piggy bank that coins drop into; `extension/piggy.js` must stay a copy of `web/assets/piggy.js`. Already whole CAD totals do not prompt; otherwise round to
 the next dollar, advancing another dollar if the gap is less than 15 cents.
 Yes is an **unfunded pledge**. Only Stripe-verified sandbox payments clear the
 reserved entries. Estimated CAD charges remain explicitly labeled estimates.

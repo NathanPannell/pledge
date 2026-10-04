@@ -27,6 +27,9 @@ to the charity and listed on a public record. UN SDG 17.
     connection codes and the round-up demo; shared with `/roundups/`.
   - `assets/fonts/` self-hosted Figtree (OFL), for pages whose security policy blocks
     Google Fonts.
+  - `assets/piggy.js` the piggy bank shown beside every contribution total (company
+    impact, thank-you, round-ups). Money added drops in as coins. The extension carries
+    an identical copy in `roundups/extension/piggy.js`; a roundups test checks they match.
   - `assets/chart.js` the scale chart: OpenAI + Anthropic annualized revenue against all
     foreign aid, with the projected crossing. Data and its derivation are at the top of
     the file; sources are notes 3 to 5 on the landing page.
