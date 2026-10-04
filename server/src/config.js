@@ -40,10 +40,8 @@ export function readConfig(env = process.env) {
       url: env.CHARITY_URL || "https://vghfoundation.ca",
       registration: env.CHARITY_REGISTRATION || "132173063RR0001",
     },
-    // The shared fundraising goal shown on the landing page and dashboard.
-    goal: {
-      label: env.GOAL_LABEL || "StormHacks 2026 goal",
-      cents: Number(env.GOAL_CENTS || 1000000),
-    },
+    // Sample giving from other companies, added to real records so the demo
+    // shows a full community. Set COMMUNITY_SAMPLE=off to show real data only.
+    communitySample: env.COMMUNITY_SAMPLE !== "off",
   };
 }

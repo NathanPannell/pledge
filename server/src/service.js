@@ -1,3 +1,4 @@
+import { SAMPLE, sampleGifts } from "./community.js";
 import { now } from "./db.js";
 import { anthropicCosts, openaiCosts } from "./providers.js";
 import { basisCents, clampRate, monthKey, pledgeCents } from "./pledge.js";
@@ -276,7 +277,7 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     return {
       org: o && { name: o.name, billingEmail: o.billing_email, pledgeRate: o.pledge_rate, basis: o.basis },
       charity: config.charity,
-      goal: { ...config.goal, raisedCents: totalRaised() },
+      community: community(),
       plaid: { configured: plaid.configured, env: config.plaid.env },
       stripe: { configured: stripe.configured, testMode: stripe.testMode },
       connections: q("select id, kind, label, hint, status, error, synced_at from connection order by id").all(),
@@ -286,23 +287,30 @@ export function createService({ db, key, plaid, stripe, config, fetchImpl = fetc
     };
   }
 
-  function totalRaised() {
-    return q("select coalesce(sum(amount_cents), 0) c from invoice").get().c;
+  // Totals across every giving company: this one plus the sample community.
+  function community() {
+    const real = q("select coalesce(sum(amount_cents), 0) total, count(*) n from invoice").get();
+    const latest = q("select amount_cents from invoice order by period_end desc limit 1").get();
+    const sample = config.communitySample ? SAMPLE : { companies: 0, monthlyCents: 0, totalCents: 0 };
+    return {
+      // A company counts once it has given at least once.
+      companies: sample.companies + (real.n > 0 ? 1 : 0),
+      monthlyCents: sample.monthlyCents + (latest?.amount_cents || 0),
+      totalCents: sample.totalCents + real.total,
+      ownGifts: real.n,
+    };
   }
 
   function ledger() {
     const o = org();
-    const rows = q(`select number, period_start, period_end, amount_cents, charity, status, created_at
-      from invoice order by created_at desc limit 50`).all();
-    const totals = q(`select coalesce(sum(amount_cents), 0) pledged,
-      coalesce(sum(case when status = 'paid' then amount_cents else 0 end), 0) paid, count(*) n from invoice`).get();
-    return {
-      charity: config.charity,
-      goal: { ...config.goal, raisedCents: totals.pledged },
-      totals,
-      entries: rows.map((r) => ({ ...r, company: o?.name || "" })),
-      months: q(`select substr(created_at, 1, 7) month, sum(amount_cents) cents from invoice group by month order by month`).all(),
-    };
+    const own = q(`select number, period_start, period_end, amount_cents, charity, status, created_at
+      from invoice order by period_end desc, created_at desc limit 50`).all()
+      .map((r) => ({ ...r, company: o?.name || "" }));
+    const others = config.communitySample ? sampleGifts() : [];
+    const entries = [...own, ...others]
+      .sort((a, b) => b.period_end.localeCompare(a.period_end) || b.amount_cents - a.amount_cents)
+      .slice(0, 12);
+    return { charity: config.charity, community: community(), entries };
   }
 
   return {

@@ -32,13 +32,12 @@
   .impact .body { padding: 28px; display: grid; gap: 14px; }
   .impact .to { color: var(--ink-2); font-size: 1.05rem; }
   .impact .to b { color: var(--ink); }
-  .stats { display: flex; gap: 28px; flex-wrap: wrap; color: var(--ink-2); font-size: 0.95rem; }
-  .stats b { display: block; color: var(--ink); font-size: 1.2rem; font-weight: 720; }
-  .goal-line { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
-  .goal-line .row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.92rem; color: var(--ink-2); flex-wrap: wrap; }
-  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; display: flex; }
-  .bar i { display: block; height: 100%; background: var(--flow); transition: width 0.8s ease; }
-  .bar i.mine { background: #12a08f; }
+  .page-head { display: grid; gap: 4px; padding-top: 4px; }
+  .page-head h1 { font-size: 2rem; }
+  .page-head b { color: var(--ink); }
+  .impact .gift-list { padding-top: 6px; border-top: 1px solid var(--line); }
+  .community { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: var(--surface); color: var(--ink-2); font-size: 0.93rem; }
+  .community b { color: var(--ink); }
 
   /* Ready to give */
   .ready { border: 2px solid var(--flow); background: linear-gradient(180deg, var(--flow-soft), #fff 70%); }
@@ -139,7 +138,7 @@
 <main class="wrap">
   <!-- First visit -->
   <section class="panel welcome" id="welcome" hidden>
-    <figure><img src="https://images.unsplash.com/photo-1765896387398-1e1ae8d2eb85?auto=format&fit=crop&w=1000&q=80" alt="A caregiver in scrubs talking with an older patient"></figure>
+    <figure><img src="https://images.unsplash.com/photo-1631815590058-860e4f83c1e8?auto=format&fit=crop&w=1000&q=80" alt="A health care worker checking a patient&rsquo;s blood pressure"></figure>
     <div class="body">
       <span class="eyebrow">Welcome</span>
       <h1 style="font-size:2.1rem;">See the good your team&rsquo;s AI spend could do</h1>
@@ -157,27 +156,15 @@
   </section>
 
   <div id="home" hidden style="display:grid;gap:20px;">
-    <!-- 1. Impact so far -->
-    <section class="panel impact" aria-labelledby="given-amt">
-      <figure><img src="https://images.unsplash.com/photo-1765896387387-0538bc9f997e?auto=format&fit=crop&w=600&q=80" alt="A nurse smiling with an elderly patient"></figure>
-      <div class="body">
-        <span class="eyebrow">Your impact so far</span>
-        <div><span class="big-money num" id="given-amt">$0</span></div>
-        <p class="to"><b id="org-name-out">Your company</b> has given to the <b class="charity-name">VGH &amp; UBC Hospital Foundation</b>.</p>
-        <div class="stats">
-          <div><b class="num" id="s-gifts">0</b>monthly gifts</div>
-          <div><b class="num" id="s-since">&mdash;</b>giving since</div>
-          <div><b class="num" id="s-rate">1%</b>of AI spend</div>
-        </div>
-        <div class="goal-line">
-          <div class="row"><span id="goal-label">StormHacks 2026 goal</span><span class="num" id="goal-text">$0 of $10,000</span></div>
-          <div class="bar" aria-hidden="true"><i id="goal-others" style="width:0%"></i><i class="mine" id="goal-mine" style="width:0%"></i></div>
-          <span class="faint small" id="goal-share"></span>
-        </div>
+    <!-- Who is giving, to whom -->
+    <div class="page-head">
+      <div>
+        <h1 id="org-name-out">Your company</h1>
+        <p class="muted">Giving <b id="s-rate">1%</b> of AI spend to the <span class="charity-name">VGH &amp; UBC Hospital Foundation</span></p>
       </div>
-    </section>
+    </div>
 
-    <!-- 2. Ready to give -->
+    <!-- 1. The one thing to do now -->
     <section class="panel ready" id="ready" hidden aria-labelledby="ready-title">
       <span class="eyebrow">Ready to give</span>
       <h2 id="ready-title" style="font-size:1.7rem;">September&rsquo;s gift is ready</h2>
@@ -190,6 +177,18 @@
     <section class="panel next" id="next" hidden>
       <div style="display:grid;gap:4px;"><span class="eyebrow">Next gift</span><h3 id="next-title">November 1</h3></div>
       <p class="muted" id="next-text"></p>
+    </section>
+
+    <!-- 2. Impact so far, with the gifts that made it -->
+    <section class="panel impact" aria-labelledby="given-amt">
+      <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=600&q=80" alt="A smiling doctor talking with a patient"></figure>
+      <div class="body">
+        <span class="eyebrow">Your impact so far</span>
+        <div><span class="big-money num" id="given-amt">$0</span></div>
+        <p class="to">given to the <b class="charity-name">VGH &amp; UBC Hospital Foundation</b> across <b id="s-gifts">0</b> monthly gifts since <b id="s-since">this month</b>.</p>
+        <div class="gift-list" id="gifts"></div>
+        <p class="community" id="community"></p>
+      </div>
     </section>
 
     <!-- 3. The impact you can make -->
@@ -208,13 +207,7 @@
       </div>
     </section>
 
-    <!-- 4. Gifts -->
-    <section class="panel" aria-labelledby="gifts-title">
-      <div class="panel-head"><h3 id="gifts-title">Your gifts</h3><a class="small" href="index.html#gifts">See all gifts</a></div>
-      <div class="gift-list" id="gifts"></div>
-    </section>
-
-    <!-- 5. AI spend -->
+    <!-- 4. AI spend -->
     <section class="panel" aria-labelledby="spend-title">
       <div class="panel-head"><h3 id="spend-title">Where your AI spend goes</h3><span class="faint small" id="spend-period"></span></div>
       <div class="sources" id="sources"></div>
@@ -240,7 +233,7 @@
 </main>
 
 <dialog id="thanks" class="thanks">
-  <figure><img src="https://images.unsplash.com/photo-1765896387398-1e1ae8d2eb85?auto=format&fit=crop&w=1000&q=80" alt="A caregiver in scrubs smiling with an older patient"></figure>
+  <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1000&q=80" alt="A smiling doctor talking with a patient"></figure>
   <div class="dlg">
     <span class="eyebrow">Thank you</span>
     <span class="big-money num" id="t-amt">$0</span>

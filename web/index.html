@@ -23,16 +23,15 @@
   .hero-photo { position: relative; min-width: 0; padding-bottom: 48px; }
   .hero-photo figure { margin: 0; aspect-ratio: 5 / 4; border-radius: 24px; overflow: hidden; background: var(--surface-2); max-width: 100%; }
   .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
-  .hero-photo .goal { position: absolute; left: -28px; right: 48px; bottom: 0; }
+  .hero-photo .impact-card { position: absolute; left: -28px; right: 40px; bottom: 0; }
+  .impact-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px 24px; display: grid; gap: 14px; box-shadow: var(--shadow-lg); }
+  .impact-card .headline { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .impact-card .big { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; color: #0b5e54; line-height: 1; }
+  .impact-card .of { color: var(--ink-2); font-weight: 600; }
+  .impact-card .mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 0.86rem; color: var(--ink-2); }
+  .impact-card .mini b { display: block; font-size: 1.15rem; font-weight: 750; color: var(--ink); }
   .btn-light { background: #fff; color: var(--ink); }
   .btn-light:hover { background: #f1f1f1; }
-  .goal { background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 22px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; box-shadow: var(--shadow-lg); }
-  .goal .big { font-size: 1.9rem; font-weight: 780; letter-spacing: -0.02em; }
-  .goal .of { color: var(--ink-2); font-weight: 550; }
-  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; grid-column: 1 / -1; }
-  .bar i { display: block; height: 100%; border-radius: 999px; background: var(--flow); transition: width 0.8s ease; }
-  .goal .side { text-align: right; color: var(--ink-2); font-size: 0.92rem; }
-  .goal .side b { display: block; color: var(--ink); font-size: 1.2rem; }
 
   section.block { padding-block: 96px; }
   section.tint { background: var(--surface); }
@@ -93,7 +92,7 @@
 
   @media (max-width: 960px) {
     .hero-inner { grid-template-columns: 1fr; gap: 36px; }
-    .hero-photo .goal { left: 16px; right: 16px; }
+    .hero-photo .impact-card { left: 16px; right: 16px; }
     .areas { grid-template-columns: 1fr; max-width: 560px; }
     .flow { grid-template-columns: 1fr 1fr; gap: 32px 0; }
     .flow li:nth-child(2)::after { display: none; }
@@ -104,9 +103,8 @@
   @media (max-width: 620px) {
     .hero { padding-block: 32px 48px; }
     .hero-photo { padding-bottom: 0; }
-    .hero-photo .goal { position: static; margin-top: -40px; margin-inline: 12px; }
-    .goal { grid-template-columns: 1fr; }
-    .goal .side { text-align: left; }
+    .hero-photo .impact-card { position: static; margin-top: -40px; margin-inline: 12px; }
+    .impact-card .mini { grid-template-columns: 1fr 1fr; }
     .flow { grid-template-columns: 1fr; }
     .flow li::after { display: none; }
     .faq { grid-template-columns: 1fr; }
@@ -140,20 +138,22 @@
       <div class="hero-copy">
         <span class="for-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Raising for <span class="charity-name">VGH &amp; UBC Hospital Foundation</span></span>
         <h1>Your team&rsquo;s AI spend can help someone get better care.</h1>
-        <p class="lede">Tributary sends a small share of what your company spends on AI to the VGH &amp; UBC Hospital Foundation. One gift a month, and every dollar on the record.</p>
+        <p class="lede">Connect your company card and choose a share of your AI spend. Tributary turns it into one gift a month for the VGH &amp; UBC Hospital Foundation, with every dollar on the record.</p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-lg" href="app.html">Start giving</a>
           <a class="btn btn-secondary btn-lg" href="#impact">See where it goes</a>
         </div>
       </div>
       <div class="hero-photo">
-      <figure><img src="https://images.unsplash.com/photo-1765896387387-0538bc9f997e?auto=format&fit=crop&w=1400&q=80" alt="A nurse smiling with an elderly patient" fetchpriority="high"></figure>
-      <div class="goal" aria-label="Fundraising goal">
-        <div><span class="big num" id="goal-raised">$0</span> <span class="of" id="goal-of">raised of $10,000</span></div>
-        <div class="side"><b class="num" id="goal-companies">0</b>companies giving</div>
-        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-bar"><i style="width:0%"></i></div>
-        <span class="faint small" id="goal-label">StormHacks 2026 goal</span>
-      </div>
+        <figure><img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1400&q=80" alt="A smiling doctor talking with a patient in a clinic" fetchpriority="high"></figure>
+        <div class="impact-card" aria-label="Giving so far">
+          <div class="headline"><span class="big num" id="h-monthly">$24,500</span><span class="of">donated every month</span></div>
+          <div class="mini">
+            <div><b class="num" id="h-companies">45</b>companies giving</div>
+            <div><b class="num" id="h-total">$146,800</b>given so far</div>
+            <div><b class="num">1%</b>typical share of AI spend</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -210,9 +210,9 @@
         <h2>Every gift, on the record</h2>
       </div>
       <div class="numbers" style="margin-bottom:40px;">
-        <div><b class="num" id="n-raised">$0</b><span>given to the foundation</span></div>
-        <div><b class="num" id="n-gifts">0</b><span>monthly gifts</span></div>
-        <div><b class="num" id="n-companies">0</b><span>companies giving</span></div>
+        <div><b class="num" id="n-raised">$146,800</b><span>given to the foundation</span></div>
+        <div><b class="num" id="n-monthly">$24,500</b><span>donated every month</span></div>
+        <div><b class="num" id="n-companies">45</b><span>companies giving</span></div>
         <div><b class="num">1%</b><span>typical share of AI spend</span></div>
       </div>
       <div class="gifts" id="gift-list"></div>
@@ -271,20 +271,15 @@
     } catch {
       return;
     }
-    const companies = new Set(data.entries.map((e) => e.company)).size;
-    const pct = Math.min(100, (data.goal.raisedCents / data.goal.cents) * 100);
+    const c = data.community;
+    const set = (id, text) => { document.getElementById(id).textContent = text; };
     document.querySelectorAll(".charity-name").forEach((el) => { el.textContent = data.charity.name; });
-    document.getElementById("goal-raised").textContent = money(data.goal.raisedCents);
-    document.getElementById("goal-of").textContent = "raised of " + money(data.goal.cents);
-    document.getElementById("goal-label").textContent = data.goal.label;
-    document.getElementById("goal-companies").textContent = companies;
-    const bar = document.getElementById("goal-bar");
-    bar.setAttribute("aria-valuenow", String(Math.round(pct)));
-    requestAnimationFrame(() => { bar.querySelector("i").style.width = Math.max(pct, pct > 0 ? 1.5 : 0) + "%"; });
-
-    document.getElementById("n-raised").textContent = money(data.totals.pledged);
-    document.getElementById("n-gifts").textContent = data.totals.n;
-    document.getElementById("n-companies").textContent = companies;
+    set("h-monthly", money(c.monthlyCents));
+    set("h-companies", c.companies.toLocaleString("en-US"));
+    set("h-total", money(c.totalCents));
+    set("n-raised", money(c.totalCents));
+    set("n-monthly", money(c.monthlyCents));
+    set("n-companies", c.companies.toLocaleString("en-US"));
 
     const heart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
     document.getElementById("gift-list").innerHTML = data.entries.slice(0, 8).map((e) => `

@@ -66,6 +66,9 @@
     render();
   }
 
+  const HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+  const HEART_SMALL = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0e7f72" stroke-width="2" style="flex:none"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+
   // ---- Derived numbers -------------------------------------------------------
 
   function rate() {
@@ -132,20 +135,13 @@
     $("org-name-out").textContent = state.org.name;
     $("s-gifts").textContent = String(gifts);
     const first = state.invoices.reduce((min, i) => (!min || i.period_start < min ? i.period_start : min), "");
-    $("s-since").textContent = first ? monthLong(first.slice(0, 7)) : "This month";
+    $("s-since").textContent = first ? monthLong(first.slice(0, 7)) : "this month";
     $("s-rate").textContent = pctText(state.org.pledgeRate);
 
-    const goal = state.goal;
-    const others = Math.max(0, goal.raisedCents - given);
-    $("goal-label").textContent = goal.label;
-    $("goal-text").textContent = `${money(goal.raisedCents)} of ${money(goal.cents)}`;
-    requestAnimationFrame(() => {
-      $("goal-others").style.width = Math.min(100, (others / goal.cents) * 100) + "%";
-      $("goal-mine").style.width = Math.min(100, (given / goal.cents) * 100) + "%";
-    });
-    $("goal-share").textContent = given > 0 && goal.raisedCents > given
-      ? `${state.org.name} has given ${Math.round((given / goal.raisedCents) * 100)}% of everything raised so far.`
-      : "";
+    const c = state.community;
+    $("community").innerHTML = gifts
+      ? `${HEART_SMALL}<span>You&rsquo;re one of <b>${c.companies}</b> companies giving <b>${money(c.monthlyCents)}</b> to the foundation every month.</span>`
+      : `${HEART_SMALL}<span><b>${c.companies}</b> companies already give <b>${money(c.monthlyCents)}</b> a month. Your first gift adds to it.</span>`;
   }
 
   function renderReady() {
@@ -188,7 +184,6 @@
     $("o-ten").textContent = money(monthly * 120);
   }
 
-  const HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
 
   function renderGifts() {
     const rows = state.invoices;

@@ -33,5 +33,8 @@ and are listed on a public ledger. UN SDG 17.
   never returned by the API. Tests assert this.
 - Stripe invoices are finalized, never emailed by the server.
 - Charity name comes from `CHARITY_NAME` in `server/.env`.
+- `src/community.js` adds sample giving from 45 other companies to real records so
+  the landing page and giving page show a full community. `COMMUNITY_SAMPLE=off` turns
+  it off. The sample is not real giving; never present it as real traction.
 - Tests: `npm --prefix server test` (mock upstream for Plaid, Anthropic, OpenAI, Stripe),
   `npm --prefix web test`.

@@ -96,6 +96,7 @@ before(async () => {
     ANTHROPIC_BASE_URL: mock,
     OPENAI_BASE_URL: mock,
     CHARITY_NAME: "Test Foundation",
+    COMMUNITY_SAMPLE: "off",
   });
   const webRoot = join(tmp, "web");
   mkdirSync(webRoot);
@@ -190,12 +191,13 @@ test("issues a Stripe invoice for the pledge on the larger basis", async () => {
 
 test("the public ledger shows the pledge and marks it paid", async () => {
   const { body: before } = await api("GET", "/api/ledger");
-  assert.equal(before.totals.pledged, 4890);
+  assert.equal(before.community.totalCents, 4890);
+  assert.equal(before.community.companies, 1);
   assert.equal(before.entries[0].company, "Northgate Freight");
   const id = (await api("GET", "/api/state")).body.invoices[0].id;
   await api("POST", `/api/invoices/${id}/paid`);
   const { body: after } = await api("GET", "/api/ledger");
-  assert.equal(after.totals.paid, 4890);
+  assert.equal(after.entries[0].status, "paid");
 });
 
 test("pledge rate is clamped to the dial's range", async () => {
@@ -212,7 +214,7 @@ test("demo seed leaves two paid months and last month ready to give", async () =
   assert.ok(body.invoices.every((i) => i.status === "paid" && i.amount_cents > 0));
   const lastMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
   assert.ok(body.invoices.every((i) => i.period_end < lastMonth));
-  assert.equal(body.goal.raisedCents, body.invoices.reduce((s, i) => s + i.amount_cents, 0));
+  assert.equal(body.community.totalCents, body.invoices.reduce((s, i) => s + i.amount_cents, 0));
   // Refresh skips the demo card instead of calling Plaid with it.
   assert.equal((await api("POST", "/api/refresh")).status, 200);
 });
